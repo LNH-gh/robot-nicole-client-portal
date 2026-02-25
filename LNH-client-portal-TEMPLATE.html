@@ -1,0 +1,1677 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>[CLIENT_BUSINESS_NAME] | Client Portal</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --green: #2d5246;
+    --green-light: #3a6858;
+    --green-pale: #eef4f1;
+    --copper: #b87d52;
+    --copper-light: #d4a57a;
+    --copper-pale: #fdf5ed;
+    --cream: #faf8f5;
+    --text: #1e3329;
+    --text-mid: #4a6358;
+    --text-light: #8aab9a;
+    --white: #ffffff;
+    --border: rgba(184,125,82,0.2);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: "Montserrat", sans-serif;
+    background: var(--cream);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  .sidebar {
+    position: fixed;
+    left: 0; top: 0; bottom: 0;
+    width: 260px;
+    background: var(--green);
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    padding: 0 0 24px 0;
+    overflow-y: auto;
+  }
+
+  .sidebar-logo {
+    padding: 32px 28px 24px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+  }
+
+  .sidebar-logo .by-nicole {
+    font-family: "Montserrat", sans-serif;
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--copper-light);
+    margin-bottom: 4px;
+  }
+
+  .sidebar-logo .client-name {
+    font-family: "Montserrat", sans-serif;
+    font-size: 22px;
+    font-weight: 500;
+    color: white;
+    line-height: 1.2;
+  }
+
+  .sidebar-logo .portal-label {
+    font-size: 11px;
+    color: rgba(255,255,255,0.45);
+    letter-spacing: 0.1em;
+    margin-top: 2px;
+  }
+
+  .sidebar-section { padding: 20px 0 8px; }
+
+  .sidebar-section-label {
+    font-size: 9px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.3);
+    padding: 0 28px;
+    margin-bottom: 6px;
+  }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 28px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 13.5px;
+    color: rgba(255,255,255,0.65);
+    border-left: 2px solid transparent;
+    text-decoration: none;
+  }
+
+  .nav-item:hover, .nav-item.active {
+    background: rgba(255,255,255,0.07);
+    color: white;
+    border-left-color: var(--copper-light);
+  }
+
+  .nav-item .icon { font-size: 15px; opacity: 0.8; width: 18px; text-align: center; flex-shrink: 0; }
+
+  .sidebar-footer {
+    margin-top: auto;
+    padding: 20px 28px 0;
+    border-top: 1px solid rgba(255,255,255,0.1);
+  }
+
+  .sidebar-footer p { font-size: 11px; color: rgba(255,255,255,0.3); line-height: 1.6; }
+  .sidebar-footer a { color: var(--copper-light); text-decoration: none; font-size: 11px; }
+
+  .main { margin-left: 260px; min-height: 100vh; }
+
+  .topbar {
+    background: white;
+    border-bottom: 1px solid var(--border);
+    padding: 16px 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+  }
+
+  .topbar-left { display: flex; align-items: center; gap: 12px; }
+  .setup-date { font-size: 12px; color: var(--text-light); }
+  .setup-date span { color: var(--copper); font-weight: 500; }
+  .topbar-right { display: flex; gap: 10px; }
+
+  .btn {
+    padding: 8px 18px;
+    border-radius: 6px;
+    font-size: 12.5px;
+    font-family: "Montserrat", sans-serif;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border: none;
+  }
+
+  .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text-mid); }
+  .btn-outline:hover { border-color: var(--copper); color: var(--copper); }
+  .btn-primary { background: var(--green); color: white; }
+  .btn-primary:hover { background: var(--green-light); }
+  .btn-copper { background: var(--copper); color: white; }
+  .btn-copper:hover { background: var(--copper-light); }
+
+  .page-section { display: none; padding: 40px; animation: fadeIn 0.3s ease; }
+  .page-section.active { display: block; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .section-header { margin-bottom: 32px; }
+
+  .section-header h1 {
+    font-family: "Montserrat", sans-serif;
+    font-size: 36px;
+    font-weight: 500;
+    color: var(--green);
+    line-height: 1.2;
+    margin-bottom: 6px;
+  }
+
+  .section-header p { color: var(--text-mid); font-size: 14px; line-height: 1.6; }
+
+  .stats-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; margin-bottom: 32px; }
+
+  .stat-card { background: white; border: 1px solid var(--border); border-radius: 12px; padding: 20px 22px; }
+  .stat-card .stat-label { font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-light); margin-bottom: 8px; }
+  .stat-card .stat-value { font-family: "Montserrat", sans-serif; font-size: 32px; font-weight: 500; color: var(--green); line-height: 1; }
+  .stat-card .stat-sub { font-size: 11.5px; color: var(--text-light); margin-top: 4px; }
+
+  .card { background: white; border: 1px solid var(--border); border-radius: 12px; padding: 28px; margin-bottom: 20px; }
+
+  .card-title {
+    font-family: "Montserrat", sans-serif;
+    font-size: 20px;
+    font-weight: 500;
+    color: var(--green);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .workflow-list { display: flex; flex-direction: column; gap: 12px; }
+
+  .workflow-item { border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+
+  .workflow-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 18px;
+    cursor: pointer;
+    background: var(--green-pale);
+    transition: background 0.2s;
+  }
+
+  .workflow-header:hover { background: #deeae4; }
+  .workflow-header-left { display: flex; align-items: center; gap: 12px; }
+  .workflow-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--copper); flex-shrink: 0; }
+  .workflow-name { font-size: 14px; font-weight: 500; color: var(--text); }
+
+  .workflow-tag {
+    font-size: 10.5px;
+    background: rgba(184,125,82,0.12);
+    color: var(--copper);
+    padding: 2px 8px;
+    border-radius: 20px;
+    letter-spacing: 0.05em;
+  }
+
+  .workflow-toggle { font-size: 13px; color: var(--text-light); transition: transform 0.2s; }
+  .workflow-toggle.open { transform: rotate(180deg); }
+
+  .workflow-body { display: none; padding: 18px; background: white; border-top: 1px solid var(--border); }
+  .workflow-body.open { display: block; }
+  .workflow-body p { font-size: 13.5px; color: var(--text-mid); line-height: 1.7; margin-bottom: 12px; }
+
+  .workflow-steps { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+
+  .workflow-steps li {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    font-size: 13px;
+    color: var(--text-mid);
+    line-height: 1.5;
+  }
+
+  .step-num {
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    background: var(--green);
+    color: white;
+    font-size: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  .update-timeline { position: relative; padding-left: 28px; }
+
+  .update-timeline::before {
+    content: '';
+    position: absolute;
+    left: 8px; top: 6px; bottom: 6px;
+    width: 1px;
+    background: var(--border);
+  }
+
+  .update-item { position: relative; margin-bottom: 28px; }
+
+  .update-item::before {
+    content: '';
+    position: absolute;
+    left: -24px; top: 5px;
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    border: 2px solid var(--copper);
+    background: var(--cream);
+  }
+
+  .update-timing { font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--copper); margin-bottom: 5px; }
+  .update-title { font-size: 15px; font-weight: 500; color: var(--text); margin-bottom: 6px; }
+  .update-desc { font-size: 13px; color: var(--text-mid); line-height: 1.6; }
+
+  .content-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+
+  .content-card {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    text-decoration: none;
+    display: block;
+    transition: all 0.2s;
+  }
+
+  .content-card:hover { border-color: var(--copper-light); transform: translateY(-2px); box-shadow: 0 4px 20px rgba(45,82,70,0.08); }
+
+  .content-card-thumb {
+    height: 110px;
+    background: var(--green);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .content-card-thumb::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(184,125,82,0.2) 0%, transparent 60%);
+  }
+
+  .yt-thumb { background: linear-gradient(135deg, #1a3d30 0%, #2d5246 100%); }
+  .content-card-body { padding: 14px 16px; }
+  .content-card-type { font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--copper); margin-bottom: 4px; }
+  .content-card-title { font-size: 13.5px; font-weight: 500; color: var(--text); line-height: 1.4; }
+
+  .chat-wrapper {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    height: 500px;
+  }
+
+  .chat-header { background: var(--green); padding: 16px 22px; display: flex; align-items: center; gap: 12px; }
+
+  .chat-avatar {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background: var(--copper);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+
+  .chat-header-info h3 { font-size: 14px; font-weight: 500; color: white; }
+  .chat-header-info p { font-size: 11px; color: rgba(255,255,255,0.5); }
+
+  .chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    background: var(--cream);
+  }
+
+  .message { display: flex; gap: 10px; max-width: 85%; }
+  .message.user { align-self: flex-end; flex-direction: row-reverse; }
+
+  .message-bubble { padding: 11px 15px; border-radius: 12px; font-size: 13.5px; line-height: 1.6; }
+
+  .message.assistant .message-bubble {
+    background: white;
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: 2px 12px 12px 12px;
+  }
+
+  .message.user .message-bubble {
+    background: var(--green);
+    color: white;
+    border-radius: 12px 2px 12px 12px;
+  }
+
+  .message-avatar {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  .assistant-avatar { background: var(--copper); }
+  .user-avatar { background: var(--green-light); }
+
+  .chat-input-area {
+    padding: 16px;
+    border-top: 1px solid var(--border);
+    background: white;
+    display: flex;
+    gap: 10px;
+    align-items: flex-end;
+  }
+
+  .chat-input {
+    flex: 1;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-family: "Montserrat", sans-serif;
+    font-size: 13.5px;
+    color: var(--text);
+    resize: none;
+    outline: none;
+    transition: border-color 0.2s;
+    min-height: 42px;
+    max-height: 120px;
+  }
+
+  .chat-input:focus { border-color: var(--copper-light); }
+  .chat-input::placeholder { color: var(--text-light); }
+
+  .chat-send {
+    width: 42px; height: 42px;
+    border-radius: 8px;
+    background: var(--green);
+    color: white;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    transition: background 0.2s;
+    flex-shrink: 0;
+  }
+
+  .chat-send:hover { background: var(--green-light); }
+  .chat-send:disabled { background: var(--text-light); cursor: not-allowed; }
+
+  .thinking { display: flex; gap: 4px; padding: 8px 4px; }
+  .thinking span { width: 6px; height: 6px; border-radius: 50%; background: var(--copper-light); animation: bounce 1.2s infinite; }
+  .thinking span:nth-child(2) { animation-delay: 0.2s; }
+  .thinking span:nth-child(3) { animation-delay: 0.4s; }
+
+  @keyframes bounce {
+    0%, 80%, 100% { transform: translateY(0); opacity: 0.4; }
+    40% { transform: translateY(-6px); opacity: 1; }
+  }
+
+  .resources-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+
+  .resource-card {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 22px;
+    text-decoration: none;
+    display: block;
+    transition: all 0.2s;
+  }
+
+  .resource-card:hover { border-color: var(--copper); transform: translateY(-2px); box-shadow: 0 4px 20px rgba(45,82,70,0.08); }
+  .resource-icon { font-size: 26px; margin-bottom: 12px; }
+  .resource-title { font-size: 14px; font-weight: 500; color: var(--text); margin-bottom: 6px; }
+  .resource-desc { font-size: 12.5px; color: var(--text-light); line-height: 1.5; }
+
+  .accent-banner {
+    background: linear-gradient(135deg, var(--green) 0%, var(--green-light) 100%);
+    border-radius: 12px;
+    padding: 28px 32px;
+    margin-bottom: 28px;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .accent-banner::before { content: ''; position: absolute; right: -20px; top: -20px; width: 160px; height: 160px; border-radius: 50%; border: 30px solid rgba(184,125,82,0.15); }
+  .accent-banner::after { content: ''; position: absolute; right: 60px; bottom: -30px; width: 100px; height: 100px; border-radius: 50%; border: 20px solid rgba(184,125,82,0.1); }
+
+  .accent-banner h2 { font-family: "Montserrat", sans-serif; font-size: 26px; font-weight: 400; color: white; margin-bottom: 6px; font-style: italic; }
+  .accent-banner p { font-size: 13px; color: rgba(255,255,255,0.65); max-width: 400px; }
+
+  .tag-pill { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; background: rgba(184,125,82,0.15); color: var(--copper); letter-spacing: 0.05em; }
+
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+
+  /* ============================================================
+     TEMPLATE HIGHLIGHT STYLES — remove before sending to client
+     ============================================================ */
+  .FILL {
+    background: #fff3cd;
+    border: 1.5px dashed #e6a817;
+    border-radius: 4px;
+    padding: 1px 5px;
+    font-style: italic;
+    color: #a0670a;
+    font-size: inherit;
+  }
+
+  /* ── PASSWORD OVERLAY ── */
+  .pw-overlay {
+    position: fixed;
+    inset: 0;
+    background: var(--green);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    padding: 40px;
+    transition: opacity 0.5s ease, visibility 0.5s ease;
+  }
+
+  .pw-overlay.unlocked {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+  }
+
+  .pw-overlay::before {
+    content: '';
+    position: absolute;
+    right: -60px; top: -60px;
+    width: 320px; height: 320px;
+    border-radius: 50%;
+    border: 50px solid rgba(184,125,82,0.12);
+  }
+
+  .pw-overlay::after {
+    content: '';
+    position: absolute;
+    left: -40px; bottom: -40px;
+    width: 220px; height: 220px;
+    border-radius: 50%;
+    border: 35px solid rgba(184,125,82,0.08);
+  }
+
+  .pw-box {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 20px;
+    padding: 48px 44px;
+    width: 100%;
+    max-width: 420px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    z-index: 1;
+    backdrop-filter: blur(10px);
+  }
+
+  .pw-logo { font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--copper-light); margin-bottom: 6px; }
+  .pw-client { font-family: 'Montserrat', sans-serif; font-size: 26px; font-weight: 600; color: white; margin-bottom: 4px; text-align: center; }
+  .pw-subtitle { font-size: 13px; color: rgba(255,255,255,0.4); margin-bottom: 36px; text-align: center; }
+  .pw-lock { font-size: 32px; margin-bottom: 20px; }
+  .pw-label { font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,0.45); align-self: flex-start; margin-bottom: 8px; }
+
+  .pw-input {
+    width: 100%;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 10px;
+    padding: 14px 18px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 15px;
+    color: white;
+    outline: none;
+    letter-spacing: 0.1em;
+    transition: border-color 0.2s;
+    margin-bottom: 14px;
+  }
+
+  .pw-input::placeholder { color: rgba(255,255,255,0.2); }
+  .pw-input:focus { border-color: var(--copper-light); }
+  .pw-input.shake { animation: shake 0.4s ease; border-color: #e07070; }
+
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20% { transform: translateX(-8px); }
+    40% { transform: translateX(8px); }
+    60% { transform: translateX(-5px); }
+    80% { transform: translateX(5px); }
+  }
+
+  .pw-btn {
+    width: 100%;
+    background: var(--copper);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 14px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+    margin-bottom: 16px;
+  }
+
+  .pw-btn:hover { background: var(--copper-light); }
+  .pw-btn:active { transform: scale(0.98); }
+  .pw-error { font-size: 12px; color: #f0a0a0; text-align: center; min-height: 18px; }
+  .pw-footer { margin-top: 32px; font-size: 11px; color: rgba(255,255,255,0.2); letter-spacing: 0.08em; }
+
+  /* ── CLIENT LOGO ── */
+  .client-logo {
+    height: 36px;
+    width: auto;
+    max-width: 140px;
+    object-fit: contain;
+    display: block;
+  }
+
+  .client-logo-lg {
+    height: 64px;
+    width: auto;
+    max-width: 200px;
+    object-fit: contain;
+    display: block;
+    margin: 0 auto 16px;
+  }
+
+  .client-logo-placeholder {
+    height: 36px;
+    display: flex;
+    align-items: center;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--green);
+    letter-spacing: 0.02em;
+  }
+
+  .client-logo-placeholder-lg {
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    font-weight: 600;
+    color: white;
+    letter-spacing: 0.02em;
+    margin-bottom: 16px;
+  }
+
+  /* ── MOBILE HAMBURGER ── */
+  .hamburger {
+    display: none;
+    position: fixed;
+    top: 14px; left: 14px;
+    z-index: 200;
+    width: 40px; height: 40px;
+    border-radius: 10px;
+    background: var(--green);
+    border: none;
+    cursor: pointer;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.2);
+  }
+  .hamburger span { display: block; width: 18px; height: 2px; background: white; border-radius: 2px; transition: all 0.25s ease; }
+  .hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+  .hamburger.open span:nth-child(2) { opacity: 0; }
+  .hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+  .mobile-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 98; }
+  .mobile-overlay.visible { display: block; }
+
+  /* ── NOTIFICATION BADGE ── */
+  .nav-badge {
+    display: inline-block;
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--copper);
+    margin-left: 6px;
+    flex-shrink: 0;
+    box-shadow: 0 0 0 2px rgba(184,125,82,0.3);
+    animation: pulse-badge 2s infinite;
+  }
+  @keyframes pulse-badge {
+    0%, 100% { box-shadow: 0 0 0 2px rgba(184,125,82,0.3); }
+    50% { box-shadow: 0 0 0 5px rgba(184,125,82,0); }
+  }
+
+  /* ── PRINT / SAVE AS PDF ── */
+  @media print {
+    .sidebar, .hamburger, .mobile-overlay, .pw-overlay, #welcomeModal, .topbar-right { display: none !important; }
+    .main { margin-left: 0 !important; }
+    .page-section { display: block !important; page-break-after: always; }
+    .workflow-body { display: block !important; max-height: none !important; }
+    body { background: white; }
+    .card { box-shadow: none; border: 1px solid #ddd; }
+  }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 768px) {
+    .sidebar { transform: translateX(-100%); transition: transform 0.3s ease; z-index: 99; width: 280px; }
+    .sidebar.mobile-open { transform: translateX(0); }
+    .hamburger { display: flex; }
+    .main { margin-left: 0; }
+    .topbar { padding: 14px 16px 14px 64px; }
+    .page-section { padding: 24px 16px; }
+    .stats-row { grid-template-columns: 1fr 1fr; gap: 10px; }
+    .content-grid { grid-template-columns: 1fr; }
+    .resources-grid { grid-template-columns: 1fr 1fr; }
+    .two-col { grid-template-columns: 1fr; }
+    .accent-banner { flex-direction: column; gap: 16px; }
+    .accent-banner h2 { font-size: 20px; }
+    .chat-wrapper { height: 420px; }
+  }
+  @media (max-width: 480px) {
+    .stats-row { grid-template-columns: 1fr 1fr; }
+    .resources-grid { grid-template-columns: 1fr; }
+    .topbar-right .btn-outline { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<!--
+╔══════════════════════════════════════════════════════════════╗
+║          LET NICOLE HELP — CLIENT PORTAL TEMPLATE           ║
+║                                                              ║
+║  HOW TO CUSTOMIZE THIS FILE FOR A NEW CLIENT:               ║
+║                                                              ║
+║  1. Find every [PLACEHOLDER] — they're marked in yellow     ║
+║     highlight in the browser view                           ║
+║  2. Replace with your client's real info                    ║
+║  3. Add/remove workflow items as needed                     ║
+║  4. Update the CLIENT_CONTEXT block in the <script> at      ║
+║     the bottom — this is what Claude uses to answer         ║
+║     questions in the Ask Robot Nicole chat                        ║
+║  5. Remove this comment block when done                     ║
+║                                                              ║
+║  PLACEHOLDERS KEY:                                          ║
+║  [CLIENT_BUSINESS_NAME]  → e.g. "Bloom Balloons"           ║
+║  [CLIENT_LOGO_URL]       → e.g. "https://their-site.com/logo.png" ║
+║  PORTAL_PASSWORD         → e.g. "bloomballoons2026"         ║
+║  PORTAL_LAST_UPDATED     → e.g. "March 4, 2026"             ║
+║  WHATS_NEW_UPDATED       → e.g. "March 4, 2026"             ║
+║  CLIENT_KEY              → e.g. "bloom_balloons"            ║
+║  [SETUP_DATE]            → e.g. "March 2026"                ║
+║  [SETUP_MONTH_YEAR]      → e.g. "March 2026"                ║
+║  [NUM_WORKFLOWS]         → e.g. "8"                         ║
+║  [NUM_PIPELINES]         → e.g. "3"                         ║
+║  [NUM_AUTOMATIONS]       → e.g. "14"                        ║
+║  Account Age             → auto-calculated from script      ║
+║  [NEXT_CHECKIN]          → e.g. "Sep '26"                   ║
+║  [OVERVIEW_SUMMARY]      → 2-3 sentences about their setup  ║
+║  [QUICK_TIP_1–4]         → 4 specific tips for this client  ║
+║  [WORKFLOW_1–3 details]  → pipeline names, stages, steps    ║
+║  [UPDATE_1–3]            → personalized 6-12 month actions  ║
+║  [YOUTUBE_TITLE_1–4]     → Your current video titles        ║
+║  [BOOKING_URL] removed — Tech Check URL is now hardcoded     ║
+║  [MINER_URL]   removed — MINER card removed from What's New  ║
+╚══════════════════════════════════════════════════════════════╝
+-->
+
+<!-- WELCOME MODAL (shows once after first login — no changes needed) -->
+<div class="pw-overlay" id="welcomeModal" style="display:none; background: rgba(30,51,41,0.92); backdrop-filter: blur(8px);">
+  <div class="pw-box" style="max-width:480px; gap:0; text-align:center;">
+    <div style="font-size:36px; margin-bottom:16px;">🎈</div>
+    <div class="pw-logo">Welcome to your</div>
+    <!-- ✏️ CHANGE: Client name (matches rest of portal) -->
+    <div class="pw-client" style="margin-bottom:12px;"><span class="FILL">[CLIENT_BUSINESS_NAME]</span> Portal</div>
+    <!-- Logo in welcome modal — same URL as everywhere else -->
+    <img
+      src="[CLIENT_LOGO_URL]"
+      alt="[CLIENT_BUSINESS_NAME]"
+      class="client-logo"
+      onerror="this.style.display='none';"
+      style="margin: 0 auto 20px; filter: brightness(0) invert(1); opacity:0.7;"
+    />
+    <div style="width:40px; height:2px; background:var(--copper); border-radius:2px; margin: 0 auto 24px;"></div>
+    <p style="font-size:13.5px; color:rgba(255,255,255,0.65); line-height:1.7; margin-bottom:28px;">Everything Nicole built for you — in one place. Here's a quick look at what's inside:</p>
+    <div style="display:flex; flex-direction:column; gap:10px; width:100%; margin-bottom:32px; text-align:left;">
+      <div style="display:flex; align-items:flex-start; gap:12px; background:rgba(255,255,255,0.06); border-radius:10px; padding:12px 14px;">
+        <span style="font-size:16px; flex-shrink:0;">◈</span>
+        <div><div style="font-size:13px; font-weight:600; color:white; margin-bottom:2px;">Overview</div><div style="font-size:12px; color:rgba(255,255,255,0.45);">Your account stats, quick tips, and at-a-glance summary</div></div>
+      </div>
+      <div style="display:flex; align-items:flex-start; gap:12px; background:rgba(255,255,255,0.06); border-radius:10px; padding:12px 14px;">
+        <span style="font-size:16px; flex-shrink:0;">⟳</span>
+        <div><div style="font-size:13px; font-weight:600; color:white; margin-bottom:2px;">Workflows & Automation</div><div style="font-size:12px; color:rgba(255,255,255,0.45);">Every pipeline Nicole built — with step-by-step breakdowns</div></div>
+      </div>
+      <div style="display:flex; align-items:flex-start; gap:12px; background:rgba(255,255,255,0.06); border-radius:10px; padding:12px 14px;">
+        <span style="font-size:16px; flex-shrink:0;">🎥</span>
+        <div><div style="font-size:13px; font-weight:600; color:white; margin-bottom:2px;">Zoom Recordings</div><div style="font-size:12px; color:rgba(255,255,255,0.45);">All your session recordings and notes in one place</div></div>
+      </div>
+      <div style="display:flex; align-items:flex-start; gap:12px; background:rgba(255,255,255,0.06); border-radius:10px; padding:12px 14px;">
+        <span style="font-size:16px; flex-shrink:0;">🤖</span>
+        <div><div style="font-size:13px; font-weight:600; color:white; margin-bottom:2px;">Ask Robot Nicole</div><div style="font-size:12px; color:rgba(255,255,255,0.45);">Your AI assistant trained on your exact 17hats setup — 24/7</div></div>
+      </div>
+    </div>
+    <button class="pw-btn" onclick="dismissWelcome()" style="margin-bottom:0;">Let's go! →</button>
+  </div>
+</div>
+
+<!-- SIDEBAR -->
+<!-- MOBILE HAMBURGER -->
+<button class="hamburger" id="hamburger" onclick="toggleMobileMenu()" aria-label="Menu">
+  <span></span><span></span><span></span>
+</button>
+<div class="mobile-overlay" id="mobileOverlay" onclick="closeMobileMenu()"></div>
+
+<!-- ============================================================
+     PASSWORD OVERLAY — NOT IN TEMPLATE (add when copying per client)
+     
+     When creating a new client portal from this template:
+     1. Copy the password overlay block from the customization guide
+     2. Paste it here (before the sidebar)
+     3. Set PORTAL_PASSWORD, PORTAL_LAST_UPDATED, WHATS_NEW_UPDATED, CLIENT_KEY
+        in the script section below
+     ============================================================ -->
+
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="by-nicole">A Portal by let Nicole help</div>
+    <!-- ✏️ CHANGE: Client business name -->
+    <div class="client-name">[CLIENT_BUSINESS_NAME]</div>
+    <!-- ✏️ CHANGE: Year of setup -->
+    <div class="portal-label">Client Portal · [SETUP_YEAR]</div>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-section-label">Your Setup</div>
+    <a class="nav-item active" onclick="showSection('overview')">
+      <span class="icon">◈</span> Overview
+    </a>
+    <a class="nav-item" onclick="showSection('workflows')">
+      <span class="icon">⟳</span> Workflows & Automation
+    </a>
+    <a class="nav-item" onclick="showSection('updates')">
+      <span class="icon">◷</span> Recommended Updates
+    </a>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-section-label">Resources</div>
+    <a class="nav-item" onclick="showSection('zoom-recordings')">
+      <span class="icon">🎥</span> Zoom Recordings
+    </a>
+    <a class="nav-item" id="nav-whats-new" onclick="showSection('whats-new')">
+      <span class="icon">✦</span> What's New from Nicole<span class="nav-badge" id="newsBadge" style="display:none;"></span>
+    </a>
+    <a class="nav-item" onclick="showSection('resources')">
+      <span class="icon">⊞</span> Resource Library
+    </a>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-section-label">Support</div>
+    <a class="nav-item" onclick="showSection('ask-robot-nicole')">
+      <span class="icon">🤖</span> Ask Robot Nicole
+    </a>
+    <a class="nav-item" onclick="showSection('get-help')">
+      <span class="icon">◉</span> Get Help from Nicole
+    </a>
+  </div>
+
+  <div class="sidebar-footer">
+    <!-- ✏️ CHANGE: Setup date -->
+    <p>Set up by Nicole · <span class="FILL">[SETUP_MONTH_YEAR]</span><br>
+    <span id="lastUpdatedLine" style="color:rgba(255,255,255,0.2); font-size:10px;"></span><br>
+    <a href="https://letnicolehelp.com" target="_blank">letnicolehelp.com</a></p>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+  <div class="topbar">
+    <div class="topbar-left">
+      <!-- ✏️ CHANGE: Replace [CLIENT_LOGO_URL] with a direct link to their logo image
+           (e.g. from their website: right-click logo → Copy Image Address)
+           OR upload the file alongside the portal and use a relative path like "float-balloons-logo.png"
+           If they don't have a logo URL handy, delete the <img> and uncomment the text fallback below -->
+      <img
+        src="[CLIENT_LOGO_URL]"
+        alt="[CLIENT_BUSINESS_NAME]"
+        class="client-logo"
+        onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+      />
+      <div class="client-logo-placeholder" style="display:none;"><span class="FILL">[CLIENT_BUSINESS_NAME]</span></div>
+      <span class="tag-pill">17hats · Active</span>
+    </div>
+    <div class="topbar-right">
+      <a href="#" class="btn btn-outline" onclick="printSection(); return false;" title="Save or print your portal">🖨️ Save as PDF</a>
+      <a href="/cdn-cgi/l/email-protection#5a34333935363f1a363f2e34333935363f323f362a74393537" class="btn btn-outline">📧 Email Nicole</a>
+      <a href="#" class="btn btn-copper" onclick="showSection('ask-robot-nicole')">🤖 Ask Robot Nicole</a>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       SECTION 1: OVERVIEW
+       ============================================================ -->
+  <section class="page-section active" id="overview">
+    <div class="accent-banner">
+      <div>
+        <!-- ✏️ CHANGE: Client name in welcome message -->
+        <h2>Welcome back, <span class="FILL">[CLIENT_BUSINESS_NAME]</span> ✨</h2>
+        <p>Everything Nicole set up for you — your workflows, resources, and AI assistant — all in one place.</p>
+      </div>
+    </div>
+
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-label">Workflows Built</div>
+        <!-- ✏️ CHANGE: Number of workflow automation sequences -->
+        <div class="stat-value"><span class="FILL">[NUM_WORKFLOWS]</span></div>
+        <div class="stat-sub">Automation sequences</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Pipelines Built</div>
+        <!-- ✏️ CHANGE: Number of pipelines (inquiry/project pipelines) -->
+        <div class="stat-value"><span class="FILL">[NUM_PIPELINES]</span></div>
+        <div class="stat-sub">Active pipelines</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Automations</div>
+        <!-- ✏️ CHANGE: Number of automations -->
+        <div class="stat-value"><span class="FILL">[NUM_AUTOMATIONS]</span></div>
+        <div class="stat-sub">Running 24/7</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Account Age</div>
+        <!-- Auto-calculated from SETUP_DATE in the script below — no change needed here -->
+        <div class="stat-value" id="acctAge">—</div>
+        <div class="stat-sub" id="reviewStatus">Calculating...</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Next Check-In</div>
+        <!-- ✏️ CHANGE: Recommended tune-up month/year -->
+        <div class="stat-value"><span class="FILL">[NEXT_CHECKIN]</span></div>
+        <div class="stat-sub">Recommended tune-up</div>
+      </div>
+    </div>
+
+    <div class="two-col">
+      <div class="card">
+        <div class="card-title">📋 Your Account at a Glance</div>
+        <!-- ✏️ CHANGE: 2-3 sentences summarizing what Nicole built for this client specifically -->
+        <p style="font-size:13.5px; color:var(--text-mid); line-height:1.7;" class="FILL">[OVERVIEW_SUMMARY — e.g. "Nicole set up your 17hats account in March 2026 with a complete inquiry-to-invoice workflow built around your three main event types. Your automations handle follow-ups, proposal sends, and invoice reminders automatically."]</p>
+        <br>
+        <a class="btn btn-outline" onclick="showSection('workflows')" style="font-size:12px;">View all workflows →</a>
+      </div>
+      <div class="card">
+        <div class="card-title">⚡ Quick Tips for Your Setup</div>
+        <ul style="list-style:none; display:flex; flex-direction:column; gap:10px;">
+          <!-- ✏️ CHANGE: 4 specific tips relevant to THIS client's setup -->
+          <li style="font-size:13px; color:var(--text-mid); display:flex; gap:10px; align-items:flex-start;"><span style="color:var(--copper); flex-shrink:0;">✦</span> <span class="FILL">[QUICK_TIP_1 — e.g. "Your Wedding Inquiry pipeline moves leads through 6 stages automatically."]</span></li>
+          <li style="font-size:13px; color:var(--text-mid); display:flex; gap:10px; align-items:flex-start;"><span style="color:var(--copper); flex-shrink:0;">✦</span> <span class="FILL">[QUICK_TIP_2]</span></li>
+          <li style="font-size:13px; color:var(--text-mid); display:flex; gap:10px; align-items:flex-start;"><span style="color:var(--copper); flex-shrink:0;">✦</span> <span class="FILL">[QUICK_TIP_3]</span></li>
+          <li style="font-size:13px; color:var(--text-mid); display:flex; gap:10px; align-items:flex-start;"><span style="color:var(--copper); flex-shrink:0;">✦</span> <span class="FILL">[QUICK_TIP_4]</span></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       SECTION 2: WORKFLOWS & AUTOMATION
+       ✏️ ADD or REMOVE workflow items as needed.
+       Copy one .workflow-item block to add more.
+       ============================================================ -->
+  <section class="page-section" id="workflows">
+    <div class="section-header">
+      <h1>Workflows & Automation</h1>
+      <p>Every workflow Nicole built for your 17hats account. Click any item to see how it works.</p>
+    </div>
+
+    <!-- ✏️ CHANGE: Card title to match client's event types -->
+    <div class="card">
+      <div class="card-title">🎈 <span class="FILL">[EVENT TYPE GROUP LABEL — e.g. "Event Inquiry Pipelines"]</span></div>
+      <div class="workflow-list">
+
+        <!-- ── WORKFLOW 1 ── -->
+        <div class="workflow-item">
+          <div class="workflow-header" onclick="toggleWorkflow(this)">
+            <div class="workflow-header-left">
+              <div class="workflow-dot"></div>
+              <!-- ✏️ CHANGE: Workflow name + number of stages -->
+              <span class="workflow-name"><span class="FILL">[WORKFLOW_1_NAME — e.g. "Wedding Inquiry Workflow"]</span></span>
+              <span class="workflow-tag"><span class="FILL">[X]</span> stages</span>
+            </div>
+            <span class="workflow-toggle">▾</span>
+          </div>
+          <div class="workflow-body">
+            <!-- ✏️ CHANGE: 1-2 sentence description of this pipeline -->
+            <p class="FILL">[WORKFLOW_1_DESCRIPTION — e.g. "This pipeline handles all wedding inquiries from first contact through final payment."]</p>
+            <ul class="workflow-steps">
+              <!-- ✏️ CHANGE: Steps for this workflow — add/remove <li> as needed -->
+              <li><span class="step-num">1</span><span class="FILL">[STEP 1 — e.g. "Lead comes in via contact form → auto-tagged 'Wedding Inquiry'"]</span></li>
+              <li><span class="step-num">2</span><span class="FILL">[STEP 2]</span></li>
+              <li><span class="step-num">3</span><span class="FILL">[STEP 3]</span></li>
+              <li><span class="step-num">4</span><span class="FILL">[STEP 4]</span></li>
+              <li><span class="step-num">5</span><span class="FILL">[STEP 5 — delete if not needed]</span></li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- ── WORKFLOW 2 ── -->
+        <div class="workflow-item">
+          <div class="workflow-header" onclick="toggleWorkflow(this)">
+            <div class="workflow-header-left">
+              <div class="workflow-dot"></div>
+              <span class="workflow-name"><span class="FILL">[WORKFLOW_2_NAME]</span></span>
+              <span class="workflow-tag"><span class="FILL">[X]</span> stages</span>
+            </div>
+            <span class="workflow-toggle">▾</span>
+          </div>
+          <div class="workflow-body">
+            <p class="FILL">[WORKFLOW_2_DESCRIPTION]</p>
+            <ul class="workflow-steps">
+              <li><span class="step-num">1</span><span class="FILL">[STEP 1]</span></li>
+              <li><span class="step-num">2</span><span class="FILL">[STEP 2]</span></li>
+              <li><span class="step-num">3</span><span class="FILL">[STEP 3]</span></li>
+              <li><span class="step-num">4</span><span class="FILL">[STEP 4 — delete if not needed]</span></li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- ── WORKFLOW 3 (duplicate block above to add more) ── -->
+        <div class="workflow-item">
+          <div class="workflow-header" onclick="toggleWorkflow(this)">
+            <div class="workflow-header-left">
+              <div class="workflow-dot"></div>
+              <span class="workflow-name"><span class="FILL">[WORKFLOW_3_NAME]</span></span>
+              <span class="workflow-tag"><span class="FILL">[X]</span> stages</span>
+            </div>
+            <span class="workflow-toggle">▾</span>
+          </div>
+          <div class="workflow-body">
+            <p class="FILL">[WORKFLOW_3_DESCRIPTION]</p>
+            <ul class="workflow-steps">
+              <li><span class="step-num">1</span><span class="FILL">[STEP 1]</span></li>
+              <li><span class="step-num">2</span><span class="FILL">[STEP 2]</span></li>
+              <li><span class="step-num">3</span><span class="FILL">[STEP 3]</span></li>
+            </ul>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ✏️ OPTIONAL: Background automations card — keep or delete -->
+    <div class="card">
+      <div class="card-title">⚙️ Automations Running in the Background</div>
+      <div class="workflow-list">
+
+        <!-- ── AUTOMATION 1 ── -->
+        <div class="workflow-item">
+          <div class="workflow-header" onclick="toggleWorkflow(this)">
+            <div class="workflow-header-left">
+              <div class="workflow-dot"></div>
+              <span class="workflow-name"><span class="FILL">[AUTOMATION_1_NAME — e.g. "Invoice Reminder Sequence"]</span></span>
+              <span class="workflow-tag">Automatic</span>
+            </div>
+            <span class="workflow-toggle">▾</span>
+          </div>
+          <div class="workflow-body">
+            <p class="FILL">[AUTOMATION_1_DESCRIPTION]</p>
+            <ul class="workflow-steps">
+              <li><span class="step-num">1</span><span class="FILL">[STEP 1]</span></li>
+              <li><span class="step-num">2</span><span class="FILL">[STEP 2]</span></li>
+              <li><span class="step-num">3</span><span class="FILL">[STEP 3 — delete if not needed]</span></li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- ── AUTOMATION 2 ── -->
+        <div class="workflow-item">
+          <div class="workflow-header" onclick="toggleWorkflow(this)">
+            <div class="workflow-header-left">
+              <div class="workflow-dot"></div>
+              <span class="workflow-name"><span class="FILL">[AUTOMATION_2_NAME — e.g. "Post-Event Thank You"]</span></span>
+              <span class="workflow-tag">Automatic</span>
+            </div>
+            <span class="workflow-toggle">▾</span>
+          </div>
+          <div class="workflow-body">
+            <p class="FILL">[AUTOMATION_2_DESCRIPTION]</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       SECTION 3: RECOMMENDED UPDATES
+       ============================================================ -->
+  <section class="page-section" id="updates">
+    <div class="section-header">
+      <h1>Recommended Updates</h1>
+      <p>As your business grows, your 17hats system should grow with it. Here's what Nicole recommends revisiting.</p>
+    </div>
+
+    <!-- ✏️ CHANGE: Show if 6+ months since setup. Delete card if client is brand new. -->
+    <div class="card" style="border-left: 3px solid var(--copper);">
+      <div class="card-title">◷ Your <span class="FILL">[6-Month / 1-Year]</span> Review is Due</div>
+      <p style="font-size:13.5px; color:var(--text-mid); line-height:1.7; margin-bottom:18px;">Your account was set up in <span class="FILL">[SETUP_MONTH_YEAR]</span>. Nicole recommends a tune-up to make sure everything still fits your business.</p>
+      <a href="https://letnicolehelp.17hats.com/p#/lcf/xnngshvxghfzwsnxzpvzbndcxxsfwndb" target="_blank" class="btn btn-copper">Book a Tech Check Call →</a>
+    </div>
+
+    <div class="update-timeline">
+
+      <!-- ✏️ CHANGE: 3 personalized updates for this client. Be specific to their setup. -->
+      <div class="update-item">
+        <div class="update-timing">Now · <span class="FILL">[X months]</span> in</div>
+        <div class="update-title"><span class="FILL">[UPDATE_1_TITLE — e.g. "Review your email templates"]</span></div>
+        <div class="update-desc"><span class="FILL">[UPDATE_1_DESCRIPTION — personalized to their specific situation]</span></div>
+      </div>
+
+      <div class="update-item">
+        <div class="update-timing">Now · <span class="FILL">[X months]</span> in</div>
+        <div class="update-title"><span class="FILL">[UPDATE_2_TITLE]</span></div>
+        <div class="update-desc"><span class="FILL">[UPDATE_2_DESCRIPTION]</span></div>
+      </div>
+
+      <div class="update-item">
+        <div class="update-timing">Now · <span class="FILL">[X months]</span> in</div>
+        <div class="update-title"><span class="FILL">[UPDATE_3_TITLE]</span></div>
+        <div class="update-desc"><span class="FILL">[UPDATE_3_DESCRIPTION]</span></div>
+      </div>
+
+      <!-- These two are ALWAYS included — no changes needed -->
+      <div class="update-item">
+        <div class="update-timing">12 months · <span class="FILL">[SETUP_MONTH] [NEXT_YEAR]</span></div>
+        <div class="update-title">Full system audit</div>
+        <div class="update-desc">At the one-year mark, it's worth doing a complete review — active pipelines, automation sequences, unused tags, and new 17hats features. Nicole offers a 1-hour Audit service for this.</div>
+      </div>
+
+      <div class="update-item">
+        <div class="update-timing">Ongoing</div>
+        <div class="update-title">New 17hats features</div>
+        <div class="update-desc">17hats releases updates regularly. Nicole covers new features on YouTube as they drop — check the "What's New" section of this portal to stay up to date.</div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============================================================
+       SECTION 4: ZOOM RECORDINGS
+       ✏️ Add a new .card block per session.
+       Get recording links from zoom.us → Recordings → Cloud Recordings → Share.
+       ============================================================ -->
+  <section class="page-section" id="zoom-recordings">
+    <div class="section-header">
+      <h1>Zoom Recordings</h1>
+      <p>All your session recordings with Nicole in one place — watch, rewatch, and reference anytime.</p>
+    </div>
+
+    <!-- ── SESSION 1 — copy this block for each additional session ── -->
+    <div class="card">
+      <!-- ✏️ CHANGE: Session number and topic -->
+      <div class="card-title">🎥 Session 1 · <span class="FILL">[SESSION_1_TOPIC — e.g. "Initial Setup Call"]</span></div>
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; flex-wrap:wrap; gap:10px;">
+        <!-- ✏️ CHANGE: Session date -->
+        <span style="font-size:12px; color:var(--text-light); letter-spacing:0.05em;"><span class="FILL">[SESSION_1_DATE — e.g. "March 4, 2026"]</span></span>
+        <!-- ✏️ CHANGE: Zoom share link -->
+        <a href="[ZOOM_SESSION_1_URL]" target="_blank" class="btn btn-copper" style="font-size:12px;">▶ Watch Recording</a>
+      </div>
+      <div style="background:var(--green-pale); border-radius:8px; padding:16px 18px;">
+        <div style="font-size:11px; letter-spacing:0.1em; text-transform:uppercase; color:var(--text-light); margin-bottom:10px;">Session Notes</div>
+        <ul style="list-style:none; display:flex; flex-direction:column; gap:8px;">
+          <!-- ✏️ CHANGE: 3–5 bullet notes about what was covered. Add/remove <li> as needed. -->
+          <li style="font-size:13px; color:var(--text-mid); display:flex; gap:10px;"><span style="color:var(--copper); flex-shrink:0;">✦</span><span class="FILL">[SESSION_1_NOTE_1 — e.g. "Covered account overview, pipeline structure, and main event types"]</span></li>
+          <li style="font-size:13px; color:var(--text-mid); display:flex; gap:10px;"><span style="color:var(--copper); flex-shrink:0;">✦</span><span class="FILL">[SESSION_1_NOTE_2]</span></li>
+          <li style="font-size:13px; color:var(--text-mid); display:flex; gap:10px;"><span style="color:var(--copper); flex-shrink:0;">✦</span><span class="FILL">[SESSION_1_NOTE_3]</span></li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- ── SESSION 2 — duplicate above block to add more sessions ── -->
+    <div class="card">
+      <div class="card-title">🎥 Session 2 · <span class="FILL">[SESSION_2_TOPIC]</span></div>
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; flex-wrap:wrap; gap:10px;">
+        <span style="font-size:12px; color:var(--text-light); letter-spacing:0.05em;"><span class="FILL">[SESSION_2_DATE]</span></span>
+        <a href="[ZOOM_SESSION_2_URL]" target="_blank" class="btn btn-copper" style="font-size:12px;">▶ Watch Recording</a>
+      </div>
+      <div style="background:var(--green-pale); border-radius:8px; padding:16px 18px;">
+        <div style="font-size:11px; letter-spacing:0.1em; text-transform:uppercase; color:var(--text-light); margin-bottom:10px;">Session Notes</div>
+        <ul style="list-style:none; display:flex; flex-direction:column; gap:8px;">
+          <li style="font-size:13px; color:var(--text-mid); display:flex; gap:10px;"><span style="color:var(--copper); flex-shrink:0;">✦</span><span class="FILL">[SESSION_2_NOTE_1]</span></li>
+          <li style="font-size:13px; color:var(--text-mid); display:flex; gap:10px;"><span style="color:var(--copper); flex-shrink:0;">✦</span><span class="FILL">[SESSION_2_NOTE_2]</span></li>
+          <li style="font-size:13px; color:var(--text-mid); display:flex; gap:10px;"><span style="color:var(--copper); flex-shrink:0;">✦</span><span class="FILL">[SESSION_2_NOTE_3]</span></li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- "More coming" placeholder — leave as-is, always shows at bottom -->
+    <div class="card" style="border: 1px dashed var(--border); background: var(--cream);">
+      <div style="text-align:center; padding: 20px 0;">
+        <div style="font-size:28px; margin-bottom:10px;">🎥</div>
+        <div style="font-size:14px; font-weight:500; color:var(--text-mid); margin-bottom:6px;">More recordings will appear here</div>
+        <div style="font-size:12.5px; color:var(--text-light);">Nicole adds new sessions as they're completed.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       SECTION 5: WHAT'S NEW FROM NICOLE
+       Blog posts auto-feed from letnicolehelp.com via the same
+       Cloudflare Worker as Robot Nicole. No manual updates needed —
+       new posts appear automatically when Nicole publishes.
+       YouTube feed still auto-loads if API key is set.
+       ============================================================ -->
+  <section class="page-section" id="whats-new">
+    <div class="section-header">
+      <h1>What's New from Nicole</h1>
+      <p>Latest posts, videos, and tips — all relevant to your 17hats setup.</p>
+    </div>
+
+    <!-- YouTube auto-feed — populates from API, no HTML changes needed -->
+    <div class="card">
+      <div class="card-title">📹 Latest YouTube Videos</div>
+      <div id="yt-loading" style="text-align:center; padding:30px; color:var(--text-light); font-size:13px;">Loading latest videos...</div>
+      <div class="content-grid" id="yt-grid" style="display:none;"></div>
+      <div id="yt-error" style="display:none; text-align:center; padding:20px;">
+        <p style="font-size:13px; color:var(--text-light); margin-bottom:12px;">Couldn't load videos automatically.</p>
+        <a href="https://youtube.com/@letnicolehelp" target="_blank" class="btn btn-outline">View on YouTube →</a>
+      </div>
+    </div>
+
+    <!-- Wix Blog auto-feed — pulls live from letnicolehelp.com, no changes needed -->
+    <div class="card">
+      <div class="card-title">✍️ Latest from Nicole's Blog</div>
+      <div id="blog-loading" style="text-align:center; padding:30px; color:var(--text-light); font-size:13px;">Loading latest posts...</div>
+      <div class="content-grid" id="blog-grid" style="display:none;"></div>
+      <div id="blog-error" style="display:none; text-align:center; padding:20px;">
+        <p style="font-size:13px; color:var(--text-light); margin-bottom:12px;">Couldn't load posts automatically.</p>
+        <a href="https://www.letnicolehelp.com/blog" target="_blank" class="btn btn-outline">View Blog →</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       SECTION 6: RESOURCE LIBRARY
+       No client-specific changes needed — evergreen links to Nicole's content.
+       ✏️ Only update if you add new resource types.
+       ============================================================ -->
+  <section class="page-section" id="resources">
+    <div class="section-header">
+      <h1>Resource Library</h1>
+      <p>Tools, links, and references hand-picked for your setup.</p>
+    </div>
+
+    <div class="resources-grid">
+      <a href="https://help.17hats.com" target="_blank" class="resource-card">
+        <div class="resource-icon">📚</div>
+        <div class="resource-title">17hats Help Center</div>
+        <div class="resource-desc">Official documentation for any feature or question about your account.</div>
+      </a>
+      <a href="https://letnicolehelp.com" target="_blank" class="resource-card">
+        <div class="resource-icon">🌐</div>
+        <div class="resource-title">letnicolehelp.com</div>
+        <div class="resource-desc">Blog posts, guides, and services from Nicole — your ongoing 17hats resource.</div>
+      </a>
+      <a href="https://youtube.com/@letnicolehelp" target="_blank" class="resource-card">
+        <div class="resource-icon">▶</div>
+        <div class="resource-title">Nicole's YouTube Channel</div>
+        <div class="resource-desc">How-to videos, 17hats walkthroughs, and feature deep dives.</div>
+      </a>
+      <a href="#" class="resource-card" onclick="showSection('ask-robot-nicole')">
+        <div class="resource-icon">◎</div>
+        <div class="resource-title">Ask Robot Nicole</div>
+        <div class="resource-desc">Your AI assistant trained on your 17hats setup. Ask it anything, anytime.</div>
+      </a>
+      <a href="https://instagram.com/letnicolehelp" target="_blank" class="resource-card">
+        <div class="resource-icon">📱</div>
+        <div class="resource-title">@letnicolehelp on Instagram</div>
+        <div class="resource-desc">Quick 17hats tips, reels, and behind-the-scenes from Nicole.</div>
+      </a>
+      <a href="https://letnicolehelp.17hats.com/p#/lcf/xnngshvxghfzwsnxzpvzbndcxxsfwndb" target="_blank" class="resource-card">
+        <div class="resource-icon">📅</div>
+        <div class="resource-title">Book a Tech Check</div>
+        <div class="resource-desc">Ready for an update? Book a call with Nicole.</div>
+      </a>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       SECTION 6: ASK CLAUDE
+       ✏️ IMPORTANT: Update the CLIENT_CONTEXT in the <script> below.
+       That's what makes Claude smart about THIS client's setup.
+       ============================================================ -->
+  <section class="page-section" id="ask-robot-nicole">
+    <div class="section-header">
+      <h1>Ask Robot Nicole</h1>
+      <!-- ✏️ CHANGE: Client name -->
+      <p>Your AI assistant knows your <span class="FILL">[CLIENT_BUSINESS_NAME]</span> 17hats setup. Ask it anything — workflows, automations, how Nicole configured something, 17hats how-tos.</p>
+    </div>
+
+    <div class="chat-wrapper">
+      <div class="chat-header">
+        <div class="chat-avatar">◎</div>
+        <div class="chat-header-info">
+          <!-- ✏️ CHANGE: Client name -->
+          <h3>Claude · <span class="FILL">[CLIENT_BUSINESS_NAME]</span> Assistant</h3>
+          <p>Trained on your 17hats setup by Nicole · letnicolehelp.com</p>
+        </div>
+      </div>
+      <div class="chat-messages" id="chatMessages">
+        <div class="message assistant">
+          <div class="message-avatar assistant-avatar">◎</div>
+          <!-- ✏️ CHANGE: Client name in opening message -->
+          <div class="message-bubble">Hi! I'm your AI assistant, configured specifically for <strong><span class="FILL">[CLIENT_BUSINESS_NAME]</span>'s</strong> 17hats setup. I know how Nicole built your workflows, automations, and pipelines. Ask me anything — like "How does my inquiry pipeline work?" or "How do I add a new event type?" 🎈</div>
+        </div>
+      </div>
+      <div class="chat-input-area">
+        <textarea class="chat-input" id="chatInput" placeholder="Ask about your 17hats setup..." rows="1" onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+        <button class="chat-send" id="sendBtn" onclick="sendMessage()">➤</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       SECTION 7: GET HELP FROM NICOLE
+       ✏️ Update BOOKING_URL. Everything else is evergreen.
+       ============================================================ -->
+  <section class="page-section" id="get-help">
+    <div class="section-header">
+      <h1>Get Help from Nicole</h1>
+      <p>When you need more than your portal can offer — Nicole's here.</p>
+    </div>
+
+    <div class="two-col">
+      <div class="card">
+        <div class="card-title">📅 Book a Session</div>
+        <p style="font-size:13.5px; color:var(--text-mid); line-height:1.7; margin-bottom:20px;">Whether you need a quick check-in or a full tune-up, Nicole offers sessions tailored to where you're at.</p>
+        <div style="display:flex; flex-direction:column; gap:12px; margin-bottom:20px;">
+          <div style="padding:14px 16px; border:1px solid var(--border); border-radius:8px;">
+            <div style="font-size:13px; font-weight:500; margin-bottom:3px; color:var(--text);">30-Min Tune-Up · $97</div>
+            <div style="font-size:12px; color:var(--text-light);">Quick questions, small fixes, workflow tweaks</div>
+          </div>
+          <div style="padding:14px 16px; border:1px solid var(--copper); border-radius:8px; background:var(--copper-pale);">
+            <div style="font-size:13px; font-weight:500; margin-bottom:3px; color:var(--text);">60-Min Account Audit · $197 ✦ Recommended</div>
+            <div style="font-size:12px; color:var(--text-light);">Full review, template updates, new feature setup</div>
+          </div>
+        </div>
+        <a href="https://letnicolehelp.17hats.com/p#/lcf/xnngshvxghfzwsnxzpvzbndcxxsfwndb" target="_blank" class="btn btn-copper">Book a Tech Check Call →</a>
+      </div>
+
+      <div class="card">
+        <div class="card-title">📧 Send Nicole a Message</div>
+        <p style="font-size:13.5px; color:var(--text-mid); line-height:1.7; margin-bottom:20px;">Have a question that Robot Nicole can't answer? Reach out directly. Nicole typically responds within 1–2 business days.</p>
+        <div style="display:flex; flex-direction:column; gap:10px;">
+          <input type="text" id="msgSubject" placeholder="Subject" style="border:1px solid var(--border); border-radius:7px; padding:10px 13px; font-family:'Montserrat',sans-serif; font-size:13px; outline:none; color:var(--text); background:var(--cream);">
+          <textarea rows="4" id="msgBody" placeholder="Your question or request..." style="border:1px solid var(--border); border-radius:7px; padding:10px 13px; font-family:'Montserrat',sans-serif; font-size:13px; outline:none; color:var(--text); background:var(--cream); resize:none;"></textarea>
+          <button class="btn btn-primary" style="align-self:flex-start;" onclick="openEmail()">Send Message →</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="background: var(--green-pale);">
+      <div class="card-title">💌 Stay in Nicole's World</div>
+      <div class="resources-grid" style="margin:0;">
+        <a href="https://youtube.com/@letnicolehelp" target="_blank" class="resource-card">
+          <div class="resource-icon">▶</div>
+          <div class="resource-title">YouTube</div>
+          <div class="resource-desc">Weekly 17hats videos</div>
+        </a>
+        <a href="https://instagram.com/letnicolehelp" target="_blank" class="resource-card">
+          <div class="resource-icon">📸</div>
+          <div class="resource-title">Instagram</div>
+          <div class="resource-desc">Tips, reels & behind-the-scenes</div>
+        </a>
+        <a href="https://letnicolehelp.com" target="_blank" class="resource-card">
+          <div class="resource-icon">📧</div>
+          <div class="resource-title">Email Drop</div>
+          <div class="resource-desc">Templates & tips in your inbox</div>
+        </a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+// ================================================================
+// PASSWORD GATE — NOT IN TEMPLATE (add when copying per client)
+// See the customization guide for the full script block to paste here.
+//
+// When you copy this template for a real client, add above the
+// ACCOUNT AGE section:
+//   const PORTAL_PASSWORD = '...'
+//   const PORTAL_LAST_UPDATED = '...'
+//   const WHATS_NEW_UPDATED = '...'
+//   const CLIENT_KEY = '...'
+//   function checkPassword() { ... }
+//   function dismissWelcome() { ... }
+//   function initPortal() { ... }
+// ================================================================
+
+// For template preview — run initPortal immediately (no login needed)
+const PORTAL_LAST_UPDATED = 'Template Preview';
+const WHATS_NEW_UPDATED   = new Date().toISOString();
+const CLIENT_KEY          = 'template_preview';
+
+function initPortal() {
+  const el = document.getElementById('lastUpdatedLine');
+  if (el) el.textContent = 'Template preview mode';
+  const badge = document.getElementById('newsBadge');
+  if (badge) badge.style.display = 'inline-block';
+}
+
+function dismissWelcome() {
+  const modal = document.getElementById('welcomeModal');
+  if (modal) { modal.classList.add('unlocked'); setTimeout(() => modal.style.display = 'none', 500); }
+}
+
+window.addEventListener('load', () => { initPortal(); });
+
+// ================================================================
+// ACCOUNT AGE + REVIEW STATUS (auto-calculated — no manual update needed)
+//
+// ✏️ CHANGE THESE TWO DATES PER CLIENT:
+//   SETUP_DATE   = when Nicole set up their account
+//   CHECKIN_DATE = the recommended tune-up date (matches "Next Check-In" stat card)
+// ================================================================
+(function() {
+  const setupDate   = new Date('YYYY-MM-01'); // ✏️ e.g. '2026-03-01' for March 2026
+  const checkInDate = new Date('YYYY-MM-01'); // ✏️ e.g. '2026-09-01' for Sep 2026
+  const now = new Date();
+  const months = (now.getFullYear() - setupDate.getFullYear()) * 12 + (now.getMonth() - setupDate.getMonth());
+  const ageEl = document.getElementById('acctAge');
+  const statusEl = document.getElementById('reviewStatus');
+
+  if (months < 1) {
+    ageEl.textContent = 'New!';
+  } else if (months < 12) {
+    ageEl.textContent = months + ' mo';
+  } else {
+    const yrs = Math.floor(months / 12);
+    const mo = months % 12;
+    ageEl.textContent = yrs + 'yr' + (mo > 0 ? ' ' + mo + 'mo' : '');
+  }
+
+  if (now >= checkInDate) {
+    statusEl.textContent = 'Tune-up review due ✦';
+    statusEl.style.color = 'var(--copper)';
+  } else {
+    const daysUntil = Math.ceil((checkInDate - now) / (1000 * 60 * 60 * 24));
+    statusEl.textContent = 'Tune-up in ' + daysUntil + ' days';
+    statusEl.style.color = 'var(--text-light)';
+  }
+})();
+
+// ================================================================
+// NAVIGATION
+// ================================================================
+function showSection(id) {
+  document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const matchingNav = document.querySelector(`.nav-item[onclick*="${id}"]`);
+  if (matchingNav) matchingNav.classList.add('active');
+  window.scrollTo(0, 0);
+  if (id === 'whats-new') {
+    document.getElementById('newsBadge').style.display = 'none';
+    localStorage.setItem('lnh_whats_new_seen_' + CLIENT_KEY, new Date().toISOString());
+  }
+  closeMobileMenu();
+}
+
+function toggleWorkflow(header) {
+  const body = header.nextElementSibling;
+  const toggle = header.querySelector('.workflow-toggle');
+  body.classList.toggle('open');
+  toggle.classList.toggle('open');
+}
+
+function toggleMobileMenu() {
+  document.querySelector('.sidebar').classList.toggle('mobile-open');
+  document.getElementById('hamburger').classList.toggle('open');
+  document.getElementById('mobileOverlay').classList.toggle('visible');
+}
+
+function closeMobileMenu() {
+  document.querySelector('.sidebar').classList.remove('mobile-open');
+  document.getElementById('hamburger').classList.remove('open');
+  document.getElementById('mobileOverlay').classList.remove('visible');
+}
+
+function printSection() { window.print(); }
+
+function openEmail() {
+  const subject = document.getElementById('msgSubject').value.trim() || 'Question about my 17hats setup';
+  const body    = document.getElementById('msgBody').value.trim() || '';
+  window.location.href = 'mailto:nicole@letnicolehelp.com?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(body);
+}
+
+document.querySelectorAll('.nav-item').forEach(item => {
+  item.addEventListener('click', function() {
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    this.classList.add('active');
+  });
+});
+
+// ================================================================
+// ASK CLAUDE — AI CHAT
+//
+// ✏️ IMPORTANT: Replace the CLIENT_CONTEXT below for each client.
+// This is the "brain" of the AI — it tells Claude who this client
+// is and exactly how their 17hats account was set up.
+//
+// Be as specific as possible:
+//   - Their business name
+//   - Their event types
+//   - Their pipeline names and number of stages
+//   - Their automations (what triggers what)
+//   - Any quirks or custom setup you did for them
+//   - When Nicole set them up
+//
+// The more detail you add, the better Claude can answer questions.
+// ================================================================
+
+const CLIENT_CONTEXT = `You are an AI assistant built into a private client portal created by Nicole at Let Nicole Help (letnicolehelp.com), a 17hats setup specialist.
+
+<!--
+✏️ REPLACE EVERYTHING BELOW THIS LINE with details about your actual client.
+Delete the [PLACEHOLDER] lines and fill in real info.
+-->
+
+CLIENT NAME: [CLIENT_BUSINESS_NAME]
+SETUP DATE: [SETUP_MONTH_YEAR]
+BUSINESS TYPE: [e.g. balloon decor, photography, floral design]
+EVENT TYPES: [e.g. weddings, birthdays, corporate events]
+
+WORKFLOWS BUILT:
+1. [WORKFLOW_1_NAME] ([X] stages): [Briefly describe the flow — what triggers what]
+2. [WORKFLOW_2_NAME] ([X] stages): [Briefly describe the flow]
+3. [WORKFLOW_3_NAME] ([X] stages): [Briefly describe the flow]
+(Add more if needed)
+
+AUTOMATIONS:
+- [AUTOMATION_1: e.g. Invoice reminder sequence — 3 days before, day of, 2 days after]
+- [AUTOMATION_2: e.g. Post-event thank you email 2 days after event is marked complete]
+(Add more if needed)
+
+SPECIAL NOTES ABOUT THIS CLIENT'S SETUP:
+[Any custom things Nicole did — unusual pipeline structure, specific email template names, unique tags, etc.]
+
+Your role: Answer questions about this client's specific 17hats setup, general 17hats how-to questions, and help them navigate their workflows. If asked something outside your knowledge, suggest they contact Nicole directly at letnicolehelp.com or visit the 17hats help center at help.17hats.com.
+
+Always be warm, helpful, and specific. Reference their actual setup when relevant. Keep responses concise but complete. Do NOT make up specific features or details you don't know — say "I'm not sure about that specific detail — Nicole or the 17hats help center would be the best resource."`;
+
+// ================================================================
+// CHAT LOGIC — only change PROXY_URL, nothing else needed
+// ✏️ CHANGE: Paste your Cloudflare Worker URL here (same for every client portal)
+// ================================================================
+const PROXY_URL = 'https://robot-nicole-proxy.letnicolehelp.workers.dev/'; // e.g. 'https://robot-nicole-proxy.your-subdomain.workers.dev'
+
+let chatHistory = [];
+
+async function sendMessage() {
+  const input = document.getElementById('chatInput');
+  const btn = document.getElementById('sendBtn');
+  const messages = document.getElementById('chatMessages');
+  const text = input.value.trim();
+  if (!text) return;
+
+  appendMessage('user', text);
+  chatHistory.push({ role: 'user', content: text });
+  input.value = '';
+  input.style.height = 'auto';
+  btn.disabled = true;
+
+  const thinking = document.createElement('div');
+  thinking.className = 'message assistant';
+  thinking.innerHTML = `<div class="message-avatar assistant-avatar">◎</div><div class="message-bubble"><div class="thinking"><span></span><span></span><span></span></div></div>`;
+  messages.appendChild(thinking);
+  messages.scrollTop = messages.scrollHeight;
+
+  try {
+    const response = await fetch(PROXY_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        system: CLIENT_CONTEXT,
+        messages: chatHistory
+      })
+    });
+    const data = await response.json();
+    const reply = data.content?.[0]?.text || "Sorry, I couldn't get a response. Try again!";
+    chatHistory.push({ role: 'assistant', content: reply });
+    thinking.remove();
+    appendMessage('assistant', reply);
+  } catch (err) {
+    thinking.remove();
+    appendMessage('assistant', "Hmm, something went wrong connecting to the AI. Please try again in a moment.");
+  }
+
+  btn.disabled = false;
+  messages.scrollTop = messages.scrollHeight;
+}
+
+function appendMessage(role, text) {
+  const messages = document.getElementById('chatMessages');
+  const div = document.createElement('div');
+  div.className = `message ${role}`;
+  const avatarContent = role === 'assistant' ? '◎' : '✦';
+  const avatarClass = role === 'assistant' ? 'assistant-avatar' : 'user-avatar';
+  div.innerHTML = `<div class="message-avatar ${avatarClass}">${avatarContent}</div><div class="message-bubble">${text.replace(/\n/g,'<br>').replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')}</div>`;
+  messages.appendChild(div);
+  messages.scrollTop = messages.scrollHeight;
+}
+
+function autoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+}
+
+function handleKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendMessage();
+  }
+}
+
+// ================================================================
+// WIX BLOG AUTO-FEED
+// No setup needed — pulls live from letnicolehelp.com via the
+// Cloudflare Worker (same PROXY_URL used for Robot Nicole chat).
+// Shows 4 most recent posts with thumbnail, title, excerpt.
+// Updates automatically whenever Nicole publishes a new post.
+// ================================================================
+async function loadBlogPosts() {
+  const grid = document.getElementById('blog-grid');
+  const loading = document.getElementById('blog-loading');
+  const error = document.getElementById('blog-error');
+
+  try {
+    const response = await fetch(PROXY_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'blog_posts', limit: 4 })
+    });
+    const data = await response.json();
+
+    if (!data.posts || data.posts.length === 0) throw new Error('No posts');
+
+    grid.innerHTML = data.posts.map((post, i) => {
+      // Get thumbnail — prefer wixMedia image, fall back to embedMedia thumbnail
+      let thumbUrl = '';
+      if (post.media?.wixMedia?.image?.url) {
+        thumbUrl = post.media.wixMedia.image.url;
+      } else if (post.media?.embedMedia?.thumbnail?.url) {
+        thumbUrl = post.media.embedMedia.thumbnail.url;
+      }
+      const thumbStyle = thumbUrl
+        ? `background-image:url('${thumbUrl}'); background-size:cover; background-position:center;`
+        : 'background: linear-gradient(135deg, #1a3d30 0%, #2d5246 100%);';
+
+      const excerpt = post.excerpt ? post.excerpt.substring(0, 100) + (post.excerpt.length > 100 ? '...' : '') : '';
+      const postUrl = post.url ? post.url.base + post.url.path : 'https://www.letnicolehelp.com/blog';
+
+      return `
+        <a href="${postUrl}" target="_blank" class="content-card">
+          <div class="content-card-thumb yt-thumb" style="${thumbStyle}">
+            ${!thumbUrl ? '<div style=\"position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:28px;opacity:0.4;\">✦</div>' : ''}
+          </div>
+          <div class="content-card-body">
+            <div class="content-card-type">From Nicole's Blog${i === 0 ? ' · New' : ''}</div>
+            <div class="content-card-title">${post.title}</div>
+            ${excerpt ? `<div style="font-size:11.5px; color:var(--text-light); margin-top:4px; line-height:1.5;">${excerpt}</div>` : ''}
+          </div>
+        </a>`;
+    }).join('');
+
+    loading.style.display = 'none';
+    grid.style.display = 'grid';
+  } catch(e) {
+    loading.style.display = 'none';
+    error.style.display = 'block';
+  }
+}
+
+loadBlogPosts();
+</script>
+</body>
+</html>
