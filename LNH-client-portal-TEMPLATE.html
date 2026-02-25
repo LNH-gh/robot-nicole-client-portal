@@ -1205,15 +1205,18 @@
       <p>Latest posts, videos, and tips — all relevant to your 17hats setup.</p>
     </div>
 
-    <!-- YouTube auto-feed — populates from API, no HTML changes needed -->
     <div class="card">
       <div class="card-title">📹 Latest YouTube Videos</div>
-      <div id="yt-loading" style="text-align:center; padding:30px; color:var(--text-light); font-size:13px;">Loading latest videos...</div>
-      <div class="content-grid" id="yt-grid" style="display:none;"></div>
-      <div id="yt-error" style="display:none; text-align:center; padding:20px;">
-        <p style="font-size:13px; color:var(--text-light); margin-bottom:12px;">Couldn't load videos automatically.</p>
-        <a href="https://youtube.com/@letnicolehelp" target="_blank" class="btn btn-outline">View on YouTube →</a>
+      <div style="position:relative; width:100%; padding-bottom:56.25%; border-radius:10px; overflow:hidden; margin-bottom:14px;">
+        <iframe
+          src="https://www.youtube.com/embed/videoseries?list=UUZWNAh-ep5MpUddRrhuRsYg&rel=0"
+          style="position:absolute; top:0; left:0; width:100%; height:100%; border:none;"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowfullscreen
+          title="Latest videos from Let Nicole Help">
+        </iframe>
       </div>
+      <a href="https://youtube.com/@letnicolehelp" target="_blank" class="btn btn-outline" style="font-size:12px;">View all on YouTube →</a>
     </div>
 
     <!-- Wix Blog auto-feed — pulls live from letnicolehelp.com, no changes needed -->
@@ -1542,7 +1545,8 @@ Always be warm, helpful, and specific. Reference their actual setup when relevan
 // CHAT LOGIC — only change PROXY_URL, nothing else needed
 // ✏️ CHANGE: Paste your Cloudflare Worker URL here (same for every client portal)
 // ================================================================
-const PROXY_URL = 'https://robot-nicole-proxy.letnicolehelp.workers.dev';
+const PROXY_URL      = 'https://robot-nicole-proxy.letnicolehelp.workers.dev/'; // ✏️ your Cloudflare Worker URL
+
 let chatHistory = [];
 
 async function sendMessage() {
@@ -1672,45 +1676,7 @@ async function loadBlogPosts() {
 
 loadBlogPosts();
 
-// ================================================================
-// YOUTUBE AUTO-FEED — routed through Cloudflare Worker (no API key in HTML)
-// ✏️ Nothing to change here — key lives safely in Cloudflare secrets.
-// ================================================================
-async function loadYouTubeVideos() {
-  const grid    = document.getElementById('yt-grid');
-  const loading = document.getElementById('yt-loading');
-  const error   = document.getElementById('yt-error');
-
-  try {
-    const response = await fetch(PROXY_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'youtube_videos', limit: 4 })
-    });
-    const data = await response.json();
-
-    if (!data.items || data.items.length === 0) throw new Error('No videos');
-
-    grid.innerHTML = data.items.map((item, i) => `
-      <a href="https://youtube.com/watch?v=${item.id}" target="_blank" class="content-card">
-        <div class="content-card-thumb yt-thumb" style="background-image:url('${item.thumbnail}'); background-size:cover; background-position:center;">
-          <div style="position:absolute;inset:0;background:rgba(45,82,70,0.35);display:flex;align-items:center;justify-content:center;font-size:28px;">▶</div>
-        </div>
-        <div class="content-card-body">
-          <div class="content-card-type">YouTube${i === 0 ? ' · New' : ''}</div>
-          <div class="content-card-title">${item.title}</div>
-        </div>
-      </a>`).join('');
-
-    loading.style.display = 'none';
-    grid.style.display    = 'grid';
-  } catch(e) {
-    loading.style.display = 'none';
-    error.style.display   = 'block';
-  }
-}
-
-loadYouTubeVideos();
+// YouTube is embedded directly — no API key needed.
 
 </script>
 </body>
