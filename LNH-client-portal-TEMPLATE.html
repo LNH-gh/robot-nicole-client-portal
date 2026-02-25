@@ -1542,7 +1542,7 @@ Always be warm, helpful, and specific. Reference their actual setup when relevan
 // CHAT LOGIC — only change PROXY_URL, nothing else needed
 // ✏️ CHANGE: Paste your Cloudflare Worker URL here (same for every client portal)
 // ================================================================
-const PROXY_URL = 'https://robot-nicole-proxy.letnicolehelp.workers.dev/'; // e.g. 'https://robot-nicole-proxy.your-subdomain.workers.dev'
+const PROXY_URL = 'https://robot-nicole-proxy.letnicolehelp.workers.dev/; // e.g. 'https://robot-nicole-proxy.your-subdomain.workers.dev'
 
 let chatHistory = [];
 
@@ -1674,38 +1674,32 @@ async function loadBlogPosts() {
 loadBlogPosts();
 
 // ================================================================
-// YOUTUBE AUTO-FEED
-// ✏️ Set these ONCE — same for every client portal.
+// YOUTUBE AUTO-FEED — routed through Cloudflare Worker (no API key in HTML)
+// ✏️ Nothing to change here — key lives safely in Cloudflare secrets.
 // ================================================================
-const YOUTUBE_API_KEY    = 'AIzaSyAheXekxxbVdNr0kDaFbzivckbnB8X_L18';    // ✏️ paste your Google API key
-const YOUTUBE_CHANNEL_ID = 'UCZWNAh-ep5MpUddRrhuRsYg'; // ✏️ e.g. 'UCxxxxxx' from YouTube Studio
-
 async function loadYouTubeVideos() {
   const grid    = document.getElementById('yt-grid');
   const loading = document.getElementById('yt-loading');
   const error   = document.getElementById('yt-error');
 
-  if (!YOUTUBE_API_KEY || YOUTUBE_API_KEY === 'YOUR_YOUTUBE_API_KEY_HERE') {
-    loading.style.display = 'none';
-    error.style.display = 'block';
-    return;
-  }
-
   try {
-    const url = `https://www.googleapis.com/youtube/v3/search?key=${YOUTUBE_API_KEY}&channelId=${YOUTUBE_CHANNEL_ID}&part=snippet&order=date&maxResults=4&type=video`;
-    const res  = await fetch(url);
-    const data = await res.json();
+    const response = await fetch(PROXY_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'youtube_videos', limit: 4 })
+    });
+    const data = await response.json();
 
     if (!data.items || data.items.length === 0) throw new Error('No videos');
 
     grid.innerHTML = data.items.map((item, i) => `
-      <a href="https://youtube.com/watch?v=${item.id.videoId}" target="_blank" class="content-card">
-        <div class="content-card-thumb yt-thumb" style="background-image:url('${item.snippet.thumbnails.medium?.url}'); background-size:cover; background-position:center;">
+      <a href="https://youtube.com/watch?v=${item.id}" target="_blank" class="content-card">
+        <div class="content-card-thumb yt-thumb" style="background-image:url('${item.thumbnail}'); background-size:cover; background-position:center;">
           <div style="position:absolute;inset:0;background:rgba(45,82,70,0.35);display:flex;align-items:center;justify-content:center;font-size:28px;">▶</div>
         </div>
         <div class="content-card-body">
           <div class="content-card-type">YouTube${i === 0 ? ' · New' : ''}</div>
-          <div class="content-card-title">${item.snippet.title}</div>
+          <div class="content-card-title">${item.title}</div>
         </div>
       </a>`).join('');
 
