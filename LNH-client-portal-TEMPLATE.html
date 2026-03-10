@@ -1524,10 +1524,8 @@ document.querySelectorAll('.nav-item').forEach(item => {
 
 const CLIENT_CONTEXT = `You are an AI assistant built into a private client portal created by Nicole at Let Nicole Help (letnicolehelp.com), a 17hats setup specialist.
 
-<!--
-✏️ REPLACE EVERYTHING BELOW THIS LINE with details about your actual client.
-Delete the [PLACEHOLDER] lines and fill in real info.
--->
+// ✏️ REPLACE EVERYTHING BELOW THIS LINE with details about your actual client.
+// Delete the [PLACEHOLDER] lines and fill in real info.
 
 CLIENT NAME: [CLIENT_BUSINESS_NAME]
 SETUP DATE: [SETUP_MONTH_YEAR]
@@ -1556,7 +1554,7 @@ Always be warm, helpful, and specific. Reference their actual setup when relevan
 // CHAT LOGIC — only change PROXY_URL, nothing else needed
 // ✏️ CHANGE: Paste your Cloudflare Worker URL here (same for every client portal)
 // ================================================================
-const PROXY_URL      = https://robot-nicole-proxy.letnicolehelp.workers.dev/; // ✏️ your Cloudflare Worker URL
+const PROXY_URL      = 'YOUR_WORKER_URL_HERE'; // ✏️ your Cloudflare Worker URL
 
 let chatHistory = [];
 
@@ -1638,6 +1636,12 @@ async function loadBlogPosts() {
   const grid = document.getElementById('blog-grid');
   const loading = document.getElementById('blog-loading');
   const error = document.getElementById('blog-error');
+
+  if (!PROXY_URL || PROXY_URL === 'YOUR_WORKER_URL_HERE') {
+    if (loading) loading.style.display = 'none';
+    if (error) error.style.display = 'block';
+    return;
+  }
 
   try {
     const response = await fetch(PROXY_URL, {
