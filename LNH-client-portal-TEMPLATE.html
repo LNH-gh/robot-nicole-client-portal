@@ -1224,6 +1224,12 @@
       <a href="https://youtube.com/@letnicolehelp" target="_blank" class="btn btn-outline" style="font-size:12px;">View all on YouTube →</a>
     </div>
 
+    <!-- Announcements — pulls from announcements.json in your GitHub repo -->
+    <div class="card" id="announcements-card" style="display:none;">
+      <div class="card-title">✨ From Nicole</div>
+      <div id="announcements-list" style="display:flex; flex-direction:column; gap:12px;"></div>
+    </div>
+
     <!-- Wix Blog auto-feed — pulls live from letnicolehelp.com, no changes needed -->
     <div class="card">
       <div class="card-title">✍️ Latest from Nicole's Blog</div>
@@ -1330,9 +1336,18 @@
       <div class="card">
         <div class="card-title">📅 Book a Session</div>
         <p style="font-size:13.5px; color:var(--text-mid); line-height:1.7; margin-bottom:20px;">Whether you need a quick check-in or a full tune-up, Nicole offers sessions tailored to where you're at.</p>
-        <a href="https://letnicolehelp.17hats.com/p#/lcf/xnngshvxghfzwsnxzpvzbndcxxsfwndb" target="_blank" class="btn btn-copper">Set up Tech Check Calls →</a>
-        <a href="https://letnicolehelp.17hats.com/p#/scheduling/ktcgccxcfptwkcbrhgzsvkdzsgpcxntx/s/61821" target="_blank" class="btn btn-copper">Book from Your Tech Check Call Pack →</a>
-                </div>
+        <div style="display:flex; flex-direction:column; gap:12px; margin-bottom:20px;">
+          <div style="padding:14px 16px; border:1px solid var(--border); border-radius:8px;">
+            <div style="font-size:13px; font-weight:500; margin-bottom:3px; color:var(--text);">30-Min Tune-Up · $97</div>
+            <div style="font-size:12px; color:var(--text-light);">Quick questions, small fixes, workflow tweaks</div>
+          </div>
+          <div style="padding:14px 16px; border:1px solid var(--copper); border-radius:8px; background:var(--copper-pale);">
+            <div style="font-size:13px; font-weight:500; margin-bottom:3px; color:var(--text);">60-Min Account Audit · $197 ✦ Recommended</div>
+            <div style="font-size:12px; color:var(--text-light);">Full review, template updates, new feature setup</div>
+          </div>
+        </div>
+        <a href="https://letnicolehelp.17hats.com/p#/lcf/xnngshvxghfzwsnxzpvzbndcxxsfwndb" target="_blank" class="btn btn-copper">Book a Tech Check Call →</a>
+      </div>
 
       <div class="card">
         <div class="card-title">📧 Send Nicole a Message</div>
@@ -1541,7 +1556,7 @@ Always be warm, helpful, and specific. Reference their actual setup when relevan
 // CHAT LOGIC — only change PROXY_URL, nothing else needed
 // ✏️ CHANGE: Paste your Cloudflare Worker URL here (same for every client portal)
 // ================================================================
-const PROXY_URL      = 'https://robot-nicole-proxy.letnicolehelp.workers.dev/'; // ✏️ your Cloudflare Worker URL
+const PROXY_URL      = 'YOUR_WORKER_URL_HERE'; // ✏️ your Cloudflare Worker URL
 
 let chatHistory = [];
 
@@ -1671,6 +1686,41 @@ async function loadBlogPosts() {
 }
 
 loadBlogPosts();
+
+// ================================================================
+// ANNOUNCEMENTS — fetches from announcements.json in your GitHub repo
+// To update: edit announcements.json and push to GitHub. All portals
+// update automatically. No need to touch individual portal files.
+// ================================================================
+async function loadAnnouncements() {
+  try {
+    const res = await fetch('https://lnh-gh.github.io/robot-nicole-client-portal/announcements.json?nocache=' + Date.now());
+    const items = await res.json();
+    if (!items || items.length === 0) return;
+
+    const list = document.getElementById('announcements-list');
+    const card = document.getElementById('announcements-card');
+
+    list.innerHTML = items.map(item => `
+      <a href="${item.url}" target="_blank" style="display:flex; align-items:flex-start; gap:14px; padding:14px 16px; border:1px solid var(--border); border-radius:10px; text-decoration:none; transition:all 0.2s;" onmouseover="this.style.borderColor='var(--copper)'" onmouseout="this.style.borderColor='var(--border)'">
+        <div style="font-size:24px; flex-shrink:0; margin-top:2px;">${item.emoji || '✦'}</div>
+        <div>
+          <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
+            <div style="font-size:14px; font-weight:500; color:var(--text);">${item.title}</div>
+            ${item.label ? `<span style="font-size:10px; background:rgba(184,125,82,0.12); color:var(--copper); padding:2px 8px; border-radius:20px;">${item.label}</span>` : ''}
+          </div>
+          <div style="font-size:12.5px; color:var(--text-light); line-height:1.5;">${item.desc}</div>
+        </div>
+        <div style="font-size:16px; color:var(--copper); flex-shrink:0; margin-left:auto; margin-top:2px;">→</div>
+      </a>`).join('');
+
+    card.style.display = 'block';
+  } catch(e) {
+    // Silently fail — announcements are optional
+  }
+}
+
+loadAnnouncements();
 
 // YouTube is embedded directly — no API key needed.
 
