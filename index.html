@@ -1426,12 +1426,14 @@ window.addEventListener('load', () => { initPortal(); });
 //   CHECKIN_DATE = the recommended tune-up date (matches "Next Check-In" stat card)
 // ================================================================
 (function() {
-  const setupDate   = new Date('YYYY-MM-01'); // ✏️ e.g. '2026-03-01' for March 2026
-  const checkInDate = new Date('YYYY-MM-01'); // ✏️ e.g. '2026-09-01' for Sep 2026
+  const setupDate   = new Date('2026-01-01'); // ✏️ e.g. '2026-03-01' for March 2026
+  const checkInDate = new Date('2026-07-01'); // ✏️ e.g. '2026-09-01' for Sep 2026
   const now = new Date();
   const months = (now.getFullYear() - setupDate.getFullYear()) * 12 + (now.getMonth() - setupDate.getMonth());
   const ageEl = document.getElementById('acctAge');
   const statusEl = document.getElementById('reviewStatus');
+
+  if (!ageEl || !statusEl) return;
 
   if (months < 1) {
     ageEl.textContent = 'New!';
@@ -1464,8 +1466,8 @@ function showSection(id) {
   if (matchingNav) matchingNav.classList.add('active');
   window.scrollTo(0, 0);
   if (id === 'whats-new') {
-    document.getElementById('newsBadge').style.display = 'none';
-    localStorage.setItem('lnh_whats_new_seen_' + CLIENT_KEY, new Date().toISOString());
+    const badge = document.getElementById('newsBadge');
+    if (badge) badge.style.display = 'none';
   }
   closeMobileMenu();
 }
