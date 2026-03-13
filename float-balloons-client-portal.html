@@ -1,0 +1,2421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Float Balloons | Client Portal</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --green: #2d5246;
+    --green-light: #3a6858;
+    --green-pale: #eef4f1;
+    --copper: #b87d52;
+    --copper-light: #d4a57a;
+    --copper-pale: #fdf5ed;
+    --cream: #faf8f5;
+    --text: #1e3329;
+    --text-mid: #4a6358;
+    --text-light: #8aab9a;
+    --white: #ffffff;
+    --border: rgba(184,125,82,0.2);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: "Montserrat", sans-serif;
+    background: var(--cream);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  .sidebar {
+    position: fixed;
+    left: 0; top: 0; bottom: 0;
+    width: 260px;
+    background: var(--green);
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    padding: 0 0 24px 0;
+    overflow-y: auto;
+  }
+
+  .sidebar-logo {
+    padding: 32px 28px 24px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+  }
+
+  .sidebar-logo .by-nicole {
+    font-family: "Montserrat", sans-serif;
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--copper-light);
+    margin-bottom: 4px;
+  }
+
+  .sidebar-logo .client-name {
+    font-family: "Montserrat", sans-serif;
+    font-size: 22px;
+    font-weight: 500;
+    color: white;
+    line-height: 1.2;
+  }
+
+  .sidebar-logo .portal-label {
+    font-size: 11px;
+    color: rgba(255,255,255,0.45);
+    letter-spacing: 0.1em;
+    margin-top: 2px;
+  }
+
+  .sidebar-section { padding: 20px 0 8px; }
+
+  .sidebar-section-label {
+    font-size: 9px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.3);
+    padding: 0 28px;
+    margin-bottom: 6px;
+  }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 28px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 13.5px;
+    color: rgba(255,255,255,0.65);
+    border-left: 2px solid transparent;
+    text-decoration: none;
+  }
+
+  .nav-item:hover, .nav-item.active {
+    background: rgba(255,255,255,0.07);
+    color: white;
+    border-left-color: var(--copper-light);
+  }
+
+  .nav-item .icon { font-size: 15px; opacity: 0.8; width: 18px; text-align: center; flex-shrink: 0; }
+
+  .sidebar-footer {
+    margin-top: auto;
+    padding: 20px 28px 0;
+    border-top: 1px solid rgba(255,255,255,0.1);
+  }
+
+  .sidebar-footer p { font-size: 11px; color: rgba(255,255,255,0.3); line-height: 1.6; }
+  .sidebar-footer a { color: var(--copper-light); text-decoration: none; font-size: 11px; }
+
+  .main { margin-left: 260px; min-height: 100vh; }
+
+  .topbar {
+    background: white;
+    border-bottom: 1px solid var(--border);
+    padding: 16px 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+  }
+
+  .topbar-left { display: flex; align-items: center; gap: 12px; }
+  .setup-date { font-size: 12px; color: var(--text-light); }
+  .setup-date span { color: var(--copper); font-weight: 500; }
+  .topbar-right { display: flex; gap: 10px; }
+
+  .btn {
+    padding: 8px 18px;
+    border-radius: 6px;
+    font-size: 12.5px;
+    font-family: "Montserrat", sans-serif;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border: none;
+  }
+
+  .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text-mid); }
+  .btn-outline:hover { border-color: var(--copper); color: var(--copper); }
+  .btn-primary { background: var(--green); color: white; }
+  .btn-primary:hover { background: var(--green-light); }
+  .btn-copper { background: var(--copper); color: white; }
+  .btn-copper:hover { background: var(--copper-light); }
+
+  .page-section { display: none; padding: 40px; animation: fadeIn 0.3s ease; }
+  .page-section.active { display: block; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .section-header { margin-bottom: 32px; }
+
+  .section-header h1 {
+    font-family: "Montserrat", sans-serif;
+    font-size: 36px;
+    font-weight: 500;
+    color: var(--green);
+    line-height: 1.2;
+    margin-bottom: 6px;
+  }
+
+  .section-header p { color: var(--text-mid); font-size: 14px; line-height: 1.6; }
+
+  .stats-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; margin-bottom: 32px; }
+
+  .stat-card { background: white; border: 1px solid var(--border); border-radius: 12px; padding: 20px 22px; }
+  .stat-card .stat-label { font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-light); margin-bottom: 8px; }
+  .stat-card .stat-value { font-family: "Montserrat", sans-serif; font-size: 32px; font-weight: 500; color: var(--green); line-height: 1; }
+  .stat-card .stat-sub { font-size: 11.5px; color: var(--text-light); margin-top: 4px; }
+
+  .card { background: white; border: 1px solid var(--border); border-radius: 12px; padding: 28px; margin-bottom: 20px; }
+
+  .card-title {
+    font-family: "Montserrat", sans-serif;
+    font-size: 20px;
+    font-weight: 500;
+    color: var(--green);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .workflow-list { display: flex; flex-direction: column; gap: 12px; }
+
+  .workflow-item { border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+
+  .workflow-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 18px;
+    cursor: pointer;
+    background: var(--green-pale);
+    transition: background 0.2s;
+  }
+
+  .workflow-header:hover { background: #deeae4; }
+  .workflow-header-left { display: flex; align-items: center; gap: 12px; }
+  .workflow-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--copper); flex-shrink: 0; }
+  .workflow-name { font-size: 14px; font-weight: 500; color: var(--text); }
+
+  .workflow-tag {
+    font-size: 10.5px;
+    background: rgba(184,125,82,0.12);
+    color: var(--copper);
+    padding: 2px 8px;
+    border-radius: 20px;
+    letter-spacing: 0.05em;
+  }
+
+  .workflow-toggle { font-size: 13px; color: var(--text-light); transition: transform 0.2s; }
+  .workflow-toggle.open { transform: rotate(180deg); }
+
+  .workflow-body { display: none; padding: 18px; background: white; border-top: 1px solid var(--border); }
+  .workflow-body.open { display: block; }
+  .workflow-body p { font-size: 13.5px; color: var(--text-mid); line-height: 1.7; margin-bottom: 12px; }
+
+  .workflow-steps { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+
+  .workflow-steps li {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    font-size: 13px;
+    color: var(--text-mid);
+    line-height: 1.5;
+  }
+
+  .step-num {
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    background: var(--green);
+    color: white;
+    font-size: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  .update-timeline { position: relative; padding-left: 28px; }
+
+  .update-timeline::before {
+    content: '';
+    position: absolute;
+    left: 8px; top: 6px; bottom: 6px;
+    width: 1px;
+    background: var(--border);
+  }
+
+  .update-item { position: relative; margin-bottom: 28px; }
+
+  .update-item::before {
+    content: '';
+    position: absolute;
+    left: -24px; top: 5px;
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    border: 2px solid var(--copper);
+    background: var(--cream);
+  }
+
+  .update-timing { font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--copper); margin-bottom: 5px; }
+  .update-title { font-size: 15px; font-weight: 500; color: var(--text); margin-bottom: 6px; }
+  .update-desc { font-size: 13px; color: var(--text-mid); line-height: 1.6; }
+
+  .content-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+
+  .content-card {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    text-decoration: none;
+    display: block;
+    transition: all 0.2s;
+  }
+
+  .content-card:hover { border-color: var(--copper-light); transform: translateY(-2px); box-shadow: 0 4px 20px rgba(45,82,70,0.08); }
+
+  .content-card-thumb {
+    height: 110px;
+    background: var(--green);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .content-card-thumb::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(184,125,82,0.2) 0%, transparent 60%);
+  }
+
+  .yt-thumb { background: linear-gradient(135deg, #1a3d30 0%, #2d5246 100%); }
+  .content-card-body { padding: 14px 16px; }
+  .content-card-type { font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--copper); margin-bottom: 4px; }
+  .content-card-title { font-size: 13.5px; font-weight: 500; color: var(--text); line-height: 1.4; }
+
+  .chat-wrapper {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    height: 500px;
+  }
+
+  .chat-header { background: var(--green); padding: 16px 22px; display: flex; align-items: center; gap: 12px; }
+
+  .chat-avatar {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background: var(--copper);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+
+  .chat-header-info h3 { font-size: 14px; font-weight: 500; color: white; }
+  .chat-header-info p { font-size: 11px; color: rgba(255,255,255,0.5); }
+
+  .chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    background: var(--cream);
+  }
+
+  .message { display: flex; gap: 10px; max-width: 85%; }
+  .message.user { align-self: flex-end; flex-direction: row-reverse; }
+
+  .message-bubble { padding: 11px 15px; border-radius: 12px; font-size: 13.5px; line-height: 1.6; }
+
+  .message.assistant .message-bubble {
+    background: white;
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: 2px 12px 12px 12px;
+  }
+
+  .message.user .message-bubble {
+    background: var(--green);
+    color: white;
+    border-radius: 12px 2px 12px 12px;
+  }
+
+  .message-avatar {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  .assistant-avatar { background: var(--copper); }
+  .user-avatar { background: var(--green-light); }
+
+  .chat-input-area {
+    padding: 16px;
+    border-top: 1px solid var(--border);
+    background: white;
+    display: flex;
+    gap: 10px;
+    align-items: flex-end;
+  }
+
+  .chat-input {
+    flex: 1;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-family: "Montserrat", sans-serif;
+    font-size: 13.5px;
+    color: var(--text);
+    resize: none;
+    outline: none;
+    transition: border-color 0.2s;
+    min-height: 42px;
+    max-height: 120px;
+  }
+
+  .chat-input:focus { border-color: var(--copper-light); }
+  .chat-input::placeholder { color: var(--text-light); }
+
+  .chat-send {
+    width: 42px; height: 42px;
+    border-radius: 8px;
+    background: var(--green);
+    color: white;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    transition: background 0.2s;
+    flex-shrink: 0;
+  }
+
+  .chat-send:hover { background: var(--green-light); }
+  .chat-send:disabled { background: var(--text-light); cursor: not-allowed; }
+
+  .thinking { display: flex; gap: 4px; padding: 8px 4px; }
+  .thinking span { width: 6px; height: 6px; border-radius: 50%; background: var(--copper-light); animation: bounce 1.2s infinite; }
+  .thinking span:nth-child(2) { animation-delay: 0.2s; }
+  .thinking span:nth-child(3) { animation-delay: 0.4s; }
+
+  @keyframes bounce {
+    0%, 80%, 100% { transform: translateY(0); opacity: 0.4; }
+    40% { transform: translateY(-6px); opacity: 1; }
+  }
+
+  .resources-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+
+  .resource-card {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 22px;
+    text-decoration: none;
+    display: block;
+    transition: all 0.2s;
+  }
+
+  .resource-card:hover { border-color: var(--copper); transform: translateY(-2px); box-shadow: 0 4px 20px rgba(45,82,70,0.08); }
+  .resource-icon { font-size: 26px; margin-bottom: 12px; }
+  .resource-title { font-size: 14px; font-weight: 500; color: var(--text); margin-bottom: 6px; }
+  .resource-desc { font-size: 12.5px; color: var(--text-light); line-height: 1.5; }
+
+  .accent-banner {
+    background: linear-gradient(135deg, var(--green) 0%, var(--green-light) 100%);
+    border-radius: 12px;
+    padding: 28px 32px;
+    margin-bottom: 28px;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .accent-banner::before { content: ''; position: absolute; right: -20px; top: -20px; width: 160px; height: 160px; border-radius: 50%; border: 30px solid rgba(184,125,82,0.15); }
+  .accent-banner::after { content: ''; position: absolute; right: 60px; bottom: -30px; width: 100px; height: 100px; border-radius: 50%; border: 20px solid rgba(184,125,82,0.1); }
+
+  .accent-banner h2 { font-family: "Montserrat", sans-serif; font-size: 26px; font-weight: 400; color: white; margin-bottom: 6px; font-style: italic; }
+  .accent-banner p { font-size: 13px; color: rgba(255,255,255,0.65); max-width: 400px; }
+
+  .tag-pill { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; background: rgba(184,125,82,0.15); color: var(--copper); letter-spacing: 0.05em; }
+
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+
+  /* ============================================================
+     TEMPLATE HIGHLIGHT STYLES — remove before sending to client
+     ============================================================ */
+  .FILL {
+    background: #fff3cd;
+    border: 1.5px dashed #e6a817;
+    border-radius: 4px;
+    padding: 1px 5px;
+    font-style: italic;
+    color: #a0670a;
+    font-size: inherit;
+  }
+
+  /* ── PASSWORD OVERLAY ── */
+  .pw-overlay {
+    position: fixed;
+    inset: 0;
+    background: var(--green);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    padding: 40px;
+    transition: opacity 0.5s ease, visibility 0.5s ease;
+  }
+
+  .pw-overlay.unlocked {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+  }
+
+  .pw-overlay::before {
+    content: '';
+    position: absolute;
+    right: -60px; top: -60px;
+    width: 320px; height: 320px;
+    border-radius: 50%;
+    border: 50px solid rgba(184,125,82,0.12);
+  }
+
+  .pw-overlay::after {
+    content: '';
+    position: absolute;
+    left: -40px; bottom: -40px;
+    width: 220px; height: 220px;
+    border-radius: 50%;
+    border: 35px solid rgba(184,125,82,0.08);
+  }
+
+  .pw-box {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 20px;
+    padding: 48px 44px;
+    width: 100%;
+    max-width: 420px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    z-index: 1;
+    backdrop-filter: blur(10px);
+  }
+
+  .pw-logo { font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--copper-light); margin-bottom: 6px; }
+  .pw-client { font-family: 'Montserrat', sans-serif; font-size: 26px; font-weight: 600; color: white; margin-bottom: 4px; text-align: center; }
+  .pw-subtitle { font-size: 13px; color: rgba(255,255,255,0.4); margin-bottom: 36px; text-align: center; }
+  .pw-lock { font-size: 32px; margin-bottom: 20px; }
+  .pw-label { font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,0.45); align-self: flex-start; margin-bottom: 8px; }
+
+  .pw-input {
+    width: 100%;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 10px;
+    padding: 14px 18px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 15px;
+    color: white;
+    outline: none;
+    letter-spacing: 0.1em;
+    transition: border-color 0.2s;
+    margin-bottom: 14px;
+  }
+
+  .pw-input::placeholder { color: rgba(255,255,255,0.2); }
+  .pw-input:focus { border-color: var(--copper-light); }
+  .pw-input.shake { animation: shake 0.4s ease; border-color: #e07070; }
+
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20% { transform: translateX(-8px); }
+    40% { transform: translateX(8px); }
+    60% { transform: translateX(-5px); }
+    80% { transform: translateX(5px); }
+  }
+
+  .pw-btn {
+    width: 100%;
+    background: var(--copper);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 14px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+    margin-bottom: 16px;
+  }
+
+  .pw-btn:hover { background: var(--copper-light); }
+  .pw-btn:active { transform: scale(0.98); }
+  .pw-error { font-size: 12px; color: #f0a0a0; text-align: center; min-height: 18px; }
+  .pw-footer { margin-top: 32px; font-size: 11px; color: rgba(255,255,255,0.2); letter-spacing: 0.08em; }
+
+  /* ── CLIENT LOGO ── */
+  .client-logo {
+    height: 36px;
+    width: auto;
+    max-width: 140px;
+    object-fit: contain;
+    display: block;
+  }
+
+  .client-logo-lg {
+    height: 64px;
+    width: auto;
+    max-width: 200px;
+    object-fit: contain;
+    display: block;
+    margin: 0 auto 16px;
+  }
+
+  .client-logo-placeholder {
+    height: 36px;
+    display: flex;
+    align-items: center;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--green);
+    letter-spacing: 0.02em;
+  }
+
+  .client-logo-placeholder-lg {
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    font-weight: 600;
+    color: white;
+    letter-spacing: 0.02em;
+    margin-bottom: 16px;
+  }
+
+  /* ── MOBILE HAMBURGER ── */
+  .hamburger {
+    display: none;
+    position: fixed;
+    top: 14px; left: 14px;
+    z-index: 200;
+    width: 40px; height: 40px;
+    border-radius: 10px;
+    background: var(--green);
+    border: none;
+    cursor: pointer;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.2);
+  }
+  .hamburger span { display: block; width: 18px; height: 2px; background: white; border-radius: 2px; transition: all 0.25s ease; }
+  .hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+  .hamburger.open span:nth-child(2) { opacity: 0; }
+  .hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+  .mobile-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 98; }
+  .mobile-overlay.visible { display: block; }
+
+  /* ── NOTIFICATION BADGE ── */
+  .nav-badge {
+    display: inline-block;
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--copper);
+    margin-left: 6px;
+    flex-shrink: 0;
+    box-shadow: 0 0 0 2px rgba(184,125,82,0.3);
+    animation: pulse-badge 2s infinite;
+  }
+  @keyframes pulse-badge {
+    0%, 100% { box-shadow: 0 0 0 2px rgba(184,125,82,0.3); }
+    50% { box-shadow: 0 0 0 5px rgba(184,125,82,0); }
+  }
+
+  /* ── PRINT / SAVE AS PDF ── */
+  @media print {
+    .sidebar, .hamburger, .mobile-overlay, .pw-overlay, #welcomeModal, .topbar-right { display: none !important; }
+    .main { margin-left: 0 !important; }
+    .page-section { display: block !important; page-break-after: always; }
+    .workflow-body { display: block !important; max-height: none !important; }
+    body { background: white; }
+    .card { box-shadow: none; border: 1px solid #ddd; }
+  }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 768px) {
+    .sidebar { transform: translateX(-100%); transition: transform 0.3s ease; z-index: 99; width: 280px; }
+    .sidebar.mobile-open { transform: translateX(0); }
+    .hamburger { display: flex; }
+    .main { margin-left: 0; }
+    .topbar { padding: 14px 16px 14px 64px; }
+    .page-section { padding: 24px 16px; }
+    .stats-row { grid-template-columns: 1fr 1fr; gap: 10px; }
+    .content-grid { grid-template-columns: 1fr; }
+    .resources-grid { grid-template-columns: 1fr 1fr; }
+    .two-col { grid-template-columns: 1fr; }
+    .accent-banner { flex-direction: column; gap: 16px; }
+    .accent-banner h2 { font-size: 20px; }
+    .chat-wrapper { height: 420px; }
+  }
+  @media (max-width: 480px) {
+    .stats-row { grid-template-columns: 1fr 1fr; }
+    .resources-grid { grid-template-columns: 1fr; }
+    .topbar-right .btn-outline { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<!--
+╔══════════════════════════════════════════════════════════════╗
+║          LET NICOLE HELP — CLIENT PORTAL TEMPLATE           ║
+║                                                              ║
+║  HOW TO CUSTOMIZE THIS FILE FOR A NEW CLIENT:               ║
+║                                                              ║
+║  1. Find every [PLACEHOLDER] — they're marked in yellow     ║
+║     highlight in the browser view                           ║
+║  2. Replace with your client's real info                    ║
+║  3. Add/remove workflow items as needed                     ║
+║  4. Update the CLIENT_CONTEXT block in the <script> at      ║
+║     the bottom — this is what Claude uses to answer         ║
+║     questions in the Ask Robot Nicole chat                        ║
+║  5. Remove this comment block when done                     ║
+║                                                              ║
+║  PLACEHOLDERS KEY:                                          ║
+║  [CLIENT_BUSINESS_NAME]  → e.g. "Bloom Balloons"           ║
+║  [CLIENT_LOGO_URL]       → e.g. "https://their-site.com/logo.png" ║
+║  PORTAL_PASSWORD         → e.g. "bloomballoons2026"         ║
+║  PORTAL_LAST_UPDATED     → e.g. "March 4, 2026"             ║
+║  WHATS_NEW_UPDATED       → e.g. "March 4, 2026"             ║
+║  CLIENT_KEY              → e.g. "bloom_balloons"            ║
+║  [SETUP_DATE]            → e.g. "March 2026"                ║
+║  [SETUP_MONTH_YEAR]      → e.g. "March 2026"                ║
+║  [NUM_WORKFLOWS]         → e.g. "8"                         ║
+║  [NUM_PIPELINES]         → e.g. "3"                         ║
+║  [NUM_AUTOMATIONS]       → e.g. "14"                        ║
+║  Account Age             → auto-calculated from script      ║
+║  [NEXT_CHECKIN]          → e.g. "Sep '26"                   ║
+║  [OVERVIEW_SUMMARY]      → 2-3 sentences about their setup  ║
+║  [QUICK_TIP_1–4]         → 4 specific tips for this client  ║
+║  [WORKFLOW_1–3 details]  → pipeline names, stages, steps    ║
+║  [UPDATE_1–3]            → personalized 6-12 month actions  ║
+║  [YOUTUBE_TITLE_1–4]     → Your current video titles        ║
+║  [BOOKING_URL] removed — Tech Check URL is now hardcoded     ║
+║  [MINER_URL]   removed — MINER card removed from What's New  ║
+╚══════════════════════════════════════════════════════════════╝
+-->
+
+<!-- WELCOME MODAL (shows once after first login — no changes needed) -->
+<div class="pw-overlay" id="welcomeModal" style="display:none; background: rgba(30,51,41,0.92); backdrop-filter: blur(8px);">
+  <div class="pw-box" style="max-width:480px; gap:0; text-align:center;">
+    <div style="font-size:36px; margin-bottom:16px;">🎈</div>
+    <div class="pw-logo">Welcome to your</div>
+    <!-- ✏️ CHANGE: Client name (matches rest of portal) -->
+    <div class="pw-client" style="margin-bottom:12px;">Float Balloons Portal</div>
+    <!-- Logo in welcome modal — same URL as everywhere else -->
+    <img
+      src="https://i.imgur.com/Q1rvxRc.png"
+      alt="Float Balloons"
+      class="client-logo"
+      onerror="this.style.display='none';"
+      style="margin: 0 auto 20px; filter: brightness(0) invert(1); opacity:0.7;"
+    />
+    <div style="width:40px; height:2px; background:var(--copper); border-radius:2px; margin: 0 auto 24px;"></div>
+    <p style="font-size:13.5px; color:rgba(255,255,255,0.65); line-height:1.7; margin-bottom:28px;">Everything Nicole built for you, in one place. Here's a quick look at what's inside:</p>
+    <div style="display:flex; flex-direction:column; gap:10px; width:100%; margin-bottom:32px; text-align:left;">
+      <div style="display:flex; align-items:flex-start; gap:12px; background:rgba(255,255,255,0.06); border-radius:10px; padding:12px 14px;">
+        <span style="font-size:16px; flex-shrink:0;">◈</span>
+        <div><div style="font-size:13px; font-weight:600; color:white; margin-bottom:2px;">Overview</div><div style="font-size:12px; color:rgba(255,255,255,0.45);">Your account stats, quick tips, and at-a-glance summary</div></div>
+      </div>
+      <div style="display:flex; align-items:flex-start; gap:12px; background:rgba(255,255,255,0.06); border-radius:10px; padding:12px 14px;">
+        <span style="font-size:16px; flex-shrink:0;">⟳</span>
+        <div><div style="font-size:13px; font-weight:600; color:white; margin-bottom:2px;">Workflows & Automation</div><div style="font-size:12px; color:rgba(255,255,255,0.45);">Every pipeline Nicole built — with step-by-step breakdowns</div></div>
+      </div>
+      <div style="display:flex; align-items:flex-start; gap:12px; background:rgba(255,255,255,0.06); border-radius:10px; padding:12px 14px;">
+        <span style="font-size:16px; flex-shrink:0;">🎥</span>
+        <div><div style="font-size:13px; font-weight:600; color:white; margin-bottom:2px;">Zoom Recordings</div><div style="font-size:12px; color:rgba(255,255,255,0.45);">All your session recordings and notes in one place</div></div>
+      </div>
+      <div style="display:flex; align-items:flex-start; gap:12px; background:rgba(255,255,255,0.06); border-radius:10px; padding:12px 14px;">
+        <span style="font-size:16px; flex-shrink:0;">🤖</span>
+        <div><div style="font-size:13px; font-weight:600; color:white; margin-bottom:2px;">Ask Robot Nicole</div><div style="font-size:12px; color:rgba(255,255,255,0.45);">Robot Nicole is trained on your exact 17hats setup — 24/7</div></div>
+      </div>
+    </div>
+    <button class="pw-btn" onclick="dismissWelcome()" style="margin-bottom:0;">Let's go! →</button>
+  </div>
+</div>
+
+<!-- SIDEBAR -->
+<!-- MOBILE HAMBURGER -->
+<button class="hamburger" id="hamburger" onclick="toggleMobileMenu()" aria-label="Menu">
+  <span></span><span></span><span></span>
+</button>
+<div class="mobile-overlay" id="mobileOverlay" onclick="closeMobileMenu()"></div>
+
+<!-- ============================================================
+     PASSWORD OVERLAY — NOT IN TEMPLATE (add when copying per client)
+     
+     When creating a new client portal from this template:
+     1. Copy the password overlay block from the customization guide
+     2. Paste it here (before the sidebar)
+     3. Set PORTAL_PASSWORD, PORTAL_LAST_UPDATED, WHATS_NEW_UPDATED, CLIENT_KEY
+        in the script section below
+     ============================================================ -->
+
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="by-nicole">A Portal by let Nicole help</div>
+    <!-- ✏️ CHANGE: Client business name -->
+    <div class="client-name">Float Balloons</div>
+    <!-- ✏️ CHANGE: Year of setup -->
+    <div class="portal-label">Client Portal · 2026</div>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-section-label">Your Setup</div>
+    <a class="nav-item active" onclick="showSection('overview')">
+      <span class="icon">◈</span> Overview
+    </a>
+   <a class="nav-item" onclick="showSection('workflows')">
+      <span class="icon">⟳</span> Workflows
+    </a>
+    <a class="nav-item" onclick="showSection('pipelines')">
+      <span class="icon">◫</span> Pipelines
+    </a>
+    <a class="nav-item" onclick="showSection('automations')">
+      <span class="icon">⚙️</span> Automations
+    </a>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-section-label">Resources</div>
+    <a class="nav-item" onclick="showSection('zoom-recordings')">
+      <span class="icon">🎥</span> Zoom Sessions
+    </a>
+    <a class="nav-item" id="nav-whats-new" onclick="showSection('whats-new')">
+      <span class="icon"></span> What's New from Nicole<span class="nav-badge" id="newsBadge" style="display:none;"></span>
+    </a>
+    <a class="nav-item" onclick="showSection('resources')">
+      <span class="icon">⊞</span> Resource Library
+    </a>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-section-label">Support</div>
+    <a class="nav-item" onclick="showSection('ask-robot-nicole')">
+      <span class="icon">🤖</span> Ask Robot Nicole
+    </a>
+    <a class="nav-item" onclick="showSection('get-help')">
+      <span class="icon">◉</span> Get Help from Nicole
+    </a>
+  </div>
+
+  <div class="sidebar-footer">
+    <!-- ✏️ CHANGE: Setup date -->
+    <p>Set up by Nicole · March 2026<br>
+    <span id="lastUpdatedLine" style="color:rgba(255,255,255,0.2); font-size:10px;"></span><br>
+    <a href="https://letnicolehelp.com" target="_blank">letnicolehelp.com</a></p>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+  <div class="topbar">
+    <div class="topbar-left">
+      <!-- ✏️ CHANGE: Replace [CLIENT_LOGO_URL] with a direct link to their logo image
+           (e.g. from their website: right-click logo → Copy Image Address)
+           OR upload the file alongside the portal and use a relative path like "float-balloons-logo.png"
+           If they don't have a logo URL handy, delete the <img> and uncomment the text fallback below -->
+      <img
+        src="https://i.imgur.com/Q1rvxRc.png"
+        alt="Float Balloons"
+        class="client-logo"
+        onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+      />
+      <div class="client-logo-placeholder" style="display:none;">Float Balloons</div>
+      <span class="tag-pill">17hats · Active</span>
+    </div>
+    <div class="topbar-right">
+      <a href="#" class="btn btn-outline" onclick="printSection(); return false;" title="Save or print your portal">🖨️ Save as PDF</a>
+      <a href="/cdn-cgi/l/email-protection#5a34333935363f1a363f2e34333935363f323f362a74393537" class="btn btn-outline">📧 Email Nicole</a>
+      <a href="#" class="btn btn-copper" onclick="showSection('ask-robot-nicole')">🤖 Ask Robot Nicole</a>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       SECTION 1: OVERVIEW
+       ============================================================ -->
+  <section class="page-section active" id="overview">
+    <div class="accent-banner">
+      <div>
+        <!-- ✏️ CHANGE: Client name in welcome message -->
+        <h2>Welcome back, Float Balloons ✨</h2>
+        <p>Everything Nicole set up for you: your workflows, resources & AI assistant...all in one place.</p>
+      </div>
+    </div>
+
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-label">Workflows Built</div>
+        <!-- ✏️ CHANGE: Number of workflow automation sequences -->
+        <div class="stat-value">9</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Pipelines Built</div>
+        <!-- ✏️ CHANGE: Number of pipelines (inquiry/project pipelines) -->
+        <div class="stat-value">4</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Automations</div>
+        <!-- ✏️ CHANGE: Number of automations -->
+        <div class="stat-value">48</div>
+      </div>
+          <div class="stat-card">
+        <div class="stat-label">Recommended tune-up</div>
+        <!-- ✏️ CHANGE: Recommended tune-up month/year -->
+        <div class="stat-value">Sept. 2026</div>
+      </div>
+    </div>
+
+    <div class="two-col">
+      <div class="card">
+        <div class="card-title">📋 Your Account at a Glance</div>
+        <!-- ✏️ CHANGE: 2-3 sentences summarizing what Nicole built for this client specifically -->
+        <p style="font-size:13.5px; color:var(--text-mid); line-height:1.7;">Nicole set up your 17hats account in March 2026 with workflows for Country Grocer, Drop & Go orders, Party Package orders, custom installations and saving the date.</p>
+        <br>
+        <a class="btn btn-outline" onclick="showSection('workflows')" style="font-size:12px;">View all workflows →</a>
+      </div>
+      <div class="card">
+        <div class="card-title">⚡ Quick Tips for Your Setup</div>
+        <ul style="list-style:none; display:flex; flex-direction:column; gap:10px;">
+          <!-- ✏️ CHANGE: 4 specific tips relevant to THIS client's setup -->
+          <li style="font-size:13px; color:var(--text-mid); display:flex; gap:10px; align-items:flex-start;"><span style="color:var(--copper); flex-shrink:0;"></span>Use Leads > + Add Lead > Use Lead Capture Form > Country Grocer Order Entry to initiate these orders</li>
+          <li style="font-size:13px; color:var(--text-mid); display:flex; gap:10px; align-items:flex-start;"><span style="color:var(--copper); flex-shrink:0;"></span> Look to your dashboard for the specific workflow items (emails & documents) that are due to send each person.</li>
+          <li style="font-size:13px; color:var(--text-mid); display:flex; gap:10px; align-items:flex-start;"><span style="color:var(--copper); flex-shrink:0;"></span> Look to your pipelines to see the bird's eye view of all leads & clients (navigate between pipelines in the top right).</li>
+          <li style="font-size:13px; color:var(--text-mid); display:flex; gap:10px; align-items:flex-start;"><span style="color:var(--copper); flex-shrink:0;"></span> When entering someone's project, look 1st at the "What's coming up in the next 7 days" section, and click into your workflow to see what steps have completed and what's ahead.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       SECTION 2: WORKFLOWS & AUTOMATION
+       ✏️ ADD or REMOVE workflow items as needed.
+       Copy one .workflow-item block to add more.
+       ============================================================ -->
+  <section class="page-section" id="workflows">
+    <div class="section-header">
+      <h1>Workflows</h1>
+      <p>Every workflow Nicole built for your 17hats account. Click any item to see how it works.</p>
+    </div>
+
+    <!-- ✏️ CHANGE: Card title to match client's event types -->
+    <div class="card">
+      <div class="card-title">🛒 Country Grocer Orders</div>
+      <div class="workflow-list">
+
+        <!-- ── WORKFLOW 1 ── -->
+        <div class="workflow-item">
+          <div class="workflow-header" onclick="toggleWorkflow(this)">
+            <div class="workflow-header-left">
+              <div class="workflow-dot"></div>
+              <!-- ✏️ CHANGE: Workflow name + number of stages -->
+              <span class="workflow-name">Lead Capture Form: Country Grocer Order Entry</span>
+              
+            </div>
+            <span class="workflow-toggle"></span>
+          </div>
+          <div class="workflow-body">
+            <!-- ✏️ CHANGE: 1-2 sentence description of this pipeline -->
+           Enter contact's name, location (from custom field drop-down list of locations), date and theme to begin the process.</p>
+            <ul class="workflow-steps">
+              <!-- ✏️ CHANGE: Steps for this workflow — add/remove <li> as needed -->
+              <li><span class="step-num">1</span><span class=>Country Grocer Order will become the project name</span></li>
+              <li><span class="step-num">2</span><span class=>Lands on Availability Request calendar</li>
+              <li><span class="step-num">3</span><span class=>Starts 🟣Country Grocer Order workflow</li>
+              <li><span class="step-num">4</span><span class=>Sends to Country Grocer Orders
+ client pipeline</li>
+              <li><span class="step-num">5</span><span class=>No automatic reply is sent to client</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- ── WORKFLOW 2 ── -->
+        <div class="workflow-item">
+          <div class="workflow-header" onclick="toggleWorkflow(this)">
+            <div class="workflow-header-left">
+              <div class="workflow-dot"></div>
+              <span class="workflow-name">🟣Country Grocer Order workflow</span>
+             
+            </div>
+            <span class="workflow-toggle"></span>
+          </div>
+          <div class="workflow-body">
+            <p class=>Includes everything from quote to archive.</p>
+            <ul class="workflow-steps">
+              <li><span class="step-num">1</span><span class=>Starts with Country Grocer quote template (with Service Agreement - Long term installations/Retail).</li>
+              <li><span class="step-num">2</span><span class=>Upon signing of contract, project moves to Float Scheduled Installation calendar & across the Country Grocer Orders pipeline</li>
+              <li><span class="step-num">3</span><span class=>Reminder to add billing person as related contact (on the lower right of the project screen) & submit invoice</li>
+              <li><span class="step-num">4</span><span class=>Automated email 5 days before event date: "Your Balloon Installation is Coming Up! (Country Grocer)"</li> 
+<li><span class="step-num">5</span><span class=>1 day after event date, "We hope you loved the balloons! (Country Grocer)" template is prompted to send</li>
+<li><span class="step-num">6</span><span class=>after checking the to-do to confirm payment has been received; auto-archives project</li>
+
+            </ul>
+          </div>
+
+        </div>
+ <!-- ── WORKFLOW 2 ── -->
+        <div class="workflow-item">
+          <div class="workflow-header" onclick="toggleWorkflow(this)">
+            <div class="workflow-header-left">
+              <div class="workflow-dot"></div>
+              <span class="workflow-name">Country Grocer Orders Pipeline</span>
+             
+            </div>
+            <span class="workflow-toggle"></span>
+          </div>
+          <div class="workflow-body">
+            <p class=>Groups orders by status.</p>
+            <ul class="workflow-steps">
+              <li><span class="step-num">1</span><span class=>Pending: clients land here upon completion of the lead capture form.</li>
+              <li><span class="step-num">2</span><span class=>Quote Sent: clients land here upon sending the quote & contract</li>
+              <li><span class="step-num">3</span><span class=>Confirmed: clients land here upon signing the contract</li>
+              <li><span class="step-num">4</span><span class=>Invoice Submitted: clients land here after you add the related contact, send the invoice and mark the to-do as complete</li> 
+<li><span class="step-num">5</span><span class=>Pipeline completion: when to-do marked complete after payment received</li>
+
+
+            </ul>
+          </div>
+
+        </div>
+
+               </div>
+
+      </div>
+    </div>
+ <div class="card">
+      <div class="card-title">🎈 Drop & Go orders</div>
+      <div class="workflow-list">
+
+        <!-- ── WORKFLOW 1 ── -->
+        <div class="workflow-item">
+          <div class="workflow-header" onclick="toggleWorkflow(this)">
+            <div class="workflow-header-left">
+              <div class="workflow-dot"></div>
+              <!-- ✏️ CHANGE: Workflow name + number of stages -->
+              <span class="workflow-name"><span class=>Lead Capture Form: Customer Inquiry Form 2026</span>
+            </div>
+            <span class="workflow-toggle"></span>
+          </div>
+          <div class="workflow-body">
+            <!-- ✏️ CHANGE: 1-2 sentence description of this pipeline -->
+            <p class=>Collects name, email, phone, event type (becomes project name), date, address, start time, earliest setup time, service type (starts corresponding workflow), colours/theme, inspo photo, lead source</p>
+            <ul class="workflow-steps">
+              <!-- ✏️ CHANGE: Steps for this workflow — add/remove <li> as needed -->
+              <li><span class="step-num">1</span><span class=>Lands on Availability Request calendar</li>
+              <li><span class="step-num">2</span><span class=>Sends to Leads pipeline</li>
+                          </ul>
+          </div>
+        </div>
+
+        <!-- ── WORKFLOW 2 ── -->
+        <div class="workflow-item">
+          <div class="workflow-header" onclick="toggleWorkflow(this)">
+            <div class="workflow-header-left">
+              <div class="workflow-dot"></div>
+              <span class="workflow-name"><span class=>🟣Drop & Go Order workflow</span>
+            </div>
+            <span class="workflow-toggle"></span>
+          </div>
+          <div class="workflow-body">
+            <p class=>Includes everything from quote to archive.</p>
+            <ul class="workflow-steps">
+              <li><span class="step-num">1</span><span class=>Automatic reply "Checking the date - event form submitted"</li>
+              <li><span class="step-num">2</span><span class=>Manually send Drop & Go Order quote template, which includes Balloon Delivery Agreement & invoice (with GST and PST; full payment required); also includes standard delivery fee and 18 "choose any" items with adjustable quantities</li>
+              <li><span class="step-num">3</span><span class=>Upon full payment to invoice, moves to Float Scheduled Delivery calendar</li>
+              <li><span class="step-num">4</span><span class=>Automated email 5 days before event date: "Your Balloon Delivery is Coming Up!"</li>
+<li><span class="step-num">5</span><span class=>1 day after event date, "We hope you loved the balloons!" template is prompted to send</li>
+<li><span class="step-num">6</span><span class=>Reminder / option to start rebooking process with internal lead capture form</li>
+<li><span class="step-num">7</span><span class=>Auto-archive after marking rebooking step as completed</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- ── WORKFLOW 3 (duplicate block above to add more) ── -->
+        <div class="workflow-item">
+          <div class="workflow-header" onclick="toggleWorkflow(this)">
+            <div class="workflow-header-left">
+              <div class="workflow-dot"></div>
+              <span class="workflow-name"><span class=>Pipelines Involved</span>
+            </div>
+            <span class="workflow-toggle"></span>
+          </div>
+          <div class="workflow-body">
+            <p class=>Leads and Confirmed Jobs</p>
+            <ul class="workflow-steps">
+              <li><span class="step-num">1</span><span class=>Leads pipeline - New Lead: client lands here after filling out lead capture form & selecting Drop & Go service option</li>
+              <li><span class="step-num">2</span><span class=>Leads pipeline - Quoted/Save the Date: client lands here after "shoppable" quote is sent</li>
+              <li><span class="step-num">3</span><span class=>Confirmed Jobs pipeline - Confirmed: client lands here after full payment to invoice</li>
+<li><span class="step-num">4</span><span class=>Confirmed Jobs pipeline - Next 14, 7 Days & Tomorrow: client lands here 14, 7 and 1 day before delivery date, respectively</li>
+<li><span class="step-num">5</span><span class=>Confirmed Jobs pipeline - Pipeline completion: upon project being archived
+</li>
+            </ul>
+          </div>
+        </div>
+
+      </div>
+    </div>
+ <div class="card">
+      <div class="card-title">🎉 Party Package orders</div>
+      <div class="workflow-list">
+
+        <!-- ── WORKFLOW 1 ── -->
+        <div class="workflow-item">
+          <div class="workflow-header" onclick="toggleWorkflow(this)">
+            <div class="workflow-header-left">
+              <div class="workflow-dot"></div>
+             <span class="workflow-name"><span class=>Lead Capture Form: Customer Inquiry Form 2026</span>
+            </div>
+            <span class="workflow-toggle"></span>
+          </div>
+          <div class="workflow-body">
+            <!-- ✏️ CHANGE: 1-2 sentence description of this pipeline -->
+            <p class=>Collects name, email, phone, event type (becomes project name), date, address, start time, earliest setup time, service type (starts corresponding workflow), colours/theme, inspo photo, lead source</p>
+            <ul class="workflow-steps">
+              <!-- ✏️ CHANGE: Steps for this workflow — add/remove <li> as needed -->
+              <li><span class="step-num">1</span><span class=>Lands on Availability Request calendar</li>
+              <li><span class="step-num">2</span><span class=>Sends to Leads pipeline</li>
+                          </ul>
+                     </div>
+        </div>
+        <!-- ── WORKFLOW 2 ── -->
+        <div class="workflow-item">
+          <div class="workflow-header" onclick="toggleWorkflow(this)">
+            <div class="workflow-header-left">
+              <div class="workflow-dot"></div>
+              <span class="workflow-name"><span class=>🟣1 - Inquiry (Package) workflow</span>
+            </div>
+            <span class="workflow-toggle"></span>
+          </div>
+          <div class="workflow-body">
+            <p class=>Auto-reply, questionnaire & manually starting billing workflow</p>
+            <ul class="workflow-steps">
+              <li><span class="step-num">1</span><span class=>Automatic reply "Checking the date - event form submitted"</li>
+              <li><span class="step-num">2</span><span class=>Manually send Package Order questionnaire template, which allows client to review & select package options, share customization / marquee options, pick colors (or allow you to choose), indicate tear down preference and share event end time.</li>
+              <li><span class="step-num">3</span><span class=>Upon completion of the questionnaire, you'll be prompted to start the 🟣 2 - Billing workflow</li>
+                         </ul>
+          </div>
+        </div>
+
+        <!-- ── WORKFLOW 3 (duplicate block above to add more) ── -->
+        <div class="workflow-item">
+          <div class="workflow-header" onclick="toggleWorkflow(this)">
+            <div class="workflow-header-left">
+              <div class="workflow-dot"></div>
+              <span class="workflow-name"><span class=>🟣 2 - Billing workflow</span>
+            </div>
+            <span class="workflow-toggle"></span>
+          </div>
+          <div class="workflow-body">
+            <p class=>Quote / Contract / Invoice, calendar update & starting next workflow</p>
+            <ul class="workflow-steps">
+              <li><span class="step-num">1</span><span class=>Manually send Float Balloons Quote template, which includes Balloon Delivery Agreement & invoice (with GST and PST; 30% due on receipt and remainder 14 days before event); also includes standard delivery fee and "choose one" section for rental pick up or rental return by client
+</li>
+              <li><span class="step-num">2</span><span class=>Upon 1st invoice payment, project moves to Float Scheduled Installation calendar & starts 🟣 3 - Fulfillment workflow</li>
+                         </ul>
+          </div>
+        </div>
+ <!-- ── WORKFLOW 3 (duplicate block above to add more) ── -->
+        <div class="workflow-item">
+          <div class="workflow-header" onclick="toggleWorkflow(this)">
+            <div class="workflow-header-left">
+              <div class="workflow-dot"></div>
+              <span class="workflow-name"><span class=>🟣 3 - Fulfillment workflow</span>
+            </div>
+            <span class="workflow-toggle"></span>
+          </div>
+          <div class="workflow-body">
+            <p class=>Event reminder, thank you and rebooking</p>
+            <ul class="workflow-steps">
+              <li><span class="step-num">1</span><span class=>Automated email 5 days before event date: "Your Balloon Installation is Coming Up!"
+</li>
+              <li><span class="step-num">2</span><span class=>1 day after event date, "We hope you loved the balloons!" template is prompted to send
+</li>
+ <li><span class="step-num">3</span><span class=>Reminder / option to start rebooking process with internal lead capture form
+</li>
+<li><span class="step-num">4</span><span class=>Auto-archive after marking rebooking step as completed
+
+</li>
+                        </ul>
+          </div>
+        </div>
+
+      </div>
+    </div>
+<div class="card">
+      <div class="card-title">🎇 Custom Installations</div>
+      <div class="workflow-list">
+
+        <!-- ── WORKFLOW 1 ── -->
+        <div class="workflow-item">
+          <div class="workflow-header" onclick="toggleWorkflow(this)">
+            <div class="workflow-header-left">
+              <div class="workflow-dot"></div>
+             <span class="workflow-name"><span class=>Lead Capture Form: Customer Inquiry Form 2026</span>
+            </div>
+            <span class="workflow-toggle"></span>
+          </div>
+          <div class="workflow-body">
+            <!-- ✏️ CHANGE: 1-2 sentence description of this pipeline -->
+            <p class=>Collects name, email, phone, event type (becomes project name), date, address, start time, earliest setup time, service type (starts corresponding workflow), colours/theme, inspo photo, lead source</p>
+            <ul class="workflow-steps">
+              <!-- ✏️ CHANGE: Steps for this workflow — add/remove <li> as needed -->
+              <li><span class="step-num">1</span><span class=>Lands on Availability Request calendar</li>
+              <li><span class="step-num">2</span><span class=>Sends to Leads pipeline</li>
+                          </ul>
+
+                     </div>
+        </div>
+
+        <!-- ── WORKFLOW 2 ── -->
+        <div class="workflow-item">
+          <div class="workflow-header" onclick="toggleWorkflow(this)">
+            <div class="workflow-header-left">
+              <div class="workflow-dot"></div>
+              <span class="workflow-name"><span class=>🟣1 - Inquiry (Install) workflow</span>
+            </div>
+            <span class="workflow-toggle"></span>
+          </div>
+          <div class="workflow-body">
+            <p class=>Auto-reply, questionnaire & manually starting billing workflow</p>
+            <ul class="workflow-steps">
+              <li><span class="step-num">1</span><span class=>Automatic reply "Checking the date - event form submitted"</li>
+              <li><span class="step-num">2</span><span class=>Manually send Decor Installation questionnaire template, which allows client to share desired balloon types, pick colors (or allow you to choose), view rental options, indicate indoor/outdoor, share images of space, indicate tear down preference and share event end time.</li>
+              <li><span class="step-num">3</span><span class=>Upon completion of the questionnaire, you'll be prompted to start the 🟣 2 - Billing workflow</li>
+<li><span class="step-num">4</span><span class=>NOTE: This workflow will be paused when the "date saved" project tag is applied.</li>
+                         </ul>
+          </div>
+        </div>
+
+        <!-- ── WORKFLOW 3 (duplicate block above to add more) ── -->
+        <div class="workflow-item">
+          <div class="workflow-header" onclick="toggleWorkflow(this)">
+            <div class="workflow-header-left">
+              <div class="workflow-dot"></div>
+              <span class="workflow-name"><span class=>🟣 2 - Billing workflow</span>
+            </div>
+            <span class="workflow-toggle"></span>
+          </div>
+          <div class="workflow-body">
+            <p class=>Quote / Contract / Invoice, calendar update & starting next workflow</p>
+            <ul class="workflow-steps">
+              <li><span class="step-num">1</span><span class=>Manually send Float Balloons Quote template, which includes Balloon Delivery Agreement & invoice (with GST and PST; 30% due on receipt and remainder 14 days before event); also includes standard delivery fee and "choose one" section for rental pick up or rental return by client
+</li>
+              <li><span class="step-num">2</span><span class=>Upon 1st invoice payment, project moves to Float Scheduled Installation calendar & starts 🟣 3 - Fulfillment workflow</li>
+                         </ul>
+          </div>
+        </div>
+ <!-- ── WORKFLOW 3 (duplicate block above to add more) ── -->
+        <div class="workflow-item">
+          <div class="workflow-header" onclick="toggleWorkflow(this)">
+            <div class="workflow-header-left">
+              <div class="workflow-dot"></div>
+              <span class="workflow-name"><span class=>🟣 3 - Fulfillment workflow</span>
+            </div>
+            <span class="workflow-toggle"></span>
+          </div>
+          <div class="workflow-body">
+            <p class=>Event reminder, thank you and rebooking</p>
+            <ul class="workflow-steps">
+              <li><span class="step-num">1</span><span class=>Automated email 5 days before event date: "Your Balloon Installation is Coming Up!"
+</li>
+              <li><span class="step-num">2</span><span class=>1 day after event date, "We hope you loved the balloons!" template is prompted to send
+</li>
+ <li><span class="step-num">3</span><span class=>Reminder / option to start rebooking process with internal lead capture form
+</li>
+<li><span class="step-num">4</span><span class=>Auto-archive after marking rebooking step as completed
+
+</li>
+
+                        </ul>
+          </div>
+        </div>
+
+      </div>
+    </div>
+<div class="card">
+      <div class="card-title">💾 Save the Date</div>
+      <div class="workflow-list">
+
+        <!-- ── WORKFLOW 1 ── -->
+        <div class="workflow-item">
+          <div class="workflow-header" onclick="toggleWorkflow(this)">
+            <div class="workflow-header-left">
+              <div class="workflow-dot"></div>
+             <span class="workflow-name"><span class=>Full process:</span>
+            </div>
+            <span class="workflow-toggle"></span>
+          </div>
+          <div class="workflow-body">
+            <!-- ✏️ CHANGE: 1-2 sentence description of this pipeline -->
+            <p class=>Includes invoice, calendar update, check-in reminders and option to start 🟣 2 - Billing workflow</p>
+            <ul class="workflow-steps">
+              <!-- ✏️ CHANGE: Steps for this workflow — add/remove <li> as needed -->
+              <li><span class="step-num">1</span><span class=>NOTE: This workflow can be started manually, OR by applying the "save the date" project tag</li>
+              <li><span class="step-num">2</span><span class=>Send Book Your Date invoice template</li>
+<li><span class="step-num">3</span><span class=>Upon full invoice payment: "date saved" tag is applied (pausing the 🟣1 - Inquiry (Install) workflow), project moves to Float Scheduled Installation calendar, project lands in Date Saved phase of Client Confirmed Jobs pipeline</li>
+<li><span class="step-num">4</span><span class=>2 reminders to check in on Date Saved, 7 days apart</li>
+<li><span class="step-num">5</span><span class=>Ability to move into 🟣 2 - Billing workflow when needed</li>
+                           </ul>
+          </div>
+        </div>
+
+      </div>
+    </div>
+<div class="card">
+      <div class="card-title">🔁 Potential Rebooking</div>
+      <div class="workflow-list">
+
+        <!-- ── WORKFLOW 1 ── -->
+        <div class="workflow-item">
+          <div class="workflow-header" onclick="toggleWorkflow(this)">
+            <div class="workflow-header-left">
+              <div class="workflow-dot"></div>
+             <span class="workflow-name"><span class=>Full process:</span>
+            </div>
+            <span class="workflow-toggle"></span>
+          </div>
+          <div class="workflow-body">
+            <!-- ✏️ CHANGE: 1-2 sentence description of this pipeline -->
+            <p class=>Starts after using the [INTERNAL] Rebooking Form lead capture form; includes reach out emails 60 & 30 days before the anniversary date of an event.</p>
+            <ul class="workflow-steps">
+              <!-- ✏️ CHANGE: Steps for this workflow — add/remove <li> as needed -->
+              <li><span class="step-num">1</span><span class=>Project lands in Potential Rebooking client pipeline upon filling out [INTERNAL] Rebooking Form lead capture form</li>
+              <li><span class="step-num">2</span><span class=>60 days before anniversary date of the event, project moves to Send Reach Out 1 phase of Potential Rebooking client pipeline + "repeat reach out 1" email template is prompted</li>
+<li><span class="step-num">3</span><span class=>Upon sending the email above, project moves to Contacted phase of the Potential Rebooking client pipeline</li>
+<li><span class="step-num">4</span><span class=>30 days before anniversary date of the event, project moves to Send Reach Out 2 phase of Potential Rebooking client pipeline + "repeat reach out 2" email template is prompted</li>
+<li><span class="step-num">5</span><span class=>Upon sending the email above, the Potential Rebooking workflow / project is archived automatically</li>
+                           </ul>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+<div class="card">
+      <div class="card-title">❌ Unavailable</div>
+      <div class="workflow-list">
+
+        <!-- ── WORKFLOW 1 ── -->
+        <div class="workflow-item">
+          <div class="workflow-header" onclick="toggleWorkflow(this)">
+            <div class="workflow-header-left">
+              <div class="workflow-dot"></div>
+             <span class="workflow-name"><span class=>Full process:</span>
+            </div>
+            <span class="workflow-toggle"></span>
+          </div>
+          <div class="workflow-body">
+            <!-- ✏️ CHANGE: 1-2 sentence description of this pipeline -->
+            <p class=>Email to customer, calendar update & auto-archive</p>
+            <ul class="workflow-steps">
+              <!-- ✏️ CHANGE: Steps for this workflow — add/remove <li> as needed -->
+              <li><span class="step-num">1</span><span class=>NOTE: This workflow can be started manually, or by applying the "unavailable" project tag</li>
+              <li><span class="step-num">2</span><span class=>Immediately prompts "We're Unavailable" email template to approve and send</li>
+<li><span class="step-num">3</span><span class=>Reminder to follow up for future bookings</li>
+<li><span class="step-num">4</span><span class=>Automatic calendar update, removing the project from the Availability Request calendar</li>
+<li><span class="step-num">5</span><span class=>Automatic archive</li>
+                           </ul>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+ 
+    </section>
+<!-- PIPELINES -->
+  <section class="page-section" id="pipelines">
+    <div class="section-header">
+      <h1>Pipelines</h1>
+      <p>Visual maps of your Float Balloons pipelines — exactly how Nicole set them up in 17hats.</p>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Leads Pipeline</div>
+      <p style="font-size:13px; color:var(--text-light); margin-bottom:16px;">Phases: New Lead (via new lead tag), Contacted (via lead contacted tag), 2 Days Old (via 2 days lapse after Contacted phase), Questionnaire Done (via tag questionnaire done), Quoted/Save the Date (via quote sent tag); completed state tag: confirmed job</p>
+      <!-- Replace the src below with your image URL or a relative path to an uploaded image -->
+      <img src="https://i.imgur.com/ZIhGGds.png" alt="Leads pipeline" style="width:100%; border-radius:8px; border:1px solid var(--border);">
+    </div>
+
+    <div class="card">
+      <div class="card-title">Confirmed Jobs Pipeline</div>
+      <p style="font-size:13px; color:var(--text-light); margin-bottom:16px;">Phases: Date Saved (via date saved tag), Confirmed (via confirmed job tag), Next 14 Days, (via next 14 days tag), Next 7 Days (via next 7 days tag), Tomorrow (via event tomorrow taqg); completed state tag: completed job</p>
+      <!-- Replace the src below with your image URL or a relative path to an uploaded image -->
+      <img src="https://i.imgur.com/RmNtaae.png" alt="Confirmed Jobs client pipeline" style="width:100%; border-radius:8px; border:1px solid var(--border);">
+    </div>
+
+    <div class="card">
+      <div class="card-title">Country Grocer Orders</div>
+      <p style="font-size:13px; color:var(--text-light); margin-bottom:16px;">Phases: Pending (via Country Grocer pending tag), Quote Sent (via Country Grocer quote sent tag), Confirmed (via Country Grocer confirmed tag), Invoice Submitted (via Country Grocer invoice submitted tag); completed state tag: Country Grocer completed</p>
+      <!-- Replace the src below with your image URL or a relative path to an uploaded image -->
+      <img src="https://i.imgur.com/0m9xqeo.png" alt="Country Grocer Orders client pipeline" style="width:100%; border-radius:8px; border:1px solid var(--border);">
+    </div>
+
+    <div class="card">
+      <div class="card-title">Potential Rebooking</div>
+      <p style="font-size:13px; color:var(--text-light); margin-bottom:16px;">Possible Rebooking (via possible rebooking tag), Send Reach Out 1 (via possible rebooking reach out 1 tag), Contacted (via possible rebooking contacted tag), Send Reach Out 2 (via possible rebooking reach out 2 tag); completed state tag: n/a</p>
+      <!-- Replace the src below with your image URL or a relative path to an uploaded image -->
+      <img src="https://i.imgur.com/c23sFFQ.png" alt="Potential Rebooking client pipeline" style="width:100%; border-radius:8px; border:1px solid var(--border);">
+    </div>
+
+    <!-- Copy the card block above for each additional pipeline image -->
+
+  </section>
+
+  <!-- AUTOMATIONS -->
+  <section class="page-section" id="automations">
+    <div class="section-header">
+      <h1>Automations</h1>
+      <p>Everything running automatically in the background of your 17hats account.</p>
+    </div>
+
+    <div class="card">
+      <div class="card-title">⚙️ Automations Running in the Background: 48</div>
+      <div class="workflow-list">
+
+        <div class="workflow-item">
+          <div class="workflow-header" onclick="toggleWorkflow(this)">
+            <div class="workflow-header-left">
+              <div class="workflow-dot"></div>
+              <span class="workflow-name">Lead Capture Form</span>
+            </div>
+            <span class="workflow-toggle"></span>
+          </div>
+          <div class="workflow-body">
+            <p> <li style="font-size:13px; color:var(--text-mid); display:flex; gap:10px; align-items:flex-start;"><span style="color:var(--copper); flex-shrink:0;"></span>Email notification after completion</li>
+          <li style="font-size:13px; color:var(--text-mid); display:flex; gap:10px; align-items:flex-start;"><span style="color:var(--copper); flex-shrink:0;"></span>Applied to Availability Request calendar</li>
+          <li style="font-size:13px; color:var(--text-mid); display:flex; gap:10px; align-items:flex-start;"><span style="color:var(--copper); flex-shrink:0;"></span>Automatic reply email to customer</li>
+          <li style="font-size:13px; color:var(--text-mid); display:flex; gap:10px; align-items:flex-start;"><span style="color:var(--copper); flex-shrink:0;"></span>Starts corresponding service workflow</li>
+<li style="font-size:13px; color:var(--text-mid); display:flex; gap:10px; align-items:flex-start;"><span style="color:var(--copper); flex-shrink:0;"></span>Applies "new lead" contact tag</li>
+<li style="font-size:13px; color:var(--text-mid); display:flex; gap:10px; align-items:flex-start;"><span style="color:var(--copper); flex-shrink:0;"></span>Applies "new lead" project tag</li>
+<li style="font-size:13px; color:var(--text-mid); display:flex; gap:10px; align-items:flex-start;"><span style="color:var(--copper); flex-shrink:0;"></span>Applies project name based on event type selected</li>
+<li style="font-size:13px; color:var(--text-mid); display:flex; gap:10px; align-items:flex-start;"><span style="color:var(--copper); flex-shrink:0;"></span>Feeds to lead source reporting</li>
+<li style="font-size:13px; color:var(--text-mid); display:flex; gap:10px; align-items:flex-start;"><span style="color:var(--copper); flex-shrink:0;"></span>[INTERNAL] Rebooking form to Work Flow Task calendar</li>
+</p>
+          </div>
+        </div>
+
+        <div class="workflow-item">
+          <div class="workflow-header" onclick="toggleWorkflow(this)">
+            <div class="workflow-header-left">
+              <div class="workflow-dot"></div>
+              <span class="workflow-name">Documents</span>
+            </div>
+            <span class="workflow-toggle"></span>
+          </div>
+          <div class="workflow-body">
+            <p><li style="font-size:13px; color:var(--text-mid); display:flex; gap:10px; align-items:flex-start;"><span style="color:var(--copper); flex-shrink:0;"></span>quote email reminder (2 days before due date)</li>
+          <li style="font-size:13px; color:var(--text-mid); display:flex; gap:10px; align-items:flex-start;"><span style="color:var(--copper); flex-shrink:0;"></span>contract confirmation email</li>
+          <li style="font-size:13px; color:var(--text-mid); display:flex; gap:10px; align-items:flex-start;"><span style="color:var(--copper); flex-shrink:0;"></span>invoice email reminder (2 days before due date)</li>
+          <li style="font-size:13px; color:var(--text-mid); display:flex; gap:10px; align-items:flex-start;"><span style="color:var(--copper); flex-shrink:0;"></span>past due invoice emal reminder (3 days after due date; repeating weekly x12)</li>
+<li style="font-size:13px; color:var(--text-mid); display:flex; gap:10px; align-items:flex-start;"><span style="color:var(--copper); flex-shrink:0;"></span>invoice confirmation email</li>
+<li style="font-size:13px; color:var(--text-mid); display:flex; gap:10px; align-items:flex-start;"><span style="color:var(--copper); flex-shrink:0;"></span>quote leads to contract</li>
+<li style="font-size:13px; color:var(--text-mid); display:flex; gap:10px; align-items:flex-start;"><span style="color:var(--copper); flex-shrink:0;"></span>contract leads to invoice</li></p>
+          </div>
+        </div>
+   <div class="workflow-item">
+          <div class="workflow-header" onclick="toggleWorkflow(this)">
+            <div class="workflow-header-left">
+              <div class="workflow-dot"></div>
+              <span class="workflow-name">Pipelines</span>
+            </div>
+            <span class="workflow-toggle"></span>
+          </div>
+          <div class="workflow-body">
+            <p><li style="font-size:13px; color:var(--text-mid); display:flex; gap:10px; align-items:flex-start;"><span style="color:var(--copper); flex-shrink:0;"></span>6 Leads pipeline phases / completion setting</li>
+          <li style="font-size:13px; color:var(--text-mid); display:flex; gap:10px; align-items:flex-start;"><span style="color:var(--copper); flex-shrink:0;"></span>6 Confirmed Jobs client pipeline phases / completion setting</li>
+          <li style="font-size:13px; color:var(--text-mid); display:flex; gap:10px; align-items:flex-start;"><span style="color:var(--copper); flex-shrink:0;"></span>5 Country Grocer Orders client pipeline phases / completion setting</li>
+          <li style="font-size:13px; color:var(--text-mid); display:flex; gap:10px; align-items:flex-start;"><span style="color:var(--copper); flex-shrink:0;"></span>5 Potential Rebooking client pipeline phases / completion setting</li>
+
+</p>
+          </div>
+        </div>
+
+ <div class="workflow-item">
+          <div class="workflow-header" onclick="toggleWorkflow(this)">
+            <div class="workflow-header-left">
+              <div class="workflow-dot"></div>
+              <span class="workflow-name">Workflows</span>
+            </div>
+            <span class="workflow-toggle"></span>
+          </div>
+          <div class="workflow-body">
+            <p><li style="font-size:13px; color:var(--text-mid); display:flex; gap:10px; align-items:flex-start;"><span style="color:var(--copper); flex-shrink:0;"></span>moving to Float Scheduled Delivery / Installation calendars</li>
+          <li style="font-size:13px; color:var(--text-mid); display:flex; gap:10px; align-items:flex-start;"><span style="color:var(--copper); flex-shrink:0;"></span>"booked client" contact tag applied</li>
+          <li style="font-size:13px; color:var(--text-mid); display:flex; gap:10px; align-items:flex-start;"><span style="color:var(--copper); flex-shrink:0;"></span>invoice email reminder (2 days before due date)</li>
+          <li style="font-size:13px; color:var(--text-mid); display:flex; gap:10px; align-items:flex-start;"><span style="color:var(--copper); flex-shrink:0;"></span>past due invoice emal reminder (3 days after due date; repeating weekly x12)</li>
+<li style="font-size:13px; color:var(--text-mid); display:flex; gap:10px; align-items:flex-start;"><span style="color:var(--copper); flex-shrink:0;"></span>invoice confirmation email</li>
+<li style="font-size:13px; color:var(--text-mid); display:flex; gap:10px; align-items:flex-start;"><span style="color:var(--copper); flex-shrink:0;"></span>quote leads to contract</li>
+<li style="font-size:13px; color:var(--text-mid); display:flex; gap:10px; align-items:flex-start;"><span style="color:var(--copper); flex-shrink:0;"></span>contract leads to invoice</li>
+<li style="font-size:13px; color:var(--text-mid); display:flex; gap:10px; align-items:flex-start;"><span style="color:var(--copper); flex-shrink:0;"></span>"date saved" tag stops 🟣1 - Inquiry (Install) workflow</li>
+<li style="font-size:13px; color:var(--text-mid); display:flex; gap:10px; align-items:flex-start;"><span style="color:var(--copper); flex-shrink:0;"></span>"save the date" tag starts 🟣Save the Date workflow</li>
+<li style="font-size:13px; color:var(--text-mid); display:flex; gap:10px; align-items:flex-start;"><span style="color:var(--copper); flex-shrink:0;"></span>"unavailable" tag starts 🟣Unavailable workflow</li>
+<li style="font-size:13px; color:var(--text-mid); display:flex; gap:10px; align-items:flex-start;"><span style="color:var(--copper); flex-shrink:0;"></span>🟣Unavailable workflow sends project to Work Flow Task calendar</li>
+<li style="font-size:13px; color:var(--text-mid); display:flex; gap:10px; align-items:flex-start;"><span style="color:var(--copper); flex-shrink:0;"></span>🟣2 - Billing workflow starts 🟣3 - Fulfillment workflow after 1st invoice payment is made</li>
+<li style="font-size:13px; color:var(--text-mid); display:flex; gap:10px; align-items:flex-start;"><span style="color:var(--copper); flex-shrink:0;"></span>"Your Balloon Delivery is Coming Up!" email sends 5 days before Drop & Go order date</li>
+<li style="font-size:13px; color:var(--text-mid); display:flex; gap:10px; align-items:flex-start;"><span style="color:var(--copper); flex-shrink:0;"></span>"Your Balloon Installation is Coming Up!" email sends 5 days before custom installation or package order dates</li>
+<li style="font-size:13px; color:var(--text-mid); display:flex; gap:10px; align-items:flex-start;"><span style="color:var(--copper); flex-shrink:0;"></span>Automatic archive after marking rebooking process started</li></p>
+          </div>
+        </div>
+
+        <!-- Copy a workflow-item block above for each additional automation -->
+
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ============================================================
+       SECTION 4: ZOOM RECORDINGS
+       ✏️ Add a new .card block per session.
+       Get recording links from zoom.us → Recordings → Cloud Recordings → Share.
+       ============================================================ -->
+  <section class="page-section" id="zoom-recordings">
+    <div class="section-header">
+      <h1>Zoom Sessions</h1>
+      <p>All your session recordings with Nicole in one place: watch, rewatch, and reference anytime.</p>
+    </div>
+
+    <!-- ── SESSION 1 — copy this block for each additional session ── -->
+    <div class="card">
+      <!-- ✏️ CHANGE: Session number and topic -->
+      <div class="card-title">🎥 Session 1 · Clarifying Call</div>
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; flex-wrap:wrap; gap:10px;">
+        <!-- ✏️ CHANGE: Session date -->
+        <span style="font-size:12px; color:var(--text-light); letter-spacing:0.05em;">March 4, 2026</span>
+        <!-- ✏️ CHANGE: Zoom share link -->
+        
+      </div>
+      <div style="background:var(--green-pale); border-radius:8px; padding:16px 18px;">
+        <div style="font-size:11px; letter-spacing:0.1em; text-transform:uppercase; color:var(--text-light); margin-bottom:10px;">Session Notes</div>
+        <ul style="list-style:none; display:flex; flex-direction:column; gap:8px;">
+          <!-- ✏️ CHANGE: 3–5 bullet notes about what was covered. Add/remove <li> as needed. -->
+          <li style="font-size:13px; color:var(--text-mid); display:flex; gap:10px;"><span style="color:var(--copper); flex-shrink:0;"></span>We discussed implementing various features and workflows in 17hats to streamline your processes, including quote templates, automated emails, "shoppable" quotes and package options in questionnaires. 
+
+We set up calendar subscriptions from 17hats to Apple Calendar & discussed handling Country Grocer orders efficiently. 
+
+We discovered that your current plan lacked essential workflow capabilities, such as calendar automation and using document templates in workflows.  The conversation ended with plans to upgrade the subscription and add me as a user to proceed with implementing the discussed workflows and automation.</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- ── SESSION 2 — duplicate above block to add more sessions ── -->
+    <div class="card">
+      <div class="card-title">🎥 Session 2 · <span class="FILL">[SESSION_2_TOPIC]</span></div>
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; flex-wrap:wrap; gap:10px;">
+        <span style="font-size:12px; color:var(--text-light); letter-spacing:0.05em;"><span class="FILL">[SESSION_2_DATE]</span></span>
+        <a href="[ZOOM_SESSION_2_URL]" target="_blank" class="btn btn-copper" style="font-size:12px;">▶ Watch Recording</a>
+      </div>
+      <div style="background:var(--green-pale); border-radius:8px; padding:16px 18px;">
+        <div style="font-size:11px; letter-spacing:0.1em; text-transform:uppercase; color:var(--text-light); margin-bottom:10px;">Session Notes</div>
+        <ul style="list-style:none; display:flex; flex-direction:column; gap:8px;">
+          <li style="font-size:13px; color:var(--text-mid); display:flex; gap:10px;"><span style="color:var(--copper); flex-shrink:0;"></span><span class="FILL">[SESSION_2_NOTE_1]</span></li>
+          <li style="font-size:13px; color:var(--text-mid); display:flex; gap:10px;"><span style="color:var(--copper); flex-shrink:0;"></span><span class="FILL">[SESSION_2_NOTE_2]</span></li>
+          <li style="font-size:13px; color:var(--text-mid); display:flex; gap:10px;"><span style="color:var(--copper); flex-shrink:0;"></span><span class="FILL">[SESSION_2_NOTE_3]</span></li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- "More coming" placeholder — leave as-is, always shows at bottom -->
+    <div class="card" style="border: 1px dashed var(--border); background: var(--cream);">
+      <div style="text-align:center; padding: 20px 0;">
+        <div style="font-size:28px; margin-bottom:10px;">🎥</div>
+        <div style="font-size:14px; font-weight:500; color:var(--text-mid); margin-bottom:6px;">More recordings will appear here</div>
+        <div style="font-size:12.5px; color:var(--text-light);">Nicole adds new sessions as they're completed.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       SECTION 5: WHAT'S NEW FROM NICOLE
+       Blog posts auto-feed from letnicolehelp.com via the same
+       Cloudflare Worker as Robot Nicole. No manual updates needed —
+       new posts appear automatically when Nicole publishes.
+       YouTube feed still auto-loads if API key is set.
+       ============================================================ -->
+  <section class="page-section" id="whats-new">
+    <div class="section-header">
+      <h1>What's New from Nicole</h1>
+      <p>Latest posts, videos, and tips — all relevant to your 17hats setup.</p>
+    </div>
+
+    <div class="card">
+      <div class="card-title">📹 Latest YouTube Videos</div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:14px;">
+        <iframe
+          src="https://www.youtube.com/embed/videoseries?list=PLpfpFiNP9vG4dosv5VjAlmvMc9GjF0j7B&rel=0&index=0"
+          style="width:100%; height:200px; border:none; border-radius:10px;"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowfullscreen>
+        </iframe>
+        <iframe
+          src="https://www.youtube.com/embed/videoseries?list=PLpfpFiNP9vG4dosv5VjAlmvMc9GjF0j7B&rel=0&index=1"
+          style="width:100%; height:200px; border:none; border-radius:10px;"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowfullscreen>
+        </iframe>
+      </div>
+      <a href="https://youtube.com/@letnicolehelp" target="_blank" class="btn btn-outline" style="font-size:12px;">View all on YouTube →</a>
+    </div>
+
+    <!-- Announcements — pulls from announcements.json in your GitHub repo -->
+    <div class="card" id="announcements-card" style="display:none;">
+      <div class="card-title">✨ From Nicole</div>
+      <div id="announcements-list" style="display:flex; flex-direction:column; gap:12px;"></div>
+    </div>
+
+    <!-- Wix Blog auto-feed — pulls live from letnicolehelp.com, no changes needed -->
+    <div class="card">
+      <div class="card-title">✍️ Latest from Nicole's Blog</div>
+      <div id="blog-loading" style="text-align:center; padding:30px; color:var(--text-light); font-size:13px;">Loading latest posts...</div>
+      <div class="content-grid" id="blog-grid" style="display:none;"></div>
+      <div id="blog-error" style="display:none; text-align:center; padding:20px;">
+        <p style="font-size:13px; color:var(--text-light); margin-bottom:12px;">Couldn't load posts automatically.</p>
+        <a href="https://www.letnicolehelp.com/blog" target="_blank" class="btn btn-outline">View Blog →</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       SECTION 6: RESOURCE LIBRARY
+       No client-specific changes needed — evergreen links to Nicole's content.
+       ✏️ Only update if you add new resource types.
+       ============================================================ -->
+  <section class="page-section" id="resources">
+    <div class="section-header">
+      <h1>Resource Library</h1>
+      <p>Tools, links, and references hand-picked for your setup.</p>
+    </div>
+
+    <div class="resources-grid">
+      <a href="https://help.17hats.com" target="_blank" class="resource-card">
+        <div class="resource-icon">📚</div>
+        <div class="resource-title">17hats Help Center</div>
+        <div class="resource-desc">Official documentation for any feature or question about your account.</div>
+      </a>
+      <a href="https://letnicolehelp.com" target="_blank" class="resource-card">
+        <div class="resource-icon">🌐</div>
+        <div class="resource-title">letnicolehelp.com</div>
+        <div class="resource-desc">Blog posts, guides, and services from Nicole — your ongoing 17hats resource.</div>
+      </a>
+      <a href="https://youtube.com/@letnicolehelp" target="_blank" class="resource-card">
+        <div class="resource-icon">▶</div>
+        <div class="resource-title">Nicole's YouTube Channel</div>
+        <div class="resource-desc">How-to videos, 17hats walkthroughs, and feature deep dives.</div>
+      </a>
+      <a href="#" class="resource-card" onclick="showSection('ask-robot-nicole')">
+        <div class="resource-icon">◎</div>
+        <div class="resource-title">Ask Robot Nicole</div>
+        <div class="resource-desc">Your AI assistant trained on your 17hats setup. Ask it anything, anytime.</div>
+      </a>
+      <a href="https://instagram.com/letnicolehelp" target="_blank" class="resource-card">
+        <div class="resource-icon">📱</div>
+        <div class="resource-title">@letnicolehelp on Instagram</div>
+        <div class="resource-desc">Quick 17hats tips, reels, and behind-the-scenes from Nicole.</div>
+      </a>
+      <a href="https://letnicolehelp.17hats.com/p#/scheduling/ktcgccxcfptwkcbrhgzsvkdzsgpcxntx/s/61821" target="_blank" class="resource-card">
+        <div class="resource-icon">📅</div>
+        <div class="resource-title">Book a Tech Check</div>
+        <div class="resource-desc">Ready for an update? Book a call with Nicole.</div>
+      </a>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       SECTION 6: ASK CLAUDE
+       ✏️ IMPORTANT: Update the CLIENT_CONTEXT in the <script> below.
+       That's what makes Claude smart about THIS client's setup.
+       ============================================================ -->
+  <section class="page-section" id="ask-robot-nicole">
+    <div class="section-header">
+      <h1>Ask Robot Nicole</h1>
+      <!-- ✏️ CHANGE: Client name -->
+      <p>Robot Nicole knows your Float Balloons 17hats setup. Ask it anything: workflows, automations, how Nicole configured something, 17hats how-tos.</p>
+    </div>
+
+    <div class="chat-wrapper">
+      <div class="chat-header">
+        <div class="chat-avatar">◎</div>
+        <div class="chat-header-info">
+          <!-- ✏️ CHANGE: Client name -->
+          <h3>Claude · Float Balloons Assistant</h3>
+          <p>Trained on your 17hats setup by Nicole · letnicolehelp.com</p>
+        </div>
+      </div>
+      <div class="chat-messages" id="chatMessages">
+        <div class="message assistant">
+          <div class="message-avatar assistant-avatar">◎</div>
+          <!-- ✏️ CHANGE: Client name in opening message -->
+          <div class="message-bubble">Hi! I'm Robot Nicole, configured specifically for <strong>Float Balloons's</strong> 17hats setup. I know how Nicole built your workflows, automations and pipelines. Ask me anything, like "How does my lead pipeline work?" or "When do my clients get automatic invoice reminders?"</div>
+        </div>
+      </div>
+      <div class="chat-input-area">
+        <textarea class="chat-input" id="chatInput" placeholder="Ask about your 17hats setup..." rows="1" onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+        <button class="chat-send" id="sendBtn" onclick="sendMessage()">➤</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       SECTION 7: GET HELP FROM NICOLE
+       ✏️ Update BOOKING_URL. Everything else is evergreen.
+       ============================================================ -->
+  <section class="page-section" id="get-help">
+    <div class="section-header">
+      <h1>Get Help from Nicole</h1>
+      <p>When you need more than your portal can offer — Nicole's here.</p>
+    </div>
+
+    <div class="two-col">
+      <div class="card">
+        <div class="card-title">📅 Book a Session</div>
+        <p style="font-size:13.5px; color:var(--text-mid); line-height:1.7; margin-bottom:20px;">Your setup includes two 1-hour walkthrough Tech Check calls, but additional call packs are always available!</p>
+                <a href="https://letnicolehelp.17hats.com/p#/scheduling/ktcgccxcfptwkcbrhgzsvkdzsgpcxntx/s/61821" target="_blank" class="btn btn-copper">Book a Tech Check Call →</a>
+      </div>
+
+      <div class="card">
+        <div class="card-title">📧 Send Nicole a Message</div>
+        <p style="font-size:13.5px; color:var(--text-mid); line-height:1.7; margin-bottom:20px;">Have a question that Robot Nicole can't answer? Reach out directly. Nicole typically responds within 1–2 business days.</p>
+        <div style="display:flex; flex-direction:column; gap:10px;">
+          <input type="text" id="msgSubject" placeholder="Subject" style="border:1px solid var(--border); border-radius:7px; padding:10px 13px; font-family:'Montserrat',sans-serif; font-size:13px; outline:none; color:var(--text); background:var(--cream);">
+          <textarea rows="4" id="msgBody" placeholder="Your question or request..." style="border:1px solid var(--border); border-radius:7px; padding:10px 13px; font-family:'Montserrat',sans-serif; font-size:13px; outline:none; color:var(--text); background:var(--cream); resize:none;"></textarea>
+          <button class="btn btn-primary" style="align-self:flex-start;" onclick="openEmail()">Send Message →</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="background: var(--green-pale);">
+      <div class="card-title">💌 Stay in Nicole's World</div>
+      <div class="resources-grid" style="margin:0;">
+        <a href="https://youtube.com/@letnicolehelp" target="_blank" class="resource-card">
+          <div class="resource-icon">▶</div>
+          <div class="resource-title">YouTube</div>
+          <div class="resource-desc">Weekly 17hats videos</div>
+        </a>
+        <a href="https://instagram.com/letnicolehelp" target="_blank" class="resource-card">
+          <div class="resource-icon">📸</div>
+          <div class="resource-title">Instagram</div>
+          <div class="resource-desc">Tips, reels & behind-the-scenes</div>
+        </a>
+              </div>
+    </div>
+  </section>
+</main>
+
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+// ================================================================
+// PASSWORD GATE — NOT IN TEMPLATE (add when copying per client)
+// See the customization guide for the full script block to paste here.
+//
+// When you copy this template for a real client, add above the
+// ACCOUNT AGE section:
+//   const PORTAL_PASSWORD = 'FloatBalloonsLetNicoleHelp'
+//   const PORTAL_LAST_UPDATED = 'March 10, 2026'
+//   const WHATS_NEW_UPDATED = 'March 10, 2026'
+//   const CLIENT_KEY = 'float_balloons'
+//   function checkPassword() { ... }
+//   function dismissWelcome() { ... }
+//   function initPortal() { ... }
+// ================================================================
+
+// For template preview — run initPortal immediately (no login needed)
+const PORTAL_LAST_UPDATED = 'Template Preview';
+const WHATS_NEW_UPDATED   = new Date().toISOString();
+const CLIENT_KEY          = 'template_preview';
+
+function initPortal() {
+  const el = document.getElementById('lastUpdatedLine');
+  if (el) el.textContent = 'Template preview mode';
+  const badge = document.getElementById('newsBadge');
+  if (badge) badge.style.display = 'inline-block';
+}
+
+function dismissWelcome() {
+  const modal = document.getElementById('welcomeModal');
+  if (modal) { modal.classList.add('unlocked'); setTimeout(() => modal.style.display = 'none', 500); }
+}
+
+window.addEventListener('load', () => { initPortal(); });
+
+// ================================================================
+// ACCOUNT AGE + REVIEW STATUS (auto-calculated — no manual update needed)
+//
+// ✏️ CHANGE THESE TWO DATES PER CLIENT:
+//   SETUP_DATE   = when Nicole set up their account
+//   CHECKIN_DATE = the recommended tune-up date (matches "Next Check-In" stat card)
+// ================================================================
+(function() {
+  const setupDate   = new Date('2026-03-01'); // ✏️ e.g. '2026-03-01' for March 2026
+  const checkInDate = new Date('2026-07-01'); // ✏️ e.g. '2026-09-01' for Sep 2026
+  const now = new Date();
+  const ageEl = document.getElementById('acctAge');
+  const statusEl = document.getElementById('reviewStatus');
+
+  if (!ageEl || !statusEl) return;
+
+  // Use days to avoid timezone/month-boundary issues
+  const daysSinceSetup = Math.floor((now - setupDate) / (1000 * 60 * 60 * 24));
+  const months = Math.floor(daysSinceSetup / 30);
+
+  if (daysSinceSetup < 30) {
+    ageEl.textContent = 'New!';
+  } else if (months < 12) {
+    ageEl.textContent = months + ' mo';
+  } else {
+    const yrs = Math.floor(months / 12);
+    const mo = months % 12;
+    ageEl.textContent = yrs + 'yr' + (mo > 0 ? ' ' + mo + 'mo' : '');
+  }
+
+  if (now >= checkInDate) {
+    statusEl.textContent = 'Tune-up review due ';
+    statusEl.style.color = 'var(--copper)';
+  } else {
+    const daysUntil = Math.ceil((checkInDate - now) / (1000 * 60 * 60 * 24));
+    statusEl.textContent = 'Tune-up in ' + daysUntil + ' days';
+    statusEl.style.color = 'var(--text-light)';
+  }
+})();
+
+// ================================================================
+// NAVIGATION
+// ================================================================
+function showSection(id) {
+  document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const matchingNav = document.querySelector(`.nav-item[onclick*="${id}"]`);
+  if (matchingNav) matchingNav.classList.add('active');
+  window.scrollTo(0, 0);
+  if (id === 'whats-new') {
+    const badge = document.getElementById('newsBadge');
+    if (badge) badge.style.display = 'none';
+  }
+  closeMobileMenu();
+}
+
+function toggleWorkflow(header) {
+  const body = header.nextElementSibling;
+  const toggle = header.querySelector('.workflow-toggle');
+  body.classList.toggle('open');
+  toggle.classList.toggle('open');
+}
+
+function toggleMobileMenu() {
+  document.querySelector('.sidebar').classList.toggle('mobile-open');
+  document.getElementById('hamburger').classList.toggle('open');
+  document.getElementById('mobileOverlay').classList.toggle('visible');
+}
+
+function closeMobileMenu() {
+  document.querySelector('.sidebar').classList.remove('mobile-open');
+  document.getElementById('hamburger').classList.remove('open');
+  document.getElementById('mobileOverlay').classList.remove('visible');
+}
+
+function printSection() { window.print(); }
+
+function openEmail() {
+  const subject = document.getElementById('msgSubject').value.trim() || 'Question about my 17hats setup';
+  const body    = document.getElementById('msgBody').value.trim() || '';
+  window.location.href = 'mailto:nicole@letnicolehelp.com?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(body);
+}
+
+document.querySelectorAll('.nav-item').forEach(item => {
+  item.addEventListener('click', function() {
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    this.classList.add('active');
+  });
+});
+
+// ================================================================
+// ASK CLAUDE — AI CHAT
+//
+// ✏️ IMPORTANT: Replace the CLIENT_CONTEXT below for each client.
+// This is the "brain" of the AI — it tells Claude who this client
+// is and exactly how their 17hats account was set up.
+//
+// Be as specific as possible:
+//   - Their business name
+//   - Their event types
+//   - Their pipeline names and number of stages
+//   - Their automations (what triggers what)
+//   - Any quirks or custom setup you did for them
+//   - When Nicole set them up
+//
+// The more detail you add, the better Claude can answer questions.
+// ================================================================
+
+const CLIENT_CONTEXT = `You are an AI assistant built into a private client portal created by Nicole at Let Nicole Help (letnicolehelp.com), a 17hats setup specialist.
+
+// ✏️ REPLACE EVERYTHING BELOW THIS LINE with details about your actual client.
+// Delete the [PLACEHOLDER] lines and fill in real info.
+
+CLIENT NAME: Float Balloons
+SETUP DATE: March 2026
+BUSINESS TYPE: balloon decor
+GENERAL: Nicole set up your 17hats account in March 2026 with workflows for Country Grocer, Drop & Go orders, Party Package orders, custom installations and saving the date. Client's primary daily view is the dashboard; workflow items (emails, to-dos) appear there by due date. Pipelines give the bird's eye view. Projects show individual timelines.
+
+WORKFLOWS BUILT:
+Workflow: Country Grocer Orders
+Lead Capture Form: Country Grocer Order Entry
+
+Enter contact's name, location (from custom field drop-down list of locations), date and theme to begin the process.
+1
+Country Grocer Order will become the project name
+2
+Lands on Availability Request calendar
+3
+Starts 🟣Country Grocer Order workflow
+4
+Sends to Country Grocer Orders client pipeline
+5
+No automatic reply is sent to client
+🟣Country Grocer Order workflow
+
+Includes everything from quote to archive.
+
+1
+Starts with Country Grocer quote template (with Service Agreement - Long term installations/Retail).
+2
+Upon signing of contract, project moves to Float Scheduled Installation calendar & across the Country Grocer Orders pipeline
+3
+Reminder to add billing person as related contact (on the lower right of the project screen) & submit invoice
+4
+Automated email 5 days before event date: "Your Balloon Installation is Coming Up! (Country Grocer)"
+5
+1 day after event date, "We hope you loved the balloons! (Country Grocer)" template is prompted to send
+6
+after checking the to-do to confirm payment has been received; auto-archives project
+Country Grocer Orders Pipeline
+
+Groups orders by status.
+
+1
+Pending: clients land here upon completion of the lead capture form.
+2
+Quote Sent: clients land here upon sending the quote & contract
+3
+Confirmed: clients land here upon signing the contract
+4
+Invoice Submitted: clients land here after you add the related contact, send the invoice and mark the to-do as complete
+5
+Pipeline completion: when to-do marked complete after payment received
+Workflow: Drop & Go orders
+Lead Capture Form: Customer Inquiry Form 2026
+
+Collects name, email, phone, event type (becomes project name), date, address, start time, earliest setup time, service type (starts corresponding workflow), colours/theme, inspo photo, lead source
+
+1
+Lands on Availability Request calendar
+2
+Sends to Leads pipeline
+🟣Drop & Go Order workflow
+
+Includes everything from quote to archive.
+
+1
+Automatic reply "Checking the date - event form submitted"
+2
+Manually send Drop & Go Order quote template, which includes Balloon Delivery Agreement & invoice (with GST and PST; full payment required); also includes standard delivery fee and 18 "choose any" items with adjustable quantities
+3
+Upon full payment to invoice, moves to Float Scheduled Delivery calendar
+4
+Automated email 5 days before event date: "Your Balloon Delivery is Coming Up!"
+5
+1 day after event date, "We hope you loved the balloons!" template is prompted to send
+6
+Reminder / option to start rebooking process with internal lead capture form
+7
+Auto-archive after marking rebooking step as completed
+Pipelines Involved
+
+Leads and Confirmed Jobs
+
+1
+Leads pipeline - New Lead: client lands here after filling out lead capture form & selecting Drop & Go service option
+2
+Leads pipeline - Quoted/Save the Date: client lands here after "shoppable" quote is sent
+3
+Confirmed Jobs pipeline - Confirmed: client lands here after full payment to invoice
+4
+Confirmed Jobs pipeline - Next 14, 7 Days & Tomorrow: client lands here 14, 7 and 1 day before delivery date, respectively
+5
+Confirmed Jobs pipeline - Pipeline completion: upon project being archived
+ 
+Workflow: Party Package orders
+Lead Capture Form: Customer Inquiry Form 2026
+
+Collects name, email, phone, event type (becomes project name), date, address, start time, earliest setup time, service type (starts corresponding workflow), colours/theme, inspo photo, lead source
+
+1
+Lands on Availability Request calendar
+2
+Sends to Leads pipeline
+🟣1 - Inquiry (Package) workflow
+
+Auto-reply, questionnaire & manually starting billing workflow
+
+1
+Automatic reply "Checking the date - event form submitted"
+2
+Manually send Package Order questionnaire template, which allows client to review & select package options, share customization / marquee options, pick colors (or allow you to choose), indicate tear down preference and share event end time.
+3
+Upon completion of the questionnaire, you'll be prompted to start the 🟣 2 - Billing workflow
+🟣 2 - Billing workflow
+
+Quote / Contract / Invoice, calendar update & starting next workflow
+
+1
+Manually send Float Balloons Quote template, which includes Balloon Delivery Agreement & invoice (with GST and PST; 30% due on receipt and remainder 14 days before event); also includes standard delivery fee and "choose one" section for rental pick up or rental return by client
+2
+Upon 1st invoice payment, project moves to Float Scheduled Installation calendar & starts 🟣 3 - Fulfillment workflow
+🟣 3 - Fulfillment workflow
+
+Event reminder, thank you and rebooking
+
+1
+Automated email 5 days before event date: "Your Balloon Installation is Coming Up!"
+2
+1 day after event date, "We hope you loved the balloons!" template is prompted to send
+3
+Reminder / option to start rebooking process with internal lead capture form
+4
+Auto-archive after marking rebooking step as completed
+
+Workflow: Custom Installations
+Lead Capture Form: Customer Inquiry Form 2026
+
+Collects name, email, phone, event type (becomes project name), date, address, start time, earliest setup time, service type (starts corresponding workflow), colours/theme, inspo photo, lead source
+
+1
+Lands on Availability Request calendar
+2
+Sends to Leads pipeline
+🟣1 - Inquiry (Install) workflow
+
+Auto-reply, questionnaire & manually starting billing workflow
+
+1
+Automatic reply "Checking the date - event form submitted"
+2
+Manually send Decor Installation questionnaire template, which allows client to share desired balloon types, pick colors (or allow you to choose), view rental options, indicate indoor/outdoor, share images of space, indicate tear down preference and share event end time.
+3
+Upon completion of the questionnaire, you'll be prompted to start the 🟣 2 - Billing workflow
+4
+NOTE: This workflow will be paused when the "date saved" project tag is applied.
+🟣 2 - Billing workflow
+
+Quote / Contract / Invoice, calendar update & starting next workflow
+
+1
+Manually send Float Balloons Quote template, which includes Balloon Delivery Agreement & invoice (with GST and PST; 30% due on receipt and remainder 14 days before event); also includes standard delivery fee and "choose one" section for rental pick up or rental return by client
+2
+Upon 1st invoice payment, project moves to Float Scheduled Installation calendar & starts 🟣 3 - Fulfillment workflow
+🟣 3 - Fulfillment workflow
+
+Event reminder, thank you and rebooking
+
+1
+Automated email 5 days before event date: "Your Balloon Installation is Coming Up!"
+2
+1 day after event date, "We hope you loved the balloons!" template is prompted to send
+3
+Reminder / option to start rebooking process with internal lead capture form
+4
+Auto-archive after marking rebooking step as completed
+
+Workflow: Save the Date
+Full process:
+
+Includes invoice, calendar update, check-in reminders and option to start 🟣 2 - Billing workflow
+
+1
+NOTE: This workflow can be started manually, OR by applying the "save the date" project tag
+2
+Send Book Your Date invoice template
+3
+Upon full invoice payment: "date saved" tag is applied (pausing the 🟣1 - Inquiry (Install) workflow), project moves to Float Scheduled Installation calendar, project lands in Date Saved phase of Client Confirmed Jobs pipeline
+4
+2 reminders to check in on Date Saved, 7 days apart
+5
+Ability to move into 🟣 2 - Billing workflow when needed
+
+Workflow: Potential Rebooking
+Full process:
+
+Starts after using the [INTERNAL] Rebooking Form lead capture form; includes reach out emails 60 & 30 days before the anniversary date of an event.
+
+1
+Project lands in Potential Rebooking client pipeline upon filling out [INTERNAL] Rebooking Form lead capture form
+2
+60 days before anniversary date of the event, project moves to Send Reach Out 1 phase of Potential Rebooking client pipeline + "repeat reach out 1" email template is prompted
+3
+Upon sending the email above, project moves to Contacted phase of the Potential Rebooking client pipeline
+4
+30 days before anniversary date of the event, project moves to Send Reach Out 2 phase of Potential Rebooking client pipeline + "repeat reach out 2" email template is prompted
+5
+Upon sending the email above, the Potential Rebooking workflow / project is archived automatically
+
+Workflow: Unavailable
+Full process:
+
+Email to customer, calendar update & auto-archive
+
+1
+NOTE: This workflow can be started manually, or by applying the "unavailable" project tag
+2
+Immediately prompts "We're Unavailable" email template to approve and send
+3
+Reminder to follow up for future bookings
+4
+Automatic calendar update, removing the project from the Availability Request calendar
+5
+Automatic archive
+
+AUTOMATIONS:
+Automations Running in the Background: 48
+Lead Capture Form
+
+
+
+Email notification after completion
+
+Applied to Availability Request calendar
+
+Automatic reply email to customer
+
+Starts corresponding service workflow
+
+Applies "new lead" contact tag
+
+Applies "new lead" project tag
+
+Applies project name based on event type selected
+
+Feeds to lead source reporting
+
+[INTERNAL] Rebooking form to Work Flow Task calendar
+Documents
+
+
+quote email reminder (2 days before due date)
+
+contract confirmation email
+
+invoice email reminder (2 days before due date)
+
+past due invoice emal reminder (3 days after due date; repeating weekly x12)
+
+invoice confirmation email
+
+quote leads to contract
+
+contract leads to invoice
+Pipelines
+
+
+6 Leads pipeline phases / completion setting
+
+6 Confirmed Jobs client pipeline phases / completion setting
+
+5 Country Grocer Orders client pipeline phases / completion setting
+
+5 Potential Rebooking client pipeline phases / completion setting
+Workflows
+
+
+moving to Float Scheduled Delivery / Installation calendars
+
+"booked client" contact tag applied
+
+invoice email reminder (2 days before due date)
+
+past due invoice emal reminder (3 days after due date; repeating weekly x12)
+
+invoice confirmation email
+
+quote leads to contract
+
+contract leads to invoice
+
+"date saved" tag stops 🟣1 - Inquiry (Install) workflow
+
+"save the date" tag starts 🟣Save the Date workflow
+
+"unavailable" tag starts 🟣Unavailable workflow
+
+🟣Unavailable workflow sends project to Work Flow Task calendar
+
+🟣2 - Billing workflow starts 🟣3 - Fulfillment workflow after 1st invoice payment is made
+
+"Your Balloon Delivery is Coming Up!" email sends 5 days before Drop & Go order date
+
+"Your Balloon Installation is Coming Up!" email sends 5 days before custom installation or package order dates
+
+
+PIPELINES:
+Leads Pipeline
+Phases: New Lead (via new lead tag), Contacted (via lead contacted tag), 2 Days Old (via 2 days lapse after Contacted phase), Questionnaire Done (via tag questionnaire done), Quoted/Save the Date (via quote sent tag); completed state tag: confirmed job
+
+Confirmed Jobs Pipeline
+Phases: Date Saved (via date saved tag), Confirmed (via confirmed job tag), Next 14 Days, (via next 14 days tag), Next 7 Days (via next 7 days tag), Tomorrow (via event tomorrow taqg); completed state tag: completed job
+
+Country Grocer Orders
+Phases: Pending (via Country Grocer pending tag), Quote Sent (via Country Grocer quote sent tag), Confirmed (via Country Grocer confirmed tag), Invoice Submitted (via Country Grocer invoice submitted tag); completed state tag: Country Grocer completed
+
+Potential Rebooking
+Possible Rebooking (via possible rebooking tag), Send Reach Out 1 (via possible rebooking reach out 1 tag), Contacted (via possible rebooking contacted tag), Send Reach Out 2 (via possible rebooking reach out 2 tag); completed state tag: n/a
+
+SPECIAL NOTES ABOUT THIS CLIENT'S SETUP:
+
+Use Leads > + Add Lead > Use Lead Capture Form > Country Grocer Order Entry to initiate these orders
+
+Look to your dashboard for the specific workflow items (emails & documents) that are due to send each person.
+
+Look to your pipelines to see the bird's eye view of all leads & clients (navigate between pipelines in the top right).
+
+When entering someone's project, look 1st at the "What's coming up in the next 7 days" section, and click into your workflow to see what steps have completed and what's ahead.
+
+Your role: Answer questions about this client's specific 17hats setup, general 17hats how-to questions, and help them navigate their workflows. If asked something outside your knowledge, suggest they contact Nicole directly at letnicolehelp.com or visit the 17hats help center at help.17hats.com.
+
+Always be warm, helpful, and specific. Reference their actual setup when relevant. Keep responses concise but complete. Do NOT make up specific features or details you don't know — say "I'm not sure about that specific detail — Nicole or the 17hats help center would be the best resource."`;
+
+// ================================================================
+// CHAT LOGIC — only change PROXY_URL, nothing else needed
+// ✏️ CHANGE: Paste your Cloudflare Worker URL here (same for every client portal)
+// ================================================================
+const PROXY_URL      = 'https://robot-nicole-proxy.letnicolehelp.workers.dev/'; // ✏️ your Cloudflare Worker URL
+
+let chatHistory = [];
+
+async function sendMessage() {
+  const input = document.getElementById('chatInput');
+  const btn = document.getElementById('sendBtn');
+  const messages = document.getElementById('chatMessages');
+  const text = input.value.trim();
+  if (!text) return;
+
+  appendMessage('user', text);
+  chatHistory.push({ role: 'user', content: text });
+  input.value = '';
+  input.style.height = 'auto';
+  btn.disabled = true;
+
+  const thinking = document.createElement('div');
+  thinking.className = 'message assistant';
+  thinking.innerHTML = `<div class="message-avatar assistant-avatar">◎</div><div class="message-bubble"><div class="thinking"><span></span><span></span><span></span></div></div>`;
+  messages.appendChild(thinking);
+  messages.scrollTop = messages.scrollHeight;
+
+  try {
+    const response = await fetch(PROXY_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        system: CLIENT_CONTEXT,
+        messages: chatHistory
+      })
+    });
+    const data = await response.json();
+    const reply = data.content?.[0]?.text || "Sorry, I couldn't get a response. Try again!";
+    chatHistory.push({ role: 'assistant', content: reply });
+    thinking.remove();
+    appendMessage('assistant', reply);
+  } catch (err) {
+    thinking.remove();
+    appendMessage('assistant', "Hmm, something went wrong connecting to the AI. Please try again in a moment.");
+  }
+
+  btn.disabled = false;
+  messages.scrollTop = messages.scrollHeight;
+}
+
+function appendMessage(role, text) {
+  const messages = document.getElementById('chatMessages');
+  const div = document.createElement('div');
+  div.className = `message ${role}`;
+  const avatarContent = role === 'assistant' ? '◎' : '';
+  const avatarClass = role === 'assistant' ? 'assistant-avatar' : 'user-avatar';
+  div.innerHTML = `<div class="message-avatar ${avatarClass}">${avatarContent}</div><div class="message-bubble">${text.replace(/\n/g,'<br>').replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')}</div>`;
+  messages.appendChild(div);
+  messages.scrollTop = messages.scrollHeight;
+}
+
+function autoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+}
+
+function handleKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendMessage();
+  }
+}
+
+// ================================================================
+// WIX BLOG AUTO-FEED
+// No setup needed — pulls live from letnicolehelp.com via the
+// Cloudflare Worker (same PROXY_URL used for Robot Nicole chat).
+// Shows 4 most recent posts with thumbnail, title, excerpt.
+// Updates automatically whenever Nicole publishes a new post.
+// ================================================================
+async function loadBlogPosts() {
+  const grid = document.getElementById('blog-grid');
+  const loading = document.getElementById('blog-loading');
+  const error = document.getElementById('blog-error');
+
+  if (!PROXY_URL || PROXY_URL.includes('YOUR_WORKER_URL_HERE')) {
+    if (loading) loading.style.display = 'none';
+    if (error) error.style.display = 'block';
+    return;
+  }
+
+  try {
+    const response = await fetch(PROXY_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'blog_posts', limit: 4 })
+    });
+    const data = await response.json();
+
+    if (!data.posts || data.posts.length === 0) throw new Error('No posts');
+
+    grid.innerHTML = data.posts.map((post, i) => {
+      // Get thumbnail — prefer wixMedia image, fall back to embedMedia thumbnail
+      let thumbUrl = '';
+      if (post.media?.wixMedia?.image?.url) {
+        thumbUrl = post.media.wixMedia.image.url;
+      } else if (post.media?.embedMedia?.thumbnail?.url) {
+        thumbUrl = post.media.embedMedia.thumbnail.url;
+      }
+      const thumbStyle = thumbUrl
+        ? `background-image:url('${thumbUrl}'); background-size:cover; background-position:center;`
+        : 'background: linear-gradient(135deg, #1a3d30 0%, #2d5246 100%);';
+
+      const excerpt = post.excerpt ? post.excerpt.substring(0, 100) + (post.excerpt.length > 100 ? '...' : '') : '';
+      const postUrl = post.url ? post.url.base + post.url.path : 'https://www.letnicolehelp.com/blog';
+
+      return `
+        <a href="${postUrl}" target="_blank" class="content-card">
+          <div class="content-card-thumb yt-thumb" style="${thumbStyle}">
+            ${!thumbUrl ? '<div style=\"position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:28px;opacity:0.4;\"></div>' : ''}
+          </div>
+          <div class="content-card-body">
+            <div class="content-card-type">From Nicole's Blog${i === 0 ? ' · New' : ''}</div>
+            <div class="content-card-title">${post.title}</div>
+            ${excerpt ? `<div style="font-size:11.5px; color:var(--text-light); margin-top:4px; line-height:1.5;">${excerpt}</div>` : ''}
+          </div>
+        </a>`;
+    }).join('');
+
+    loading.style.display = 'none';
+    grid.style.display = 'grid';
+  } catch(e) {
+    loading.style.display = 'none';
+    error.style.display = 'block';
+  }
+}
+
+loadBlogPosts();
+
+// ================================================================
+// ANNOUNCEMENTS — fetches from announcements.json in your GitHub repo
+// To update: edit announcements.json and push to GitHub. All portals
+// update automatically. No need to touch individual portal files.
+// ================================================================
+async function loadAnnouncements() {
+  try {
+    const res = await fetch('https://lnh-gh.github.io/robot-nicole-client-portal/announcements.json?nocache=' + Date.now());
+    const items = await res.json();
+    if (!items || items.length === 0) return;
+
+    const list = document.getElementById('announcements-list');
+    const card = document.getElementById('announcements-card');
+
+    list.innerHTML = items.map(item => `
+      <a href="${item.url}" target="_blank" style="display:flex; align-items:flex-start; gap:14px; padding:14px 16px; border:1px solid var(--border); border-radius:10px; text-decoration:none; transition:all 0.2s;" onmouseover="this.style.borderColor='var(--copper)'" onmouseout="this.style.borderColor='var(--border)'">
+        <div style="font-size:24px; flex-shrink:0; margin-top:2px;">${item.emoji || ''}</div>
+        <div>
+          <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
+            <div style="font-size:14px; font-weight:500; color:var(--text);">${item.title}</div>
+            ${item.label ? `<span style="font-size:10px; background:rgba(184,125,82,0.12); color:var(--copper); padding:2px 8px; border-radius:20px;">${item.label}</span>` : ''}
+          </div>
+          <div style="font-size:12.5px; color:var(--text-light); line-height:1.5;">${item.desc}</div>
+        </div>
+        <div style="font-size:16px; color:var(--copper); flex-shrink:0; margin-left:auto; margin-top:2px;">→</div>
+      </a>`).join('');
+
+    card.style.display = 'block';
+  } catch(e) {
+    // Silently fail — announcements are optional
+  }
+}
+
+loadAnnouncements();
+
+// YouTube is embedded directly — no API key needed.
+
+</script>
+</body>
+</html>
