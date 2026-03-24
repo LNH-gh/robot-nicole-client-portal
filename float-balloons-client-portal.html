@@ -1069,25 +1069,40 @@
           <div class="workflow-header" onclick="toggleWorkflow(this)">
             <div class="workflow-header-left">
               <div class="workflow-dot"></div>
-              <span class="workflow-name"><span class=>🟣Drop & Go Order workflow</span>
+              <span class="workflow-name"><span class=>🟣Drop & Go Order - Inquiry workflow</span>
             </div>
             <span class="workflow-toggle"></span>
           </div>
           <div class="workflow-body">
-            <p class=>Includes everything from quote to archive.</p>
+            <p class=>Includes quote and automated calendar update after invoice payment.</p>
             <ul class="workflow-steps">
               <li><span class="step-num">1</span><span class=>Automatic reply "Checking the date - event form submitted"</li>
               <li><span class="step-num">2</span><span class=>Manually send Drop & Go Order quote template, which includes Balloon Delivery Agreement & invoice (with GST and PST; full payment required); also includes standard delivery fee and 18 "choose any" items with adjustable quantities</li>
-              <li><span class="step-num">3</span><span class=>Upon full payment to invoice, moves to Float Scheduled Delivery calendar</li>
-              <li><span class="step-num">4</span><span class=>Automated email 5 days before event date: "Your Balloon Delivery is Coming Up!"</li>
-<li><span class="step-num">5</span><span class=>1 day after event date, "We hope you loved the balloons!" template is prompted to send</li>
-<li><span class="step-num">6</span><span class=>Reminder / option to start rebooking process with internal lead capture form</li>
-<li><span class="step-num">7</span><span class=>Auto-archive after marking rebooking step as completed</li>
+              <li><span class="step-num">3</span><span class=>Upon full payment to invoice, moves to Float Scheduled Delivery calendar and pushes to 🟣Drop & Go Order - Fulfillment workflow</li>
+            </ul>
+          </div>
+        </div>
+  <!-- ── WORKFLOW 3 ── -->
+        <div class="workflow-item">
+          <div class="workflow-header" onclick="toggleWorkflow(this)">
+            <div class="workflow-header-left">
+              <div class="workflow-dot"></div>
+              <span class="workflow-name"><span class=>🟣Drop & Go Order - Fulfillment workflow</span>
+            </div>
+            <span class="workflow-toggle"></span>
+          </div>
+          <div class="workflow-body">
+            <p class=>Includes quote and automated calendar update after invoice payment.</p>
+            <ul class="workflow-steps">
+                           <li><span class="step-num">1</span><span class=>Automated email 5 days before event date: "Your Balloon Delivery is Coming Up!"</li>
+<li><span class="step-num">2</span><span class=>1 day after event date, "We hope you loved the balloons!" template is prompted to send</li>
+<li><span class="step-num">3</span><span class=>Reminder / option to start rebooking process with internal lead capture form</li>
+<li><span class="step-num">4</span><span class=>Auto-archive after marking rebooking step as completed</li>
             </ul>
           </div>
         </div>
 
-        <!-- ── WORKFLOW 3 (duplicate block above to add more) ── -->
+        <!-- ── WORKFLOW 4 (duplicate block above to add more) ── -->
         <div class="workflow-item">
           <div class="workflow-header" onclick="toggleWorkflow(this)">
             <div class="workflow-header-left">
@@ -1139,7 +1154,7 @@
           <div class="workflow-header" onclick="toggleWorkflow(this)">
             <div class="workflow-header-left">
               <div class="workflow-dot"></div>
-              <span class="workflow-name"><span class=>🟣1 - Inquiry (Package) workflow</span>
+              <span class="workflow-name"><span class=>🟣 1 - Inquiry (Package) workflow</span>
             </div>
             <span class="workflow-toggle"></span>
           </div>
@@ -1228,7 +1243,7 @@
           <div class="workflow-header" onclick="toggleWorkflow(this)">
             <div class="workflow-header-left">
               <div class="workflow-dot"></div>
-              <span class="workflow-name"><span class=>🟣1 - Inquiry (Install) workflow</span>
+              <span class="workflow-name"><span class=>🟣 1 - Inquiry (Install) workflow</span>
             </div>
             <span class="workflow-toggle"></span>
           </div>
@@ -1309,7 +1324,7 @@
               <!-- ✏️ CHANGE: Steps for this workflow — add/remove <li> as needed -->
               <li><span class="step-num">1</span><span class=>NOTE: This workflow can be started manually, OR by applying the "save the date" project tag</li>
               <li><span class="step-num">2</span><span class=>Send Book Your Date invoice template</li>
-<li><span class="step-num">3</span><span class=>Upon full invoice payment: "date saved" tag is applied (pausing the 🟣1 - Inquiry (Install) workflow), project moves to Float Scheduled Installation calendar, project lands in Date Saved phase of Client Confirmed Jobs pipeline</li>
+<li><span class="step-num">3</span><span class=>Upon full invoice payment: "date saved" tag is applied (pausing the 🟣 1 - Inquiry (Install) workflow), project moves to Float Scheduled Installation calendar, project lands in Date Saved phase of Client Confirmed Jobs pipeline</li>
 <li><span class="step-num">4</span><span class=>2 reminders to check in on Date Saved, 7 days apart</li>
 <li><span class="step-num">5</span><span class=>Ability to move into 🟣 2 - Billing workflow when needed</li>
                            </ul>
@@ -1504,7 +1519,7 @@
 <li style="font-size:13px; color:var(--text-mid); display:flex; gap:10px; align-items:flex-start;"><span style="color:var(--copper); flex-shrink:0;"></span>invoice confirmation email</li>
 <li style="font-size:13px; color:var(--text-mid); display:flex; gap:10px; align-items:flex-start;"><span style="color:var(--copper); flex-shrink:0;"></span>quote leads to contract</li>
 <li style="font-size:13px; color:var(--text-mid); display:flex; gap:10px; align-items:flex-start;"><span style="color:var(--copper); flex-shrink:0;"></span>contract leads to invoice</li>
-<li style="font-size:13px; color:var(--text-mid); display:flex; gap:10px; align-items:flex-start;"><span style="color:var(--copper); flex-shrink:0;"></span>"date saved" tag stops 🟣1 - Inquiry (Install) workflow</li>
+<li style="font-size:13px; color:var(--text-mid); display:flex; gap:10px; align-items:flex-start;"><span style="color:var(--copper); flex-shrink:0;"></span>"date saved" tag stops 🟣 1 - Inquiry (Install) workflow</li>
 <li style="font-size:13px; color:var(--text-mid); display:flex; gap:10px; align-items:flex-start;"><span style="color:var(--copper); flex-shrink:0;"></span>"save the date" tag starts 🟣Save the Date workflow</li>
 <li style="font-size:13px; color:var(--text-mid); display:flex; gap:10px; align-items:flex-start;"><span style="color:var(--copper); flex-shrink:0;"></span>"unavailable" tag starts 🟣Unavailable workflow</li>
 <li style="font-size:13px; color:var(--text-mid); display:flex; gap:10px; align-items:flex-start;"><span style="color:var(--copper); flex-shrink:0;"></span>🟣Unavailable workflow sends project to Work Flow Task calendar</li>
@@ -1975,16 +1990,16 @@ Collects name, email, phone, event type (becomes project name), date, address, s
 Lands on Availability Request calendar
 2
 Sends to Leads pipeline
-🟣Drop & Go Order workflow
+🟣Drop & Go Order - Inquiry workflow
 
-Includes everything from quote to archive.
+Includes quote and automated calendar update upon invoice payment.
 
 1
 Automatic reply "Checking the date - event form submitted"
 2
 Manually send Drop & Go Order quote template, which includes Balloon Delivery Agreement & invoice (with GST and PST; full payment required); also includes standard delivery fee and 18 "choose any" items with adjustable quantities
 3
-Upon full payment to invoice, moves to Float Scheduled Delivery calendar
+Upon full payment to invoice, moves to Float Scheduled Delivery calendar and bumps to 🟣Drop & Go Order - Fulfillment workflow
 4
 Automated email 5 days before event date: "Your Balloon Delivery is Coming Up!"
 5
@@ -2017,7 +2032,7 @@ Collects name, email, phone, event type (becomes project name), date, address, s
 Lands on Availability Request calendar
 2
 Sends to Leads pipeline
-🟣1 - Inquiry (Package) workflow
+🟣 1 - Inquiry (Package) workflow
 
 Auto-reply, questionnaire & manually starting billing workflow
 
@@ -2057,7 +2072,7 @@ Collects name, email, phone, event type (becomes project name), date, address, s
 Lands on Availability Request calendar
 2
 Sends to Leads pipeline
-🟣1 - Inquiry (Install) workflow
+🟣 1 - Inquiry (Install) workflow
 
 Auto-reply, questionnaire & manually starting billing workflow
 
@@ -2100,7 +2115,7 @@ NOTE: This workflow can be started manually, OR by applying the "save the date" 
 2
 Send Book Your Date invoice template
 3
-Upon full invoice payment: "date saved" tag is applied (pausing the 🟣1 - Inquiry (Install) workflow), project moves to Float Scheduled Installation calendar, project lands in Date Saved phase of Client Confirmed Jobs pipeline
+Upon full invoice payment: "date saved" tag is applied (pausing the 🟣 1 - Inquiry (Install) workflow), project moves to Float Scheduled Installation calendar, project lands in Date Saved phase of Client Confirmed Jobs pipeline
 4
 2 reminders to check in on Date Saved, 7 days apart
 5
@@ -2204,7 +2219,7 @@ quote leads to contract
 
 contract leads to invoice
 
-"date saved" tag stops 🟣1 - Inquiry (Install) workflow
+"date saved" tag stops 🟣 1 - Inquiry (Install) workflow
 
 "save the date" tag starts 🟣Save the Date workflow
 
