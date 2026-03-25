@@ -5,6 +5,8 @@
     "url": "https://letnicolehelp.thrivecart.com/balloon-email-drop/",
     "emoji": "📧",
     "label": "Monthly Membership"
+        "industry": ["Balloon"]
+
   },
     {
     "title": "Interactive Guide: Understanding tags in 17hats",
@@ -12,5 +14,7 @@
     "url": "https://www.letnicolehelp.com/17hats-tips",
     "emoji": "🏷️",
     "label": "Free interactive guide"
+          "industry": ["General"]
+
   }
 ]
