@@ -1884,22 +1884,22 @@ async function loadAnnouncements() {
   try {
     const res = await fetch('https://lnh-gh.github.io/robot-nicole-client-portal/announcements.json?nocache=' + Date.now());
     const data = await res.json();
-    const filtered = data.filter(item =>
-      !item.industry ||
-      item.industry.length === 0 ||
-      item.industry.includes('General') ||
-      item.industry.includes(PORTAL_INDUSTRY)
-    );
+    const filtered = data.filter(function(item) {
+      return !item.industry ||
+        item.industry.length === 0 ||
+        item.industry.includes('General') ||
+        item.industry.includes(PORTAL_INDUSTRY);
+    });
     if (!filtered.length) return;
-    list.innerHTML = filtered.map(item => `
-      <a href="${item.url || '#'}" target="_blank" style="display:flex; gap:14px; align-items:flex-start; text-decoration:none; padding:12px; border-radius:8px; border:1px solid var(--border); transition:all 0.2s;" onmouseover="this.style.borderColor='var(--copper)'" onmouseout="this.style.borderColor='var(--border)'">
-        <span style="font-size:22px; flex-shrink:0;">${item.emoji || '✦'}</span>
-        <div>
-          ${item.label ? `<div style="font-size:10px; letter-spacing:0.1em; text-transform:uppercase; color:var(--copper); margin-bottom:3px;">${item.label}</div>` : ''}
-          <div style="font-size:13.5px; font-weight:500; color:var(--text); margin-bottom:3px;">${item.title}</div>
-          <div style="font-size:12.5px; color:var(--text-light); line-height:1.5;">${item.desc || ''}</div>
-        </div>
-      </a>`).join('');
+    list.innerHTML = filtered.map(function(item) {
+      var labelHtml = item.label ? '<div style="font-size:10px; letter-spacing:0.1em; text-transform:uppercase; color:var(--copper); margin-bottom:3px;">' + item.label + '</div>' : '';
+      return '<a href="' + (item.url || '#') + '" target="_blank" style="display:flex; gap:14px; align-items:flex-start; text-decoration:none; padding:12px; border-radius:8px; border:1px solid var(--border);">'
+        + '<span style="font-size:22px; flex-shrink:0;">' + (item.emoji || '✦') + '</span>'
+        + '<div>' + labelHtml
+        + '<div style="font-size:13.5px; font-weight:500; color:var(--text); margin-bottom:3px;">' + item.title + '</div>'
+        + '<div style="font-size:12.5px; color:var(--text-light); line-height:1.5;">' + (item.desc || '') + '</div>'
+        + '</div></a>';
+    }).join('');
     card.style.display = 'block';
   } catch(e) {
     // Silently fail — announcements are optional
