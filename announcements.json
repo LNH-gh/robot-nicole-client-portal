@@ -4,7 +4,7 @@
     "desc": "Monthly balloon newsletter content delivered straight to your inbox. Plug it in and cross your newsletter off your list.",
     "url": "https://letnicolehelp.thrivecart.com/balloon-email-drop/",
     "emoji": "📧",
-    "label": "Monthly Membership"
+    "label": "Monthly Membership",
         "industry": ["Balloon"]
 
   },
@@ -13,7 +13,7 @@
     "desc": "A quick interactive guide to how tags work: what they do, how they get applied and how to use them to build a system that actually runs itself.",
     "url": "https://www.letnicolehelp.com/17hats-tips",
     "emoji": "🏷️",
-    "label": "Free interactive guide"
+    "label": "Free interactive guide",
           "industry": ["General"]
 
   }
