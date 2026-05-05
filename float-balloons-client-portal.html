@@ -1838,7 +1838,17 @@ function dismissWelcome() {
   if (modal) { modal.classList.add('unlocked'); setTimeout(() => modal.style.display = 'none', 500); }
 }
 
-window.addEventListener('load', () => { initPortal(); });
+window.addEventListener('load', () => {
+  initPortal();
+  // Render any saved chat history from localStorage
+  if (chatHistory.length > 0) {
+    const messages = document.getElementById('chatMessages');
+    if (messages) {
+      messages.innerHTML = ''; // clear the default greeting
+      chatHistory.forEach(msg => appendMessage(msg.role, msg.content));
+    }
+  }
+});
 
 // ================================================================
 // ACCOUNT AGE + REVIEW STATUS (auto-calculated — no manual update needed)
@@ -2338,7 +2348,6 @@ function clearChat() {
 
 let chatHistory = loadChatHistory();
 
-async function sendMessage() {
 async function sendMessage() {
   const input = document.getElementById('chatInput');
   const btn = document.getElementById('sendBtn');
