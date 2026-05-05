@@ -939,6 +939,7 @@
           <li style="font-size:13px; color:var(--text-mid); display:flex; gap:10px; align-items:flex-start;"><span style="color:var(--copper); flex-shrink:0;"></span> Look to your dashboard for the specific workflow items (emails & documents) that are due to send each person.</li>
           <li style="font-size:13px; color:var(--text-mid); display:flex; gap:10px; align-items:flex-start;"><span style="color:var(--copper); flex-shrink:0;"></span> Look to your pipelines to see the bird's eye view of all leads & clients (navigate between pipelines in the top right).</li>
           <li style="font-size:13px; color:var(--text-mid); display:flex; gap:10px; align-items:flex-start;"><span style="color:var(--copper); flex-shrink:0;"></span> When entering someone's project, look 1st at the "What's coming up in the next 7 days" section, and click into your workflow to see what steps have completed and what's ahead.</li>
+<li style="font-size:13px; color:var(--text-mid); display:flex; gap:10px; align-items:flex-start;"><span style="color:var(--copper); flex-shrink:0;"></span> For donations, either skip over the billing workflow entirely and go to fulfillment workflow instead. Or, use the billing workflow with a $0 invoice and "mark items as complete" as needed to get to fulfillment workflow.</li>
         </ul>
       </div>
     </div>
@@ -1596,6 +1597,28 @@ We discovered that your current plan lacked essential workflow capabilities, suc
       </div>
     </div>
 
+    <!-- ── SESSION 3 ── -->
+    <div class="card">
+      <div class="card-title">🎥 Session 3 · Tech Check Call</div>
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; flex-wrap:wrap; gap:10px;">
+        <span style="font-size:12px; color:var(--text-light); letter-spacing:0.05em;">May 5, 2026</span>
+        <a href="https://docs.google.com/document/d/1-gvSrcWu7v49L4ad_lF5pTG1VCoIYTk1nVf6ey8zQLk/edit?usp=sharing" target="_blank" class="btn btn-copper" style="font-size:12px;">Read full transcript</a>
+      </div>
+      <div style="background:var(--green-pale); border-radius:8px; padding:16px 18px;">
+        <div style="font-size:11px; letter-spacing:0.1em; text-transform:uppercase; color:var(--text-light); margin-bottom:10px;">Session Notes</div>
+        <ul style="list-style:none; display:flex; flex-direction:column; gap:8px;">
+          <li style="font-size:13px; color:var(--text-mid); display:flex; gap:10px;"><span style="color:var(--copper); flex-shrink:0;"></span>✔️ Talked about how project names, times and locations map to calendar.</li>
+          <li style="font-size:13px; color:var(--text-mid); display:flex; gap:10px;"><span style="color:var(--copper); flex-shrink:0;"></span>✔️ Reviewed how to duplicate existing lead capture form for Drop & Go Orders only</li>
+          <li style="font-size:13px; color:var(--text-mid); display:flex; gap:10px;"><span style="color:var(--copper); flex-shrink:0;"></span>✔️ Covered different ways to handle donation jobs (skipping billing workflow & marking workflow invoice steps as complete</li>
+          <li style="font-size:13px; color:var(--text-mid); display:flex; gap:10px;"><span style="color:var(--copper); flex-shrink:0;"></span>✔️ Looked at imgur.com for getting image links needed for 17hats emails.</li>
+          <li style="font-size:13px; color:var(--text-mid); display:flex; gap:10px;"><span style="color:var(--copper); flex-shrink:0;"></span>✔️ Talked about Robot Nicole's helpfulness and context.</li>
+          <li style="font-size:13px; color:var(--text-mid); display:flex; gap:10px;"><span style="color:var(--copper); flex-shrink:0;"></span>✔️ Created Zapier zap to make Stripe payments land in Google Sheets automatically, and talked about other Zapier possibilities.</li>
+          <li style="font-size:13px; color:var(--text-mid); display:flex; gap:10px;"><span style="color:var(--copper); flex-shrink:0;"></span>✔️ Added repeat customer selection in Lead Source question.</li>
+          <li style="font-size:13px; color:var(--text-mid); display:flex; gap:10px;"><span style="color:var(--copper); flex-shrink:0;"></span>✔️ Reviewed Bookkeeping Options for income categories, syncing bank accounts and adding transactions.</li>
+        </ul>
+      </div>
+    </div>
+
     <!-- "More coming" placeholder — leave as-is, always shows at bottom -->
     <div class="card" style="border: 1px dashed var(--border); background: var(--cream);">
       <div style="text-align:center; padding: 20px 0;">
@@ -1914,6 +1937,7 @@ document.querySelectorAll('.nav-item').forEach(item => {
 // ================================================================
 const PORTAL_INDUSTRY = 'Balloon'; // e.g. 'Balloon', 'Photography', 'Floral', 'Events'
 const PORTAL_CLIENT_NAME = "Nicole's Nifty Decor"; // ✏️ e.g. 'Float Balloons'
+
 // ================================================================
 // ASK CLAUDE — AI CHAT
 //
@@ -2259,6 +2283,10 @@ Use Leads > + Add Lead > Use Lead Capture Form > Grocer Order Entry to initiate 
 
 Look to your dashboard for the specific workflow items (emails & documents) that are due to send each person.
 
+For donations, either skip over the 🟣 2 - Billing workflow entirely and go to 🟣 3 - Fulfillment workflow instead. Or, use the 🟣 2 - Billing workflow with a $0 invoice and "mark items as complete" as needed to get to 🟣 3 - Fulfillment workflow.
+
+https://imgur.com/upload can be used to "copy image address" needed for adding images to 17hats emails
+
 Look to your pipelines to see the bird's eye view of all leads & clients (navigate between pipelines in the top right).
 
 When entering someone's project, look 1st at the "What's coming up in the next 7 days" section, and click into your workflow to see what steps have completed and what's ahead.
@@ -2273,8 +2301,44 @@ Always be warm, helpful, and specific. Reference their actual setup when relevan
 // ================================================================
 const PROXY_URL      = 'https://robot-nicole-proxy.letnicolehelp.workers.dev/'; // ✏️ your Cloudflare Worker URL
 
-let chatHistory = [];
+// ================================================================
+// CHAT HISTORY — localStorage, 30-day rolling window
+// Keyed to CLIENT_KEY so each client's history stays separate.
+// KV logging (server-side) will be added in a future update.
+// ================================================================
+const CHAT_STORAGE_KEY = 'lnh_chat_' + CLIENT_KEY;
+const CHAT_MAX_DAYS = 30;
 
+function loadChatHistory() {
+  try {
+    const saved = localStorage.getItem(CHAT_STORAGE_KEY);
+    if (!saved) return [];
+    const parsed = JSON.parse(saved);
+    const cutoff = Date.now() - (CHAT_MAX_DAYS * 24 * 60 * 60 * 1000);
+    // Filter out messages older than 30 days; keep if no timestamp (legacy)
+    return parsed.filter(msg => !msg.ts || msg.ts > cutoff);
+  } catch { return []; }
+}
+
+function saveChatHistory() {
+  try {
+    const now = Date.now();
+    const toSave = chatHistory.slice(-60).map(msg => ({ ...msg, ts: msg.ts || now }));
+    localStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(toSave));
+  } catch {}
+}
+
+function clearChat() {
+  chatHistory = [];
+  localStorage.removeItem(CHAT_STORAGE_KEY);
+  const messages = document.getElementById('chatMessages');
+  messages.innerHTML = '';
+  appendMessage('assistant', 'Chat cleared! Ask me anything about your 17hats setup. 🎈');
+}
+
+let chatHistory = loadChatHistory();
+
+async function sendMessage() {
 async function sendMessage() {
   const input = document.getElementById('chatInput');
   const btn = document.getElementById('sendBtn');
@@ -2441,6 +2505,7 @@ async function loadAnnouncements() {
   }
 }
 loadAnnouncements();
+
 // YouTube is embedded directly — no API key needed.
 
 </script>
