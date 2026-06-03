@@ -478,19 +478,6 @@
 
   .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
 
-  /* ============================================================
-     TEMPLATE HIGHLIGHT STYLES — remove before sending to client
-     ============================================================ */
-  .FILL {
-    background: #fff3cd;
-    border: 1.5px dashed #e6a817;
-    border-radius: 4px;
-    padding: 1px 5px;
-    font-style: italic;
-    color: #a0670a;
-    font-size: inherit;
-  }
-
   /* ── PASSWORD OVERLAY ── */
   .pw-overlay {
     position: fixed;
@@ -713,64 +700,14 @@
 </head>
 <body>
 
-<!--
-  ================================================================
-  LET NICOLE HELP — CLIENT PORTAL TEMPLATE
-  ================================================================
-  LET NICOLE HELP — CLIENT PORTAL TEMPLATE
 
-  HOW TO CUSTOMIZE THIS FILE FOR A NEW CLIENT:
-
-  OPTION A — MANUAL (find-and-replace):
-  1. Find every [PLACEHOLDER] — marked in yellow in browser
-  2. Replace with your client's real info
-  3. Add/remove workflow/pipeline items as needed
-  4. Update CLIENT_CONTEXT in <script> (Robot Nicole brain)
-  5. Update PORTAL_CLIENT_NAME in <script>
-  6. Add password gate block (see Customization Guide)
-  7. Remove this comment block when done
-
-  OPTION B — COWORK (auto-fill from Notion):
-  Every [PLACEHOLDER] has data-notion-field="Field Name"
-  matching the Client Portal Intake Form database.
-  Cowork reads the Notion record and replaces all fields
-  automatically. You only need to manually fill:
-  - PORTAL_CLIENT_NAME (in script)
-  - CLIENT_CONTEXT (Robot Nicole brain, in script)
-  - Password gate constants (see Customization Guide)
-  - Pipeline screenshot URLs (img src attributes)
-  - Workflow steps (li items — not in Notion DB yet)
-
-  PLACEHOLDERS KEY:
-  Premier Party Co  → Notion: "Client Business Name"
-  https://i.imgur.com/7kDUbYy.png       → Notion: "Logo URL"
-  PORTAL_PASSWORD         → e.g. "bloomballoons2026"
-  PORTAL_LAST_UPDATED     → e.g. "March 4, 2026"
-  CLIENT_KEY              → e.g. "bloom_balloons"
-  May 2026      → Notion: "Setup Date"
-  5         → Notion: "Num Workflows"
-  4         → Notion: "Num Pipelines"
-  20       → Notion: "Num Automations"
-  Dec '26          → Notion: "Next Check-In Label"
-  [OVERVIEW_SUMMARY]      → Notion: "Overview Summary"
-  [QUICK_TIP_1-4]         → Notion: "Quick Tip 1" ... "4"
-  [WORKFLOW_1-3 NAME]     → Notion: "Workflow 1 Name" etc.
-  [WORKFLOW_1-3 DESC]     → Notion: "Workflow 1 Description"
-  [PIPELINE_1-4 NAME]     → Notion: "Pipeline 1 Name" etc.
-  [PIPELINE_1-4 PHASES]   → Notion: "Pipeline 1 Phases"
-  [SESSION_1-2 TOPIC]     → Notion: "Session 1 Topic" etc.
-  [SESSION_1-2 DATE]      → Notion: "Session 1 Date" etc.
-  Account Age             → auto-calculated from script
-  ================================================================
--->
 
 <!-- WELCOME MODAL (shows once after first login — no changes needed) -->
 <div class="pw-overlay" id="welcomeModal" style="display:none; background: rgba(30,51,41,0.92); backdrop-filter: blur(8px);">
   <div class="pw-box" style="max-width:480px; gap:0; text-align:center;">
     <div style="font-size:36px; margin-bottom:16px;">🎈</div>
     <div class="pw-logo">Welcome to your</div>
-    <!-- ✏️ CHANGE: Client name (matches rest of portal) -->
-    <div class="pw-client" style="margin-bottom:12px;"><span data-notion-field="Client Business Name">Premier Party Co</span> Portal</div>
+    <div class="pw-client" style="margin-bottom:12px;">Premier Party Co Portal</div>
     <!-- Logo in welcome modal — same URL as everywhere else -->
     <img
       src="https://i.imgur.com/7kDUbYy.png"
@@ -788,7 +725,7 @@
       </div>
       <div style="display:flex; align-items:flex-start; gap:12px; background:rgba(255,255,255,0.06); border-radius:10px; padding:12px 14px;">
         <span style="font-size:16px; flex-shrink:0;">⟳</span>
-        <div><div style="font-size:13px; font-weight:600; color:white; margin-bottom:2px;">Workflows &amp; Automations</div><div style="font-size:12px; color:rgba(255,255,255,0.45);">Every workflow and automation Nicole built — fully explained</div></div>
+        <div><div style="font-size:13px; font-weight:600; color:white; margin-bottom:2px;">Workflows & Automation</div><div style="font-size:12px; color:rgba(255,255,255,0.45);">Every pipeline Nicole built — with step-by-step breakdowns</div></div>
       </div>
       <div style="display:flex; align-items:flex-start; gap:12px; background:rgba(255,255,255,0.06); border-radius:10px; padding:12px 14px;">
         <span style="font-size:16px; flex-shrink:0;">🎥</span>
@@ -810,22 +747,32 @@
 </button>
 <div class="mobile-overlay" id="mobileOverlay" onclick="closeMobileMenu()"></div>
 
-<!-- ============================================================
-     PASSWORD OVERLAY — NOT IN TEMPLATE (add when copying per client)
-     
-     When creating a new client portal from this template:
-     1. Copy the password overlay block from the customization guide
-     2. Paste it here (before the sidebar)
-     3. Set PORTAL_PASSWORD, PORTAL_LAST_UPDATED, WHATS_NEW_UPDATED, CLIENT_KEY
-        in the script section below
-     ============================================================ -->
+<!-- PASSWORD OVERLAY -->
+<div class="pw-overlay" id="loginOverlay">
+  <div class="pw-box">
+    <div class="pw-lock">🔐</div>
+    <div class="pw-logo">A Portal by let Nicole help</div>
+    <div class="pw-client">Premier Party Co</div>
+    <div class="pw-subtitle">Client Portal</div>
+    <img
+      src="https://i.imgur.com/7kDUbYy.png"
+      alt="Premier Party Co"
+      class="client-logo-lg"
+      onerror="this.style.display='none';"
+      style="filter: brightness(0) invert(1); opacity:0.7;"
+    />
+    <div class="pw-label">Portal Password</div>
+    <input type="password" class="pw-input" id="pwInput" placeholder="••••••••" onkeydown="if(event.key==='Enter')checkPassword()">
+    <button class="pw-btn" onclick="checkPassword()">Enter Portal →</button>
+    <div class="pw-error" id="pwError"></div>
+    <div class="pw-footer">letnicolehelp.com</div>
+  </div>
+</div>
 
 <aside class="sidebar">
   <div class="sidebar-logo">
     <div class="by-nicole">A Portal by let Nicole help</div>
-    <!-- ✏️ CHANGE: Client business name -->
     <div class="client-name">Premier Party Co</div>
-    <!-- ✏️ CHANGE: Year of setup -->
     <div class="portal-label">Client Portal · 2026</div>
   </div>
 
@@ -834,21 +781,21 @@
     <a class="nav-item active" onclick="showSection('overview')">
       <span class="icon">◈</span> Overview
     </a>
-    <a class="nav-item" onclick="showSection('workflows')">
+   <a class="nav-item" onclick="showSection('workflows')">
       <span class="icon">⟳</span> Workflows
+    </a>
+    <a class="nav-item" onclick="showSection('pipelines')">
+      <span class="icon">◫</span> Pipelines
     </a>
     <a class="nav-item" onclick="showSection('automations')">
       <span class="icon">⚙️</span> Automations
-    </a>
-    <a class="nav-item" onclick="showSection('pipelines')">
-      <span class="icon">⊙</span> Pipelines
     </a>
   </div>
 
   <div class="sidebar-section">
     <div class="sidebar-section-label">Resources</div>
     <a class="nav-item" onclick="showSection('zoom-recordings')">
-      <span class="icon">🎥</span> Zoom Recordings
+      <span class="icon">🎥</span> Zoom Sessions
     </a>
     <a class="nav-item" id="nav-whats-new" onclick="showSection('whats-new')">
       <span class="icon">✦</span> What's New from Nicole<span class="nav-badge" id="newsBadge" style="display:none;"></span>
@@ -863,20 +810,16 @@
     <a class="nav-item" onclick="showSection('ask-robot-nicole')">
       <span class="icon">🤖</span> Ask Robot Nicole
     </a>
-    <a class="nav-item" onclick="showSection('get-help')">
+<a class="nav-item" onclick="showSection('requests')">
+  <span class="icon">✏️</span> Request a Change
+</a>
+<a class="nav-item" onclick="showSection('get-help')">
       <span class="icon">◉</span> Get Help from Nicole
-    </a>
-    <a class="nav-item" onclick="showSection('request-change')">
-      <span class="icon">✎</span> Request a Change
-    </a>
-    <a class="nav-item" onclick="showSection('refer-friend')">
-      <span class="icon">🎈</span> Refer a Friend
     </a>
   </div>
 
   <div class="sidebar-footer">
-    <!-- ✏️ CHANGE: Setup date -->
-    <p>Set up by Nicole · <span data-notion-field="Setup Date">May 2026</span><br>
+    <p>Set up by Nicole · May 2026<br>
     <span id="lastUpdatedLine" style="color:rgba(255,255,255,0.2); font-size:10px;"></span><br>
     <a href="https://letnicolehelp.com" target="_blank">letnicolehelp.com</a></p>
   </div>
@@ -896,12 +839,12 @@
         class="client-logo"
         onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
       />
-      <div class="client-logo-placeholder" style="display:none;"><span data-notion-field="Client Business Name">Premier Party Co</span></div>
+      <div class="client-logo-placeholder" style="display:none;">Premier Party Co</div>
       <span class="tag-pill">17hats · Active</span>
     </div>
     <div class="topbar-right">
       <a href="#" class="btn btn-outline" onclick="printSection(); return false;" title="Save or print your portal">🖨️ Save as PDF</a>
-      <a href="mailto:nicole@letnicolehelp.com" class="btn btn-outline">📧 Email Nicole</a>
+      <a href="/cdn-cgi/l/email-protection#5a34333935363f1a363f2e34333935363f323f362a74393537" class="btn btn-outline">📧 Email Nicole</a>
       <a href="#" class="btn btn-copper" onclick="showSection('ask-robot-nicole')">🤖 Ask Robot Nicole</a>
     </div>
   </div>
@@ -912,41 +855,27 @@
   <section class="page-section active" id="overview">
     <div class="accent-banner">
       <div>
-        <!-- ✏️ CHANGE: Client name in welcome message -->
-        <h2>Welcome back, <span data-notion-field="Client Business Name">Premier Party Co</span> ✨</h2>
-        <p>Everything Nicole set up for you — your workflows, resources, and AI assistant — all in one place.</p>
+        <h2>Welcome back, Premier Party Co ✨</h2>
+        <p>Everything Nicole set up for you: your workflows, resources & AI assistant...all in one place.</p>
       </div>
     </div>
 
     <div class="stats-row">
       <div class="stat-card">
         <div class="stat-label">Workflows Built</div>
-        <!-- ✏️ CHANGE: Number of workflow automation sequences -->
-        <div class="stat-value"><span data-notion-field="Num Workflows">5</span></div>
-        <div class="stat-sub">Automation sequences</div>
+        <div class="stat-value">5</div>
       </div>
       <div class="stat-card">
         <div class="stat-label">Pipelines Built</div>
-        <!-- ✏️ CHANGE: Number of pipelines (inquiry/project pipelines) -->
-        <div class="stat-value"><span data-notion-field="Num Pipelines">4</span></div>
-        <div class="stat-sub">Active pipelines</div>
+        <div class="stat-value">4</div>
       </div>
       <div class="stat-card">
         <div class="stat-label">Automations</div>
-        <!-- ✏️ CHANGE: Number of automations -->
-        <div class="stat-value"><span data-notion-field="Num Automations">20</span></div>
-        <div class="stat-sub">Running 24/7</div>
+        <div class="stat-value">38</div>
       </div>
-      <div class="stat-card">
-        <div class="stat-label">Account Age</div>
-        <!-- Auto-calculated from SETUP_DATE in the script below — no change needed here -->
-        <div class="stat-value" id="acctAge">—</div>
-        <div class="stat-sub" id="reviewStatus">Calculating...</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">Next Check-In</div>
-        <!-- ✏️ CHANGE: Recommended tune-up month/year -->
-        <div class="stat-value"><span data-notion-field="Next Check-In Label">Dec '26</span></div>
+            <div class="stat-card">
+        <div class="stat-label">Recommended tune-up</div>
+        <div class="stat-value">Dec '26</div>
         <div class="stat-sub">Recommended tune-up</div>
       </div>
     </div>
@@ -954,151 +883,320 @@
     <div class="two-col">
       <div class="card">
         <div class="card-title">📋 Your Account at a Glance</div>
-        <!-- ✏️ CHANGE: 2-3 sentences summarizing what Nicole built for this client specifically -->
-        <p style="font-size:13.5px; color:var(--text-mid); line-height:1.7;" data-notion-field="Overview Summary">Nicole set up your 17hats account in May 2026 with a complete inquiry-to-invoice workflow built around your three main event types. Your automations handle follow-ups, proposal sends, and invoice reminders automatically.</p>
+        <p style="font-size:13.5px; color:var(--text-mid); line-height:1.7;">Nicole set up your 17hats account in April 2026 with a full process for Event Decor inquiries, billing, fulfillment and rebookings. Since decisions on the products/services and payment schedule/methods were not provided, the products &amp; services list was left as is; and a default payment schedule of 50% due on receipt + remainder due 14 days before the event was applied to the Event Decor Quote template in the 2 - Event Decor Billing workflow. No automated document reminders were set due to not hearing back about the current outstanding quotes and invoices.</p>
         <br>
         <a class="btn btn-outline" onclick="showSection('workflows')" style="font-size:12px;">View all workflows →</a>
       </div>
       <div class="card">
         <div class="card-title">⚡ Quick Tips for Your Setup</div>
         <ul style="list-style:none; display:flex; flex-direction:column; gap:10px;">
-          <!-- ✏️ CHANGE: 4 specific tips relevant to THIS client's setup -->
-          <li style="font-size:13px; color:var(--text-mid); display:flex; gap:10px; align-items:flex-start;"><span style="color:var(--copper); flex-shrink:0;">✦</span> <span data-notion-field="Quick Tip 1">Don't forget to set your project time to match your setup time.</span></li>
-          <li style="font-size:13px; color:var(--text-mid); display:flex; gap:10px; align-items:flex-start;"><span style="color:var(--copper); flex-shrink:0;">✦</span> <span data-notion-field="Quick Tip 2">Start with your dashboard every day to see what's due for each person, and utilize the workflow templates cued up for you so that workflow automations can run.</span></li>
-          <li style="font-size:13px; color:var(--text-mid); display:flex; gap:10px; align-items:flex-start;"><span style="color:var(--copper); flex-shrink:0;">✦</span> <span data-notion-field="Quick Tip 3">Your pipelines will let you see where all your leads and clients are in the process.</span></li>
-          <li style="font-size:13px; color:var(--text-mid); display:flex; gap:10px; align-items:flex-start;"><span style="color:var(--copper); flex-shrink:0;">✦</span> <span data-notion-field="Quick Tip 4">You can update your products & services list via Account Settings > Products & Services. Use an Internal (alphabetical) name for searching and a customer-friendly Display name.</span></li>
+          <li style="font-size:13px; color:var(--text-mid); display:flex; gap:10px; align-items:flex-start;"><span style="color:var(--copper); flex-shrink:0;">✦</span> Don't forget to set your project time to match your setup time.</li>
+          <li style="font-size:13px; color:var(--text-mid); display:flex; gap:10px; align-items:flex-start;"><span style="color:var(--copper); flex-shrink:0;">✦</span> Start with your dashboard every day to see what's due for each person, and utilize the workflow templates that are cued up for you so that the workflow automations can run.</li>
+          <li style="font-size:13px; color:var(--text-mid); display:flex; gap:10px; align-items:flex-start;"><span style="color:var(--copper); flex-shrink:0;">✦</span> Your pipelines will let you see where all your leads and clients are in the process.</li>
+          <li style="font-size:13px; color:var(--text-mid); display:flex; gap:10px; align-items:flex-start;"><span style="color:var(--copper); flex-shrink:0;">✦</span> You can update your products &amp; services list with bulk delete and bulk upload through Account Settings &gt; Products &amp; Services (under Money Matters). There is a bulk upload csv template towards the top of that page. I recommend utilizing the Internal [alphabetical] name for searching, and a customer-friendly name for the Display name. Example: &quot;Arch - Classic - 20ft&quot; internal name becomes &quot;20ft Classic Balloon Arch&quot; display name; and &quot;Column - Organic&quot; internal name becomes &quot;Organic Balloon Column&quot; display name. Due to the alphabetical nature, this can help you find things faster when you start typing in the internal name field. Don't worry about adding a workflow to any single product or service; they're set up to run regardless of product/service being billed.</li>
         </ul>
       </div>
     </div>
   </section>
 
   <!-- ============================================================
-       SECTION: WORKFLOWS
-       Add or remove workflow items as needed.
+       SECTION 2: WORKFLOWS & AUTOMATION
+       ✏️ ADD or REMOVE workflow items as needed.
        Copy one .workflow-item block to add more.
        ============================================================ -->
-  <section class="page-section" id="workflows">
+    <section class="page-section" id="workflows">
     <div class="section-header">
-      <h1>Workflows</h1>
-      <p>Every workflow Nicole built for your 17hats account. Click any item to see how it works step by step.</p>
+      <h1>Workflows &amp; Automation</h1>
+      <p>Every workflow Nicole built for your 17hats account. Click any item to see how it works.</p>
     </div>
 
-    <!-- ✏️ CHANGE: Card title to match client's event types -->
     <div class="card">
-      <div class="card-title">🎈 <span>Event Decor Workflows</span></div>
+      <div class="card-title">🎈 Core Event Workflows</div>
       <div class="workflow-list">
 
-        <!-- ── WORKFLOW 1 ── -->
         <div class="workflow-item">
           <div class="workflow-header" onclick="toggleWorkflow(this)">
             <div class="workflow-header-left">
               <div class="workflow-dot"></div>
-              <!-- ✏️ CHANGE: Workflow name + number of stages -->
-              <span class="workflow-name"><span data-notion-field="Workflow 1 Name">1 - Event Decor Inquiry</span></span>
-              <span class="workflow-tag"><span data-notion-field="Workflow 1 Stages">4</span> stages</span>
+              <span class="workflow-name">1- Event Decor Inquiry</span>
+              <span class="workflow-tag">4 stages</span>
             </div>
             <span class="workflow-toggle">▾</span>
           </div>
           <div class="workflow-body">
-            <p data-notion-field="Workflow 1 Description">Auto-reply, questionnaire, initiates follow-ups workflow, prompts Billing workflow when ready to quote.</p>
+            <p>Auto-reply, questionnaire, initiates follow ups, prompts Billing workflow (upon review, needs to be added to &quot;Website capture form&quot; lead capture form)</p>
             <ul class="workflow-steps">
-              <!-- ✏️ CHANGE: Steps — add/remove li items as needed -->
-              <li><span class="step-num">1</span><span>Lead fills out inquiry form; auto-reply email and text sent immediately</span></li>
-              <li><span class="step-num">2</span><span>Questionnaire sent to client when availability confirmed</span></li>
-              <li><span class="step-num">3</span><span>Follow-ups workflow starts automatically after questionnaire is sent</span></li>
-              <li><span class="step-num">4</span><span>Billing workflow started manually when ready to quote</span></li>
+              <li><span class="step-num">1</span>Send email: Website Contact Form (auto reply) - Immediately after activating this workflow (auto)</li>
+              <li><span class="step-num">2</span>Send questionnaire: Event Decor Questionnaire - upon confirming availability (approve)</li>
+              <li><span class="step-num">3</span>Create Workflow: follow ups - After questionnaire is sent (auto)</li>
+              <li><span class="step-num">4</span>Create Workflow: 2- Event Decor Billing - When ready to quote (approve)</li>
             </ul>
           </div>
         </div>
 
-        <!-- ── WORKFLOW 2 ── -->
         <div class="workflow-item">
           <div class="workflow-header" onclick="toggleWorkflow(this)">
             <div class="workflow-header-left">
               <div class="workflow-dot"></div>
-              <span class="workflow-name"><span data-notion-field="Workflow 2 Name">2 - Event Decor Billing</span></span>
-              <span class="workflow-tag"><span data-notion-field="Workflow 2 Stages">5</span> stages</span>
+              <span class="workflow-name">2- Event Decor Billing</span>
+              <span class="workflow-tag">5 stages</span>
             </div>
             <span class="workflow-toggle">▾</span>
           </div>
           <div class="workflow-body">
-            <p data-notion-field="Workflow 2 Description">Quote, calendar update upon 1st invoice payment, event confirmation, starts Fulfillment workflow.</p>
+            <p>Quote, calendar update upon 1st invoice payment, event confirmation</p>
             <ul class="workflow-steps">
-              <li><span class="step-num">1</span><span>Quote/contract/invoice sent</span></li>
-              <li><span class="step-num">2</span><span>Calendar updates automatically upon first payment</span></li>
-              <li><span class="step-num">3</span><span>Thanks for booking email sends automatically after calendar update</span></li>
-              <li><span class="step-num">4</span><span>Fulfillment workflow starts automatically after booking confirmation</span></li>
-              <li><span class="step-num">5</span><span>Reminder to add takedown time to calendar if relevant</span></li>
+              <li><span class="step-num">1</span>Send quote: Event Decor Quote - Immediately after activating this workflow (approve)</li>
+              <li><span class="step-num">2</span>Change Calendar: Confirmed Booking - Immediately after 1st invoice payment is made (auto)</li>
+              <li><span class="step-num">3</span>Send email: thanks for booking - Immediately after calendar update (auto)</li>
+              <li><span class="step-num">4</span>Create Workflow: 3- Event Decor Fulfillment - Immediately after all previous items are complete (auto)</li>
+              <li><span class="step-num">5</span>add take down in calendar (if relevant) - Immediately after all previous items are complete</li>
             </ul>
           </div>
         </div>
 
-        <!-- ── WORKFLOW 3 (duplicate block above to add more) ── -->
         <div class="workflow-item">
           <div class="workflow-header" onclick="toggleWorkflow(this)">
             <div class="workflow-header-left">
               <div class="workflow-dot"></div>
-              <span class="workflow-name"><span data-notion-field="Workflow 3 Name">3 - Event Decor Fulfillment</span></span>
-              <span class="workflow-tag"><span data-notion-field="Workflow 3 Stages">8</span> stages</span>
+              <span class="workflow-name">3- Event Decor Fulfillment</span>
+              <span class="workflow-tag">8 stages</span>
             </div>
             <span class="workflow-toggle">▾</span>
           </div>
           <div class="workflow-body">
-            <p data-notion-field="Workflow 3 Description">Tagging for pipeline movement, event reminder email, thank you email, initiates Rebooking workflow.</p>
+            <p>Tagging for pipeline, event reminder, thank you, start repeat process</p>
             <ul class="workflow-steps">
-              <li><span class="step-num">1</span><span>Tag moves client across pipeline 30 days before event</span></li>
-              <li><span class="step-num">2</span><span>Tag moves client across pipeline 7 days before event</span></li>
-              <li><span class="step-num">3</span><span>Event reminder email sends automatically 7 days before the event</span></li>
-              <li><span class="step-num">4</span><span>Reminder to send text template 2 days before the event</span></li>
-              <li><span class="step-num">5</span><span>Tag moves client across pipeline 1 day after event</span></li>
-              <li><span class="step-num">6</span><span>Thank you & Google review email cues up 2 days after event</span></li>
-              <li><span class="step-num">7</span><span>Reminder to use [INTERNAL] Rebooking form to set up repeat workflow</span></li>
-              <li><span class="step-num">8</span><span>Automated archive</span></li>
+              <li><span class="step-num">1</span>Add/Remove Tags: +next 30 days -confirmed event - 30 days before the base date (auto)</li>
+              <li><span class="step-num">2</span>Add/Remove Tags: +this week -next 30 days - 7 days before the base date (auto)</li>
+              <li><span class="step-num">3</span>Send email: It&#x27;s Time to Celebrate! - 7 days before the base date (auto)</li>
+              <li><span class="step-num">4</span>send text: &quot;2 days before event&quot; template - 2 days before the base date (manual)</li>
+              <li><span class="step-num">5</span>Add/Remove Tags: +event passed -this week - 1 day after the base date (auto)</li>
+              <li><span class="step-num">6</span>Send email: Thank you Google Review - 2 days after the base date (approve)</li>
+              <li><span class="step-num">7</span>initiate Rebooking workflow using [INTERNAL] Rebooking Form - Immediately after all previous items are complete</li>
+              <li><span class="step-num">8</span>Archive the Project - Immediately after all previous items are complete (auto)</li>
             </ul>
           </div>
         </div>
 
-            <!-- ── WORKFLOW 4 (duplicate block above to add more) ── -->
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">🎈 Follow Up &amp; Rebooking Workflows</div>
+      <div class="workflow-list">
+
         <div class="workflow-item">
           <div class="workflow-header" onclick="toggleWorkflow(this)">
             <div class="workflow-header-left">
               <div class="workflow-dot"></div>
-              <span class="workflow-name"><span data-notion-field="Workflow 4 Name">follow ups</span></span>
-              <span class="workflow-tag"><span data-notion-field="Workflow 4 Stages">5</span> stages</span>
+              <span class="workflow-name">follow ups</span>
+              <span class="workflow-tag">5 stages</span>
             </div>
             <span class="workflow-toggle">▾</span>
           </div>
           <div class="workflow-body">
-            <p data-notion-field="Workflow 4 Description">2 follow-up emails in case client stops replying (”Quote Sent” tag stops this workflow)</p>
+            <p>2 follow-up emails in case client stops replying (&quot;Quote Sent&quot; tag stops this workflow)</p>
             <ul class="workflow-steps">
-              <li><span class="step-num">1</span><span>Approve follow up 1 to send 2 days after workflow is activated</span></li>
-              <li><span class="step-num">2</span><span>Approve follow up 2 to send 2 days after previous email</span></li>
-              <li><span class="step-num">3</span><span>Click to automaticaly archive</span></li>
-              <li><span class="step-num">4</span><span>Moves to To Do Calendar</span></li>
-              <li><span class="step-num">5</span><span>Automatically archives</span></li>
+              <li><span class="step-num">1</span>Send email: follow up 1 - 2 days after activating this workflow (approve)</li>
+              <li><span class="step-num">2</span>Send email: follow up 2 - 2 days after all previous items are complete (approve)</li>
+              <li><span class="step-num">3</span>click to automatically archive - 5 days after all previous items are complete</li>
+              <li><span class="step-num">4</span>Change Calendar: To Do Calendar - Immediately after all previous items are complete (auto)</li>
+              <li><span class="step-num">5</span>Archive the Project - Immediately after all previous items are complete (auto)</li>
             </ul>
           </div>
         </div>
 
-             <!-- ── WORKFLOW 5 (duplicate block above to add more) ── -->
         <div class="workflow-item">
           <div class="workflow-header" onclick="toggleWorkflow(this)">
             <div class="workflow-header-left">
               <div class="workflow-dot"></div>
-              <span class="workflow-name"><span data-notion-field="Workflow 5 Name">Rebooking</span></span>
-              <span class="workflow-tag"><span data-notion-field="Workflow 5 Stages">6</span> stages</span>
+              <span class="workflow-name">Rebooking</span>
+              <span class="workflow-tag">6 stages</span>
             </div>
             <span class="workflow-toggle">▾</span>
           </div>
           <div class="workflow-body">
-            <p data-notion-field="Workflow 5 Description">2 emails leading up to the anniversary date of the original project</p>
+            <p>2 emails leading up to the anniversary date of the original project</p>
             <ul class="workflow-steps">
-              <li><span class="step-num">1</span><span>Tag adds them to Potential Rebooking pipeline upon starting the workflow</span></li>
-              <li><span class="step-num">2</span><span>Tag moves client across pipeline 60 days before anniversary date</span></li>
-              <li><span class="step-num">3</span><span>Send repeat reach out 1 email</span></li>
-              <li><span class="step-num">4</span><span>Tag moves client across pipeline 30 days before anniversary date</span></li>
-              <li><span class="step-num">5</span><span>Send repeat reach out 2 email</span></li>
-              <li><span class="step-num">6</span><span>Automatically archives</span></li>
+              <li><span class="step-num">1</span>Add/Remove Tags: +possible rebooking - Immediately after activating this workflow (auto)</li>
+              <li><span class="step-num">2</span>Add/Remove Tags: +possible rebooking reach out 1 -possible rebooking - 60 days before the base date (auto)</li>
+              <li><span class="step-num">3</span>Send email: repeat reach out 1 - 60 days before the base date (approve)</li>
+              <li><span class="step-num">4</span>Add/Remove Tags: +possible rebooking reach out 2 -possible rebooking contacted - 30 days before the base date (auto)</li>
+              <li><span class="step-num">5</span>Send email: repeat reach out 2 - 30 days before the base date (approve)</li>
+              <li><span class="step-num">6</span>Archive the Project - Immediately after all previous items are complete (auto)</li>
+            </ul>
+          </div>
+        </div>
+
+      </div>
+    </div>
+    </section>
+<!-- PIPELINES -->
+  <section class="page-section" id="pipelines">
+    <div class="section-header">
+      <h1>Pipelines</h1>
+      <p>Visual maps of your Premier Party Co pipelines; exactly how Nicole set them up in 17hats.</p>
+    </div>
+
+    <div class="card">
+      <div class="card-title">🗂️ Leads Pipeline</div>
+      <p style="font-size:13px; color:var(--text-light); margin-bottom:16px;">Tracks new inquiries from first contact through quoting. 5 phases.</p>
+      <div style="display:flex; gap:8px; flex-wrap:wrap;">
+        <span class="tag-pill">New Leads</span>
+        <span class="tag-pill">Contacted</span>
+        <span class="tag-pill">2-4 Days Old</span>
+        <span class="tag-pill">4-6 Days Old</span>
+        <span class="tag-pill">7+ Days Old</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">🗂️ Outstanding Quotes Pipeline</div>
+      <p style="font-size:13px; color:var(--text-light); margin-bottom:16px;">Tracks sent quotes waiting on client response. 5 phases.</p>
+      <div style="display:flex; gap:8px; flex-wrap:wrap;">
+        <span class="tag-pill">New</span>
+        <span class="tag-pill">1-2 Days Old</span>
+        <span class="tag-pill">3-4 Days Old</span>
+        <span class="tag-pill">5-7 Days Old</span>
+        <span class="tag-pill">7+ Days Old</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">🗂️ Confirmed Events Pipeline</div>
+      <p style="font-size:13px; color:var(--text-light); margin-bottom:16px;">Tracks booked events from confirmation through completion. 4 phases.</p>
+      <div style="display:flex; gap:8px; flex-wrap:wrap;">
+        <span class="tag-pill">Confirmed</span>
+        <span class="tag-pill">Next 30 Days</span>
+        <span class="tag-pill">Next 7 Days</span>
+        <span class="tag-pill">Event Passed</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">🗂️ Potential Rebookings Pipeline</div>
+      <p style="font-size:13px; color:var(--text-light); margin-bottom:16px;">Tracks past clients approaching their event anniversary for rebooking outreach. 4 phases.</p>
+      <div style="display:flex; gap:8px; flex-wrap:wrap;">
+        <span class="tag-pill">New</span>
+        <span class="tag-pill">Send Reach Out 1</span>
+        <span class="tag-pill">Contacted</span>
+        <span class="tag-pill">Send Reach Out 2</span>
+      </div>
+    </div>
+
+  </section>
+
+  
+  <!-- ============================================================
+       AUTOMATIONS
+       ✏️ ADD or REMOVE automation groups as needed.
+       Uses the same expandable list pattern as Workflows.
+       ============================================================ -->
+    <section class="page-section" id="automations">
+    <div class="section-header">
+      <h1>Automations</h1>
+      <p>Everything running automatically in the background of your 17hats account. Click any group to see the details.</p>
+    </div>
+
+    <div class="card">
+      <div class="card-title">⚙️ Automations Running in the Background: 38</div>
+      <div class="workflow-list">
+
+        <div class="workflow-item">
+          <div class="workflow-header" onclick="toggleWorkflow(this)">
+            <div class="workflow-header-left">
+              <div class="workflow-dot"></div>
+              <span class="workflow-name">Lead Capture Form</span>
+              <span class="workflow-tag">4 automations</span>
+            </div>
+            <span class="workflow-toggle">▾</span>
+          </div>
+          <div class="workflow-body">
+            <ul class="workflow-steps">
+              <li><span class="step-num">1</span>Automatic email reply sent to client</li>
+              <li><span class="step-num">2</span>Automatic text reply sent to client</li>
+              <li><span class="step-num">3</span>Project lands on your calendar</li>
+              <li><span class="step-num">4</span>Workflow starts</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="workflow-item">
+          <div class="workflow-header" onclick="toggleWorkflow(this)">
+            <div class="workflow-header-left">
+              <div class="workflow-dot"></div>
+              <span class="workflow-name">Documents</span>
+              <span class="workflow-tag">6 automations</span>
+            </div>
+            <span class="workflow-toggle">▾</span>
+          </div>
+          <div class="workflow-body">
+            <ul class="workflow-steps">
+              <li><span class="step-num">1</span>Upcoming invoice reminders - incomplete; set these up in Account Settings &gt; Reminders (under Account Templates) once you&#x27;ve had a chance to look through current outstanding invoices</li>
+              <li><span class="step-num">2</span>Past-due invoice reminders - incomplete; set these up in Account Settings &gt; Reminders (under Account Templates) once you&#x27;ve had a chance to look through current outstanding invoices</li>
+              <li><span class="step-num">3</span>Questionnaire confirmations - sent upon completion</li>
+              <li><span class="step-num">4</span>Quote confirmations - sent upon acceptance</li>
+              <li><span class="step-num">5</span>Contract confirmations - sent upon signing</li>
+              <li><span class="step-num">6</span>Invoice confirmations - sent upon payment</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="workflow-item">
+          <div class="workflow-header" onclick="toggleWorkflow(this)">
+            <div class="workflow-header-left">
+              <div class="workflow-dot"></div>
+              <span class="workflow-name">Workflows</span>
+              <span class="workflow-tag">8 automations</span>
+            </div>
+            <span class="workflow-toggle">▾</span>
+          </div>
+          <div class="workflow-body">
+            <ul class="workflow-steps">
+              <li><span class="step-num">1</span>Sending questionnaire automatically starts &quot;follow ups&quot; workflow</li>
+              <li><span class="step-num">2</span>Quote automatically leads to contract</li>
+              <li><span class="step-num">3</span>Contract automatically leads to invoice</li>
+              <li><span class="step-num">4</span>Calendar updates when first payment is received</li>
+              <li><span class="step-num">5</span>&quot;thanks for booking&quot; email sends after calendar updates</li>
+              <li><span class="step-num">6</span>3 - Event Decor Fulfillment workflow starts after &quot;thanks for booking&quot; email is sent</li>
+              <li><span class="step-num">7</span>Event reminder email sends to client 7 days before event</li>
+              <li><span class="step-num">8</span>Tags applied as workflow actions are taken to update pipeline</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="workflow-item">
+          <div class="workflow-header" onclick="toggleWorkflow(this)">
+            <div class="workflow-header-left">
+              <div class="workflow-dot"></div>
+              <span class="workflow-name">Pipelines</span>
+              <span class="workflow-tag">20 automations</span>
+            </div>
+            <span class="workflow-toggle">▾</span>
+          </div>
+          <div class="workflow-body">
+            <ul class="workflow-steps">
+              <li><span class="step-num">1</span>Lead lands in &quot;New Leads&quot; upon filling out lead capture form - (incomplete; &quot;decor inquiry&quot; tag and 1 - Event Decor Inquiry workflow should be added to lead capture form to activate workflows &amp; pipelines)</li>
+              <li><span class="step-num">2</span>Lead lands in &quot;Contacted&quot; upon sending the questionnaire from the workflow</li>
+              <li><span class="step-num">3</span>Lead lands in &quot;2-4 Days Old&quot; 2 days after questionnaire was sent</li>
+              <li><span class="step-num">4</span>Lead lands in &quot;4-6 Days Old&quot; 4 days after questionnaire was sent</li>
+              <li><span class="step-num">5</span>Lead lands in &quot;7+ Days Old&quot; 7 days after questionnaire was sent</li>
+              <li><span class="step-num">6</span>Lead moves to Outstanding Quotes Pipeline when quote is sent</li>
+              <li><span class="step-num">7</span>Lead moves to &quot;1-2 Days Old&quot; 1 day after quote is sent</li>
+              <li><span class="step-num">8</span>Lead moves to &quot;3-4 Days Old&quot; 3 days after quote is sent</li>
+              <li><span class="step-num">9</span>Lead moves to &quot;5-7 Days Old&quot; 5 days after quote is sent</li>
+              <li><span class="step-num">10</span>Lead moves to &quot;7+ Days Old&quot; 7 days after quote is sent</li>
+              <li><span class="step-num">11</span>Lead moves to Confirmed Events pipeline when 1st invoice payment is made</li>
+              <li><span class="step-num">12</span>Client moves to &quot;Next 30 Days&quot; 30 days before the event</li>
+              <li><span class="step-num">13</span>Client moves to &quot;Next 7 Days&quot; 7 days before the event</li>
+              <li><span class="step-num">14</span>Client moves to &quot;Event Passed&quot; 1 day after the event</li>
+              <li><span class="step-num">15</span>Client removed from pipeline upon sending &quot;Thank you Google Review&quot; email from workflow</li>
+              <li><span class="step-num">16</span>Client is added to Potential Rebookings pipeline upon starting &quot;Rebooking&quot; workflow</li>
+              <li><span class="step-num">17</span>Client moves to &quot;Send Reach Out 1&quot; 60 days before event anniversary date</li>
+              <li><span class="step-num">18</span>Client moves to &quot;Contacted&quot; upon sending &quot;repeat reach out 1&quot; email from workflow</li>
+              <li><span class="step-num">19</span>Client moves to &quot;Send Reach Out 2&quot; 30 days before event anniversary date</li>
+              <li><span class="step-num">20</span>Client removed from Potential Rebookings pipeline when 2nd email is sent, or rebooking project is archived</li>
             </ul>
           </div>
         </div>
@@ -1106,47 +1204,52 @@
       </div>
     </div>
   </section>
-
   <!-- ============================================================
-       SECTION: AUTOMATIONS
-       Four automation categories matching the Notion DB fields:
-       - Automations - Lead Capture
-       - Automations - Workflows
-       - Automations - Documents
-       - Automations - Pipelines
-       ✏️ Delete any category card that doesn't apply to this client.
+       SECTION 3: RECOMMENDED UPDATES
        ============================================================ -->
-  <section class="page-section" id="automations">
+  <section class="page-section" id="updates">
     <div class="section-header">
-      <h1>Automations</h1>
-      <p>These run in the background so you don't have to think about them. Here's what Nicole set up to work automatically for you.</p>
+      <h1>Recommended Updates</h1>
+      <p>As your business grows, your 17hats system should grow with it. Here's what Nicole recommends revisiting.</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--copper);">
+      <div class="card-title">◷ Your 6-Month Review is Due</div>
+      <p style="font-size:13.5px; color:var(--text-mid); line-height:1.7; margin-bottom:18px;">Your account was set up in May 2026. Nicole recommends a tune-up to make sure everything still fits your business.</p>
+      <a href="https://letnicolehelp.17hats.com/p#/scheduling/ktcgccxcfptwkcbrhgzsvkdzsgpcxntx/s/61821" target="_blank" class="btn btn-copper">Book a Tech Check Call →</a>
     </div>
 
-    <!-- ── LEAD CAPTURE AUTOMATIONS ── -->
-    <div class="card">
-      <div class="card-title">📥 Lead Capture</div>
-      <p data-notion-field="Automations - Lead Capture" style="font-size:13.5px; color:var(--text-mid); line-height:1.8;">  1) Automatic email reply sent to client
-  2) Automatic text reply sent to client
-  3) Project lands on your calendar
-  4) Workflow starts</p>
-    </div>
+    <div class="update-timeline">
+      <div class="update-item">
+        <div class="update-timing">Now · 6 months in</div>
+        <div class="update-title">Set up document reminders</div>
+        <div class="update-desc">Once you've reviewed your current outstanding quotes and invoices, set up upcoming and past-due invoice reminders in Account Settings &gt; Reminders (under Account Templates).</div>
+      </div>
 
-    <!-- ── WORKFLOW AUTOMATIONS ── -->
-    <div class="card">
-      <div class="card-title">⟳ Workflow Automations</div>
-      <p data-notion-field="Automations - Workflows" style="font-size:13.5px; color:var(--text-mid); line-height:1.8;">Quote automatically leads to contract; contract leads to invoice. Calendar updates on first payment, thanks for booking email sends, and Fulfillment workflow starts automatically. Event reminder and thank you emails send automatically around the event.]</p>
-    </div>
+      <div class="update-item">
+        <div class="update-timing">Now · 6 months in</div>
+        <div class="update-title">Build out your products &amp; services list</div>
+        <div class="update-desc">Use bulk upload through Account Settings &gt; Products &amp; Services. Use the Internal [alphabetical] name for searching and a customer-friendly Display name for what your clients see.</div>
+      </div>
 
-    <!-- ── DOCUMENT AUTOMATIONS ── -->
-    <div class="card">
-      <div class="card-title">📄 Document &amp; Invoice Automations</div>
-      <p data-notion-field="Automations - Documents" style="font-size:13.5px; color:var(--text-mid); line-height:1.8;">Invoice reminders are pending setup in Account Settings once outstanding invoices are reviewed. Quote, contract, and invoice confirmations send automatically upon acceptance, signing, and payment.]</p>
-    </div>
+      <div class="update-item">
+        <div class="update-timing">Now · 6 months in</div>
+        <div class="update-title">Add lead capture form connection</div>
+        <div class="update-desc">Add the "decor inquiry" tag and 1 - Event Decor Inquiry workflow to your "Website capture form" lead capture form to activate the full workflow and pipeline automation.</div>
+      </div>
 
-    <!-- ── PIPELINE AUTOMATIONS ── -->
-    <div class="card">
-      <div class="card-title">⊙ Pipeline Automations</div>
-      <p data-notion-field="Automations - Pipelines" style="font-size:13.5px; color:var(--text-mid); line-height:1.8;">20 pipeline tags move leads and clients through all 4 pipelines automatically based on actions taken and time elapsed — from first inquiry through rebooking outreach.]</p>
+      <!-- These two are ALWAYS included — no changes needed -->
+      <div class="update-item">
+        <div class="update-timing">12 months · May 2027</div>
+        <div class="update-title">Full system audit</div>
+        <div class="update-desc">At the one-year mark, it's worth doing a complete review — active pipelines, automation sequences, unused tags, and new 17hats features. Nicole offers a 1-hour Audit service for this.</div>
+      </div>
+
+      <div class="update-item">
+        <div class="update-timing">Ongoing</div>
+        <div class="update-title">New 17hats features</div>
+        <div class="update-desc">17hats releases updates regularly. Nicole covers new features on YouTube as they drop — check the "What's New" section of this portal to stay up to date.</div>
+      </div>
+
     </div>
   </section>
 
@@ -1157,53 +1260,15 @@
        ============================================================ -->
   <section class="page-section" id="zoom-recordings">
     <div class="section-header">
-      <h1>Zoom Recordings</h1>
-      <p>All your session recordings with Nicole in one place — watch, rewatch, and reference anytime.</p>
+      <h1>Zoom Sessions</h1>
+      <p>All your session recordings with Nicole in one place: watch, rewatch, and reference anytime.</p>
     </div>
 
-    <!-- ── SESSION 1 — copy this block for each additional session ── -->
-    <div class="card">
-      <!-- ✏️ CHANGE: Session number and topic -->
-      <div class="card-title">🎥 Session 1 · <span data-notion-field="Session 1 Topic">Setup Walkthrough</span></div>
-      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; flex-wrap:wrap; gap:10px;">
-        <!-- ✏️ CHANGE: Session date -->
-        <span style="font-size:12px; color:var(--text-light); letter-spacing:0.05em;"><span data-notion-field="Session 1 Date">May 18, 2026</span></span>
-        <!-- ✏️ CHANGE: Zoom share link -->
-        <a href="#" target="_blank" class="btn btn-copper" style="font-size:12px;">▶ Watch Recording</a>
-      </div>
-      <div style="background:var(--green-pale); border-radius:8px; padding:16px 18px;">
-        <div style="font-size:11px; letter-spacing:0.1em; text-transform:uppercase; color:var(--text-light); margin-bottom:10px;">Session Notes</div>
-        <ul style="list-style:none; display:flex; flex-direction:column; gap:8px;">
-          <!-- ✏️ CHANGE: 3–5 bullet notes about what was covered. Add/remove <li> as needed. -->
-          <li style="font-size:13px; color:var(--text-mid); display:flex; gap:10px;"><span style="color:var(--copper); flex-shrink:0;">✦</span><span data-notion-field="Session 1 Notes">Walked through the full Event Decor workflow system</span></li>
-          <li style="font-size:13px; color:var(--text-mid); display:flex; gap:10px;"><span style="color:var(--copper); flex-shrink:0;">✦</span><span>Reviewed all 4 pipelines and automation triggers</span></li>
-          <li style="font-size:13px; color:var(--text-mid); display:flex; gap:10px;"><span style="color:var(--copper); flex-shrink:0;">✦</span><span>Covered follow-ups, billing progression, and rebooking workflow</span></li>
-        </ul>
-      </div>
-    </div>
-
-    <!-- ── SESSION 2 — duplicate above block to add more sessions ── -->
-    <div class="card">
-      <div class="card-title">🎥 Session 2 · <span data-notion-field="Session 2 Topic">Coming Soon</span></div>
-      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; flex-wrap:wrap; gap:10px;">
-        <span style="font-size:12px; color:var(--text-light); letter-spacing:0.05em;"><span data-notion-field="Session 2 Date"></span></span>
-        <a href="#" target="_blank" class="btn btn-copper" style="font-size:12px;">▶ Watch Recording</a>
-      </div>
-      <div style="background:var(--green-pale); border-radius:8px; padding:16px 18px;">
-        <div style="font-size:11px; letter-spacing:0.1em; text-transform:uppercase; color:var(--text-light); margin-bottom:10px;">Session Notes</div>
-        <ul style="list-style:none; display:flex; flex-direction:column; gap:8px;">
-          <li style="font-size:13px; color:var(--text-mid); display:flex; gap:10px;"><span style="color:var(--copper); flex-shrink:0;">✦</span><span>Session recording will be added here</span></li>
-          <li style="font-size:13px; color:var(--text-mid); display:flex; gap:10px;"><span style="color:var(--copper); flex-shrink:0;">✦</span><span></span></li>
-          <li style="font-size:13px; color:var(--text-mid); display:flex; gap:10px;"><span style="color:var(--copper); flex-shrink:0;">✦</span><span></span></li>
-        </ul>
-      </div>
-    </div>
-
-    <!-- "More coming" placeholder — leave as-is, always shows at bottom -->
+    <!-- "More coming" placeholder -->
     <div class="card" style="border: 1px dashed var(--border); background: var(--cream);">
       <div style="text-align:center; padding: 20px 0;">
         <div style="font-size:28px; margin-bottom:10px;">🎥</div>
-        <div style="font-size:14px; font-weight:500; color:var(--text-mid); margin-bottom:6px;">More recordings will appear here</div>
+        <div style="font-size:14px; font-weight:500; color:var(--text-mid); margin-bottom:6px;">Recordings will appear here</div>
         <div style="font-size:12.5px; color:var(--text-light);">Nicole adds new sessions as they're completed.</div>
       </div>
     </div>
@@ -1224,16 +1289,11 @@
 
     <div class="card">
       <div class="card-title">📹 Latest YouTube Videos</div>
-      <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:14px;">
+      <div style="margin-bottom:14px;">
+        <!-- Single playlist embed - shows the latest video with playlist navigation -->
         <iframe
-          src="https://www.youtube.com/embed/videoseries?list=PLpfpFiNP9vG4dosv5VjAlmvMc9GjF0j7B&rel=0&index=0"
-          style="width:100%; height:200px; border:none; border-radius:10px;"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-          allowfullscreen>
-        </iframe>
-        <iframe
-          src="https://www.youtube.com/embed/videoseries?list=PLpfpFiNP9vG4dosv5VjAlmvMc9GjF0j7B&rel=0&index=1"
-          style="width:100%; height:200px; border:none; border-radius:10px;"
+          src="https://www.youtube.com/embed/videoseries?list=PLpfpFiNP9vG4dosv5VjAlmvMc9GjF0j7B&rel=0"
+          style="width:100%; height:360px; border:none; border-radius:10px;"
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
           allowfullscreen>
         </iframe>
@@ -1241,23 +1301,10 @@
       <a href="https://youtube.com/@letnicolehelp" target="_blank" class="btn btn-outline" style="font-size:12px;">View all on YouTube →</a>
     </div>
 
-    <!-- Announcements — managed in Notion, fetched live via Worker -->
-    <div class="card" id="announcements-card">
+    <!-- Announcements — pulls from announcements.json in your GitHub repo -->
+    <div class="card" id="announcements-card" style="display:none;">
       <div class="card-title">✨ From Nicole</div>
-      <div id="announcements-list" style="display:flex; flex-direction:column; gap:12px;">
-        <!-- Placeholder shown until announcements load -->
-        <a href="https://letnicolehelp.com/miner" target="_blank" style="display:flex; align-items:flex-start; gap:14px; padding:14px 16px; border:1px solid var(--border); border-radius:10px; text-decoration:none; transition:all 0.2s;" onmouseover="this.style.borderColor='var(--copper)'" onmouseout="this.style.borderColor='var(--border)'">
-          <div style="font-size:24px; flex-shrink:0; margin-top:2px;">🧭</div>
-          <div>
-            <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
-              <div style="font-size:14px; font-weight:500; color:var(--text);">Take the MINER Assessment</div>
-              <span style="font-size:10px; background:rgba(184,125,82,0.12); color:var(--copper); padding:2px 8px; border-radius:20px;">Free Assessment</span>
-            </div>
-            <div style="font-size:12.5px; color:var(--text-light); line-height:1.5;">Not sure what to focus on next? Nicole's free assessment helps you find your biggest opportunity area.</div>
-          </div>
-          <div style="font-size:16px; color:var(--copper); flex-shrink:0; margin-left:auto; margin-top:2px;">→</div>
-        </a>
-      </div>
+      <div id="announcements-list" style="display:flex; flex-direction:column; gap:12px;"></div>
     </div>
 
     <!-- Wix Blog auto-feed — pulls live from letnicolehelp.com, no changes needed -->
@@ -1302,14 +1349,14 @@
       <a href="#" class="resource-card" onclick="showSection('ask-robot-nicole')">
         <div class="resource-icon">◎</div>
         <div class="resource-title">Ask Robot Nicole</div>
-        <div class="resource-desc">Your AI assistant trained on your 17hats setup. Ask it anything, anytime.</div>
+        <div class="resource-desc">Robot Nicole is trained on your 17hats setup. Ask it anything, anytime.</div>
       </a>
       <a href="https://instagram.com/letnicolehelp" target="_blank" class="resource-card">
         <div class="resource-icon">📱</div>
         <div class="resource-title">@letnicolehelp on Instagram</div>
         <div class="resource-desc">Quick 17hats tips, reels, and behind-the-scenes from Nicole.</div>
       </a>
-      <a href="https://letnicolehelp.17hats.com/p#/lcf/xnngshvxghfzwsnxzpvzbndcxxsfwndb" target="_blank" class="resource-card">
+      <a href="https://letnicolehelp.17hats.com/p#/scheduling/ktcgccxcfptwkcbrhgzsvkdzsgpcxntx/s/61821" target="_blank" class="resource-card">
         <div class="resource-icon">📅</div>
         <div class="resource-title">Book a Tech Check</div>
         <div class="resource-desc">Ready for an update? Book a call with Nicole.</div>
@@ -1325,24 +1372,21 @@
   <section class="page-section" id="ask-robot-nicole">
     <div class="section-header">
       <h1>Ask Robot Nicole</h1>
-      <!-- ✏️ CHANGE: Client name -->
-      <p>Your AI assistant knows your <span>Premier Party Co</span> 17hats setup. Ask it anything — workflows, automations, how Nicole configured something, 17hats how-tos.</p>
+      <p>Robot Nicole knows your Premier Party Co 17hats setup. Ask it anything — workflows, automations, how Nicole configured something, 17hats how-tos.</p>
     </div>
 
     <div class="chat-wrapper">
       <div class="chat-header">
         <div class="chat-avatar">◎</div>
         <div class="chat-header-info">
-          <!-- ✏️ CHANGE: Client name -->
-          <h3>Claude · <span>Premier Party Co</span> Assistant</h3>
+          <h3>Claude · Premier Party Co Assistant</h3>
           <p>Trained on your 17hats setup by Nicole · letnicolehelp.com</p>
         </div>
       </div>
       <div class="chat-messages" id="chatMessages">
         <div class="message assistant">
           <div class="message-avatar assistant-avatar">◎</div>
-          <!-- ✏️ CHANGE: Client name in opening message -->
-          <div class="message-bubble">Hi! I'm your AI assistant, configured specifically for <strong><span>Premier Party Co</span>'s</strong> 17hats setup. I know how Nicole built your workflows, automations, and pipelines. Ask me anything — like "How does my inquiry pipeline work?" or "How do I add a new event type?" 🎈</div>
+          <div class="message-bubble">Hi! I'm Robot Nicole, configured specifically for <strong>Premier Party Co's</strong> 17hats setup. I know how Nicole built your workflows, automations and pipelines. Ask me anything, like "How does my lead pipeline work?" or "When do my clients get automatic invoice reminders?"</div>
         </div>
       </div>
       <div class="chat-input-area">
@@ -1365,18 +1409,8 @@
     <div class="two-col">
       <div class="card">
         <div class="card-title">📅 Book a Session</div>
-        <p style="font-size:13.5px; color:var(--text-mid); line-height:1.7; margin-bottom:20px;">Whether you need a quick check-in or a full tune-up, Nicole offers sessions tailored to where you're at.</p>
-        <div style="display:flex; flex-direction:column; gap:12px; margin-bottom:20px;">
-          <div style="padding:14px 16px; border:1px solid var(--border); border-radius:8px;">
-            <div style="font-size:13px; font-weight:500; margin-bottom:3px; color:var(--text);">30-Min Tune-Up · $97</div>
-            <div style="font-size:12px; color:var(--text-light);">Quick questions, small fixes, workflow tweaks</div>
-          </div>
-          <div style="padding:14px 16px; border:1px solid var(--copper); border-radius:8px; background:var(--copper-pale);">
-            <div style="font-size:13px; font-weight:500; margin-bottom:3px; color:var(--text);">60-Min Account Audit · $197 ✦ Recommended</div>
-            <div style="font-size:12px; color:var(--text-light);">Full review, template updates, new feature setup</div>
-          </div>
-        </div>
-        <a href="https://letnicolehelp.17hats.com/p#/lcf/xnngshvxghfzwsnxzpvzbndcxxsfwndb" target="_blank" class="btn btn-copper">Book a Tech Check Call →</a>
+        <p style="font-size:13.5px; color:var(--text-mid); line-height:1.7; margin-bottom:20px;">Your setup includes two 1-hour walkthrough Tech Check calls, but additional call packs are always available!</p>
+               <a href="https://letnicolehelp.17hats.com/p#/lcf/xnngshvxghfzwsnxzpvzbndcxxsfwndb" target="_blank" class="btn btn-copper">Book a Tech Check Call →</a>
       </div>
 
       <div class="card">
@@ -1403,219 +1437,81 @@
           <div class="resource-title">Instagram</div>
           <div class="resource-desc">Tips, reels & behind-the-scenes</div>
         </a>
-        <a href="https://letnicolehelp.com" target="_blank" class="resource-card">
-          <div class="resource-icon">📧</div>
-          <div class="resource-title">Email Drop</div>
-          <div class="resource-desc">Templates & tips in your inbox</div>
-        </a>
+      
       </div>
     </div>
   </section>
+<!-- REQUEST A CHANGE -->
+<section class="page-section" id="requests">
+  <div class="section-header">
+    <h1>Request a Change</h1>
+    <p>Want to update something in your 17hats setup? Submit it here and Nicole will review it within 1-2 business days.</p>
+  </div>
 
-  <!-- ============================================================
-       SECTION: PIPELINES
-       ✏️ Add pipeline screenshots from Notion (Pipeline 1-4 Name + Phases).
-       Screenshot URLs go in the img src attributes below.
-       ============================================================ -->
-  <section class="page-section" id="pipelines">
-    <div class="section-header">
-      <h1>Pipelines</h1>
-      <p>Your 17hats pipelines show you exactly where every lead and job stands at a glance. Here's a visual breakdown of each one Nicole built for you.</p>
-    </div>
+  <div class="card" style="border-left: 3px solid var(--copper);">
+    <div class="card-title">💡 Before you submit</div>
+    <p style="font-size:13.5px; color:var(--text-mid); line-height:1.7;">Not sure if your request is a quick fix or something bigger? Ask Robot Nicole first — she can help you figure out what's involved before you submit. Minor updates to existing workflows are typically included in your annual maintenance. New workflows, pipelines, or event types are quoted separately.</p>
+  </div>
 
-    <!-- ── PIPELINE 1 ── -->
-    <div class="card">
-      <div class="card-title">⊙ <span data-notion-field="Pipeline 1 Name">Leads</span></div>
-      <p style="font-size:13.5px; color:var(--text-mid); line-height:1.7; margin-bottom:16px;"><span data-notion-field="Pipeline 1 Phases">New Leads → Contacted → 2-4 Days Old → 4-6 Days Old → 7+ Days Old]</span></p>
-      <!-- ✏️ CHANGE: Paste your pipeline screenshot URL here (Imgur or direct link) -->
-      <img src="" alt="[PIPELINE_1_NAME] pipeline screenshot" style="width:100%; border-radius:8px; border:1px solid var(--border);" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-      <div style="display:none; height:80px; border-radius:8px; border:1px dashed var(--border); align-items:center; justify-content:center; color:var(--text-light); font-size:13px;">Pipeline screenshot coming soon</div>
-    </div>
-
-    <!-- ── PIPELINE 2 ── -->
-    <div class="card">
-      <div class="card-title">⊙ <span data-notion-field="Pipeline 2 Name">Outstanding Quotes</span></div>
-      <p style="font-size:13.5px; color:var(--text-mid); line-height:1.7; margin-bottom:16px;"><span data-notion-field="Pipeline 2 Phases">Quote Sent → 1-2 Days Old → 3-4 Days Old → 5-7 Days Old → 7+ Days Old</span></p>
-      <img src="" alt="Outstanding Quotes pipeline screenshot" style="width:100%; border-radius:8px; border:1px solid var(--border);" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-      <div style="display:none; height:80px; border-radius:8px; border:1px dashed var(--border); align-items:center; justify-content:center; color:var(--text-light); font-size:13px;">Pipeline screenshot coming soon</div>
-    </div>
-
-    <!-- ── PIPELINE 3 — duplicate above to add more ── -->
-    <div class="card">
-      <div class="card-title">⊙ <span data-notion-field="Pipeline 3 Name">Confirmed Events</span></div>
-      <p style="font-size:13.5px; color:var(--text-mid); line-height:1.7; margin-bottom:16px;"><span data-notion-field="Pipeline 3 Phases">Confirmed Event → Next 30 Days → Next 7 Days → Event Passed</span></p>
-      <img src="" alt="[PIPELINE_3_NAME] pipeline screenshot" style="width:100%; border-radius:8px; border:1px solid var(--border);" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-      <div style="display:none; height:80px; border-radius:8px; border:1px dashed var(--border); align-items:center; justify-content:center; color:var(--text-light); font-size:13px;">Pipeline screenshot coming soon</div>
-    </div>
-
-    <!-- ── PIPELINE 4 ── -->
-    <div class="card">
-      <div class="card-title">⊙ <span data-notion-field="Pipeline 4 Name">Potential Rebookings</span></div>
-      <p style="font-size:13.5px; color:var(--text-mid); line-height:1.7; margin-bottom:16px;"><span data-notion-field="Pipeline 4 Phases">Possible Rebooking → Send Reach Out 1 → Contacted → Send Reach Out 2</span></p>
-      <img src="" alt="[PIPELINE_4_NAME] pipeline screenshot" style="width:100%; border-radius:8px; border:1px solid var(--border);" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-      <div style="display:none; height:80px; border-radius:8px; border:1px dashed var(--border); align-items:center; justify-content:center; color:var(--text-light); font-size:13px;">Pipeline screenshot coming soon</div>
-    </div>
-  </section>
-
-  <!-- ============================================================
-       SECTION: REQUEST A CHANGE
-       Submits to Worker → Notion Client Change Requests DB
-       No per-client changes needed here.
-       ============================================================ -->
-  <section class="page-section" id="request-change">
-    <div class="section-header">
-      <h1>Request a Change</h1>
-      <p>Need something updated in your 17hats account? Submit a request below and Nicole will review it within 1-2 business days.</p>
-    </div>
-
-    <div class="two-col">
-      <div class="card">
-        <div class="card-title">✎ Submit a Change Request</div>
-        <p style="font-size:13px; color:var(--text-mid); line-height:1.7; margin-bottom:20px;">Minor tweaks (email wording, tag cleanup) are covered in your annual maintenance. New workflows, pipelines, or event types are quoted separately.</p>
-        <div style="display:flex; flex-direction:column; gap:12px;">
-          <div>
-            <label style="font-size:11px; letter-spacing:0.1em; text-transform:uppercase; color:var(--text-light); display:block; margin-bottom:6px;">What do you need changed?</label>
-            <input type="text" id="changeTitle" placeholder="e.g. Update my follow-up email wording" style="width:100%; border:1px solid var(--border); border-radius:7px; padding:10px 13px; font-family:'Montserrat',sans-serif; font-size:13px; outline:none; color:var(--text); background:var(--cream);">
-          </div>
-          <div>
-            <label style="font-size:11px; letter-spacing:0.1em; text-transform:uppercase; color:var(--text-light); display:block; margin-bottom:6px;">Details</label>
-            <textarea rows="4" id="changeDetail" placeholder="Describe the change and what you'd like it to say or do..." style="width:100%; border:1px solid var(--border); border-radius:7px; padding:10px 13px; font-family:'Montserrat',sans-serif; font-size:13px; outline:none; color:var(--text); background:var(--cream); resize:none;"></textarea>
-          </div>
-          <div>
-            <label style="font-size:11px; letter-spacing:0.1em; text-transform:uppercase; color:var(--text-light); display:block; margin-bottom:6px;">Why / Context (optional)</label>
-            <textarea rows="2" id="changeContext" placeholder="e.g. My pricing changed, or I added a new service..." style="width:100%; border:1px solid var(--border); border-radius:7px; padding:10px 13px; font-family:'Montserrat',sans-serif; font-size:13px; outline:none; color:var(--text); background:var(--cream); resize:none;"></textarea>
-          </div>
-          <div>
-            <label style="font-size:11px; letter-spacing:0.1em; text-transform:uppercase; color:var(--text-light); display:block; margin-bottom:6px;">Urgency</label>
-            <select id="changeUrgency" style="width:100%; border:1px solid var(--border); border-radius:7px; padding:10px 13px; font-family:'Montserrat',sans-serif; font-size:13px; outline:none; color:var(--text); background:var(--cream);">
-              <option value="No rush">No rush</option>
-              <option value="Within a week">Within a week</option>
-              <option value="Urgent">Urgent</option>
-            </select>
-          </div>
-          <div id="changeStatus" style="font-size:12.5px; min-height:18px; color:var(--copper);"></div>
-          <button class="btn btn-copper" style="align-self:flex-start;" onclick="submitChangeRequest()">Submit Request →</button>
-        </div>
-      </div>
-
-      <div style="display:flex; flex-direction:column; gap:16px;">
-        <div class="card" style="background:var(--green-pale);">
-          <div class="card-title">💡 What's Included vs. Billed</div>
-          <div style="display:flex; flex-direction:column; gap:10px;">
-            <div style="padding:12px 14px; background:white; border-radius:8px; border:1px solid var(--border);">
-              <div style="font-size:12px; font-weight:600; color:var(--green); margin-bottom:4px;">✓ Covered in Annual Maintenance</div>
-              <div style="font-size:12px; color:var(--text-mid); line-height:1.6;">Email template wording updates · Tag or label changes · Small pipeline phase tweaks · Automation timing adjustments</div>
-            </div>
-            <div style="padding:12px 14px; background:var(--copper-pale); border-radius:8px; border:1px solid rgba(184,125,82,0.3);">
-              <div style="font-size:12px; font-weight:600; color:var(--copper); margin-bottom:4px;">✦ Quoted Separately</div>
-              <div style="font-size:12px; color:var(--text-mid); line-height:1.6;">New workflows or pipelines · New event types · Major restructuring · New automation sequences</div>
-            </div>
-          </div>
-        </div>
-
-        <div class="card">
-          <div class="card-title">📅 Prefer to Talk it Through?</div>
-          <p style="font-size:13px; color:var(--text-mid); line-height:1.7; margin-bottom:14px;">Book a 30-min Tune-Up call and Nicole will handle the changes live with you on screen.</p>
-          <a href="https://letnicolehelp.17hats.com/p#/lcf/xnngshvxghfzwsnxzpvzbndcxxsfwndb" target="_blank" class="btn btn-outline">Book a Tune-Up →</a>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ============================================================
-       SECTION: REFER A FRIEND
-       Submits to Worker → Notion Client Change Requests DB (referral type)
-       No per-client changes needed here.
-       ============================================================ -->
-  <section class="page-section" id="refer-friend">
-    <div class="section-header">
-      <h1>Refer a Friend</h1>
-      <p>Know someone who's drowning in their 17hats setup? Send them Nicole's way — and get a little something as a thank-you.</p>
-    </div>
-
-    <div class="accent-banner" style="margin-bottom:28px;">
+  <div class="card">
+    <div class="card-title">✏️ Submit a Change Request</div>
+    <div style="display:flex; flex-direction:column; gap:14px;">
       <div>
-        <h2>Give $50 · Get $50 ✨</h2>
-        <p>When your referral books a setup with Nicole, you both get $50 off your next session. Just fill out the form below.</p>
+        <label style="font-size:11px; letter-spacing:0.1em; text-transform:uppercase; color:var(--text-light); display:block; margin-bottom:6px;">Request Summary *</label>
+        <input type="text" id="req-summary" placeholder="e.g. Add a new event type for corporate orders" style="width:100%; border:1px solid var(--border); border-radius:7px; padding:10px 13px; font-family:'Montserrat',sans-serif; font-size:13px; outline:none; color:var(--text); background:var(--cream);">
+      </div>
+      <div>
+        <label style="font-size:11px; letter-spacing:0.1em; text-transform:uppercase; color:var(--text-light); display:block; margin-bottom:6px;">Full Details *</label>
+        <textarea id="req-detail" rows="4" placeholder="Describe exactly what you'd like changed or added..." style="width:100%; border:1px solid var(--border); border-radius:7px; padding:10px 13px; font-family:'Montserrat',sans-serif; font-size:13px; outline:none; color:var(--text); background:var(--cream); resize:vertical;"></textarea>
+      </div>
+      <div>
+        <label style="font-size:11px; letter-spacing:0.1em; text-transform:uppercase; color:var(--text-light); display:block; margin-bottom:6px;">Why / Context</label>
+        <textarea id="req-why" rows="2" placeholder="Why do you need this change? What's happening in your business?" style="width:100%; border:1px solid var(--border); border-radius:7px; padding:10px 13px; font-family:'Montserrat',sans-serif; font-size:13px; outline:none; color:var(--text); background:var(--cream); resize:vertical;"></textarea>
+      </div>
+      <div>
+        <label style="font-size:11px; letter-spacing:0.1em; text-transform:uppercase; color:var(--text-light); display:block; margin-bottom:6px;">Urgency</label>
+        <select id="req-urgency" style="width:100%; border:1px solid var(--border); border-radius:7px; padding:10px 13px; font-family:'Montserrat',sans-serif; font-size:13px; outline:none; color:var(--text); background:var(--cream);">
+          <option value="Normal">Normal — no rush</option>
+          <option value="High">High — needed soon</option>
+          <option value="Low">Low — whenever you get to it</option>
+        </select>
+      </div>
+      <div>
+        <button class="btn btn-copper" id="req-submit-btn" onclick="submitRequest()">Submit Request →</button>
+        <div id="req-status" style="font-size:13px; margin-top:10px; display:none;"></div>
       </div>
     </div>
+  </div>
+</section>
 
-    <div class="two-col">
-      <div class="card">
-        <div class="card-title">🎈 Send a Referral</div>
-        <div style="display:flex; flex-direction:column; gap:12px;">
-          <div>
-            <label style="font-size:11px; letter-spacing:0.1em; text-transform:uppercase; color:var(--text-light); display:block; margin-bottom:6px;">Their Name</label>
-            <input type="text" id="refName" placeholder="Friend's name or business name" style="width:100%; border:1px solid var(--border); border-radius:7px; padding:10px 13px; font-family:'Montserrat',sans-serif; font-size:13px; outline:none; color:var(--text); background:var(--cream);">
-          </div>
-          <div>
-            <label style="font-size:11px; letter-spacing:0.1em; text-transform:uppercase; color:var(--text-light); display:block; margin-bottom:6px;">Their Email</label>
-            <input type="email" id="refEmail" placeholder="friend@theirbusiness.com" style="width:100%; border:1px solid var(--border); border-radius:7px; padding:10px 13px; font-family:'Montserrat',sans-serif; font-size:13px; outline:none; color:var(--text); background:var(--cream);">
-          </div>
-          <div>
-            <label style="font-size:11px; letter-spacing:0.1em; text-transform:uppercase; color:var(--text-light); display:block; margin-bottom:6px;">What They Need (optional)</label>
-            <textarea rows="3" id="refContext" placeholder="e.g. Just starting with 17hats, needs full setup..." style="width:100%; border:1px solid var(--border); border-radius:7px; padding:10px 13px; font-family:'Montserrat',sans-serif; font-size:13px; outline:none; color:var(--text); background:var(--cream); resize:none;"></textarea>
-          </div>
-          <div id="referStatus" style="font-size:12.5px; min-height:18px; color:var(--copper);"></div>
-          <button class="btn btn-copper" style="align-self:flex-start;" onclick="submitReferral()">Send Referral →</button>
-        </div>
-      </div>
 
-      <div style="display:flex; flex-direction:column; gap:16px;">
-        <div class="card" style="background:var(--green-pale);">
-          <div class="card-title">🤍 How It Works</div>
-          <div style="display:flex; flex-direction:column; gap:12px;">
-            <div style="display:flex; gap:12px; align-items:flex-start;">
-              <div style="width:24px; height:24px; border-radius:50%; background:var(--green); color:white; font-size:11px; display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-top:2px;">1</div>
-              <div style="font-size:13px; color:var(--text-mid); line-height:1.6;">Fill out the form with your friend's name and email</div>
-            </div>
-            <div style="display:flex; gap:12px; align-items:flex-start;">
-              <div style="width:24px; height:24px; border-radius:50%; background:var(--green); color:white; font-size:11px; display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-top:2px;">2</div>
-              <div style="font-size:13px; color:var(--text-mid); line-height:1.6;">Nicole reaches out to them directly</div>
-            </div>
-            <div style="display:flex; gap:12px; align-items:flex-start;">
-              <div style="width:24px; height:24px; border-radius:50%; background:var(--green); color:white; font-size:11px; display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-top:2px;">3</div>
-              <div style="font-size:13px; color:var(--text-mid); line-height:1.6;">When they book and pay, you both get $50 off your next session</div>
-            </div>
-          </div>
-        </div>
-
-        <div class="card">
-          <div class="card-title">💬 Not sure they're ready?</div>
-          <p style="font-size:13px; color:var(--text-mid); line-height:1.7; margin-bottom:14px;">Share Nicole's MINER Assessment — it helps them identify exactly where their 17hats setup needs the most work.</p>
-          <a href="https://letnicolehelp.com/miner" target="_blank" class="btn btn-outline">Share the Assessment →</a>
-        </div>
-      </div>
-    </div>
-  </section>
 </main>
 
 <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
-// ================================================================
-// PASSWORD GATE — NOT IN TEMPLATE (add when copying per client)
-// See the customization guide for the full script block to paste here.
-//
-// When you copy this template for a real client, add above the
-// ACCOUNT AGE section:
-//   const PORTAL_PASSWORD = '...'
-//   const PORTAL_LAST_UPDATED = '...'
-//   const WHATS_NEW_UPDATED = '...'
-//   const CLIENT_KEY = '...'
-//   function checkPassword() { ... }
-//   function dismissWelcome() { ... }
-//   function initPortal() { ... }
-// ================================================================
-
-// For template preview — run initPortal immediately (no login needed)
+const PORTAL_PASSWORD      = 'premierparty2026';
 const PORTAL_LAST_UPDATED = 'June 3, 2026';
-const WHATS_NEW_UPDATED   = new Date().toISOString();
+const WHATS_NEW_UPDATED   = '2026-06-03T00:00:00Z';
 const CLIENT_KEY          = 'premier_party_co';
 
-function initPortal() {
-  const el = document.getElementById('lastUpdatedLine');
-  if (el) el.textContent = 'Template preview mode';
-  const badge = document.getElementById('newsBadge');
-  if (badge) badge.style.display = 'inline-block';
+function checkPassword() {
+  const input = document.getElementById('pwInput');
+  const error = document.getElementById('pwError');
+  if (input.value === PORTAL_PASSWORD) {
+    localStorage.setItem('portal_auth_' + CLIENT_KEY, 'true');
+    localStorage.setItem('portal_last_visit_' + CLIENT_KEY, new Date().toISOString());
+    document.getElementById('loginOverlay').classList.add('unlocked');
+    setTimeout(() => document.getElementById('loginOverlay').style.display = 'none', 500);
+    initPortal();
+    // Show welcome modal on first visit
+    if (!localStorage.getItem('portal_welcomed_' + CLIENT_KEY)) {
+      localStorage.setItem('portal_welcomed_' + CLIENT_KEY, 'true');
+      document.getElementById('welcomeModal').style.display = 'flex';
+    }
+  } else {
+    input.classList.add('shake');
+    error.textContent = 'Incorrect password. Try again.';
+    setTimeout(() => input.classList.remove('shake'), 400);
+  }
 }
 
 function dismissWelcome() {
@@ -1623,7 +1519,24 @@ function dismissWelcome() {
   if (modal) { modal.classList.add('unlocked'); setTimeout(() => modal.style.display = 'none', 500); }
 }
 
-window.addEventListener('load', () => { initPortal(); });
+function initPortal() {
+  const el = document.getElementById('lastUpdatedLine');
+  if (el) el.textContent = 'Last updated: ' + PORTAL_LAST_UPDATED;
+  // Show badge if user hasn't seen What's New since last update
+  const lastSeen = localStorage.getItem('portal_news_seen_' + CLIENT_KEY);
+  const badge = document.getElementById('newsBadge');
+  if (badge && (!lastSeen || new Date(lastSeen) < new Date(WHATS_NEW_UPDATED))) {
+    badge.style.display = 'inline-block';
+  }
+}
+
+window.addEventListener('load', () => {
+  if (localStorage.getItem('portal_auth_' + CLIENT_KEY) === 'true') {
+    document.getElementById('loginOverlay').classList.add('unlocked');
+    setTimeout(() => document.getElementById('loginOverlay').style.display = 'none', 500);
+    initPortal();
+  }
+});
 
 // ================================================================
 // ACCOUNT AGE + REVIEW STATUS (auto-calculated — no manual update needed)
@@ -1633,8 +1546,8 @@ window.addEventListener('load', () => { initPortal(); });
 //   CHECKIN_DATE = the recommended tune-up date (matches "Next Check-In" stat card)
 // ================================================================
 (function() {
-  const setupDate   = new Date('2026-05-18'); // ✏️ e.g. '2026-03-01' for May 2026
-  const checkInDate = new Date('2026-12-03'); // ✏️ e.g. '2026-09-01' for Sep 2026
+  const setupDate   = new Date('2026-05-18');
+  const checkInDate = new Date('2026-12-03');
   const now = new Date();
   const ageEl = document.getElementById('acctAge');
   const statusEl = document.getElementById('reviewStatus');
@@ -1717,99 +1630,6 @@ document.querySelectorAll('.nav-item').forEach(item => {
 });
 
 // ================================================================
-// PORTAL CLIENT NAME — ✏️ CHANGE PER CLIENT
-// Used in Request a Change and Referral submissions so Nicole
-// knows who the request came from.
-// ================================================================
-const PORTAL_INDUSTRY     = 'Balloon';
-const PORTAL_CLIENT_NAME = "Premier Party Co"; // ✏️ e.g. 'Float Balloons'
-
-// ================================================================
-// REQUEST A CHANGE — submits to Notion via Worker
-// ================================================================
-async function submitChangeRequest() {
-  const title   = document.getElementById('changeTitle').value.trim();
-  const detail  = document.getElementById('changeDetail').value.trim();
-  const context = document.getElementById('changeContext').value.trim();
-  const urgency = document.getElementById('changeUrgency').value;
-  const status  = document.getElementById('changeStatus');
-
-  if (!title) { status.textContent = 'Please describe what you need changed.'; return; }
-  if (!detail) { status.textContent = 'Please add a few details about the change.'; return; }
-
-  status.textContent = 'Sending...';
-
-  try {
-    const res = await fetch(PROXY_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        action: 'change_request',
-        clientName: PORTAL_CLIENT_NAME,
-        title, detail, context, urgency
-      })
-    });
-    const data = await res.json();
-    if (data.success) {
-      status.style.color = 'var(--green)';
-      status.textContent = '✓ Request received! Nicole will be in touch within 1-2 business days.';
-      document.getElementById('changeTitle').value = '';
-      document.getElementById('changeDetail').value = '';
-      document.getElementById('changeContext').value = '';
-    } else {
-      status.style.color = 'var(--copper)';
-      status.textContent = 'Something went wrong. Try emailing Nicole directly at nicole@letnicolehelp.com';
-    }
-  } catch(e) {
-    status.style.color = 'var(--copper)';
-    status.textContent = 'Could not send. Please email nicole@letnicolehelp.com';
-  }
-}
-
-// ================================================================
-// REFER A FRIEND — submits to Notion via Worker
-// ================================================================
-async function submitReferral() {
-  const name    = document.getElementById('refName').value.trim();
-  const email   = document.getElementById('refEmail').value.trim();
-  const context = document.getElementById('refContext').value.trim();
-  const status  = document.getElementById('referStatus');
-
-  if (!name) { status.textContent = 'Please enter your friend\'s name.'; return; }
-  if (!email) { status.textContent = 'Please enter their email address.'; return; }
-
-  status.textContent = 'Sending...';
-
-  try {
-    const res = await fetch(PROXY_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        action: 'referral',
-        referredBy: PORTAL_CLIENT_NAME,
-        refName: name,
-        refEmail: email,
-        context
-      })
-    });
-    const data = await res.json();
-    if (data.success) {
-      status.style.color = 'var(--green)';
-      status.textContent = '✓ Referral sent! Nicole will reach out to ' + name + ' soon. Thank you!';
-      document.getElementById('refName').value = '';
-      document.getElementById('refEmail').value = '';
-      document.getElementById('refContext').value = '';
-    } else {
-      status.style.color = 'var(--copper)';
-      status.textContent = 'Something went wrong. Try emailing nicole@letnicolehelp.com with their info.';
-    }
-  } catch(e) {
-    status.style.color = 'var(--copper)';
-    status.textContent = 'Could not send. Please email nicole@letnicolehelp.com';
-  }
-}
-
-// ================================================================
 // ASK CLAUDE — AI CHAT
 //
 // ✏️ IMPORTANT: Replace the CLIENT_CONTEXT below for each client.
@@ -1827,52 +1647,49 @@ async function submitReferral() {
 // The more detail you add, the better Claude can answer questions.
 // ================================================================
 
-const CLIENT_CONTEXT = `You are an AI assistant built into a private client portal created by Nicole at Let Nicole Help (letnicolehelp.com), a 17hats setup specialist. You are here to help this client understand and use their specific 17hats setup.
+const CLIENT_CONTEXT = `You are an AI assistant built into a private client portal created by Nicole at Let Nicole Help (letnicolehelp.com), a 17hats setup specialist.
 
 CLIENT NAME: Premier Party Co
 SETUP DATE: May 2026
-BUSINESS TYPE: Balloon Decor (event decor installations)
+BUSINESS TYPE: Balloon Decor
+EVENT TYPES: Event Decor (weddings, birthdays, corporate events, etc.)
 
 WORKFLOWS BUILT:
-1. 1 - Event Decor Inquiry (4 stages): Lead submits form; auto-reply email and text send; questionnaire sent when availability confirmed; follow-ups workflow starts; Billing workflow started when ready to quote.
-2. 2 - Event Decor Billing (5 stages): Quote sent; calendar updates on first invoice payment; thanks for booking email sends; Fulfillment workflow starts automatically.
-3. 3 - Event Decor Fulfillment (8 stages): Tags move client through Confirmed Events pipeline; event reminder email 7 days before; text 2 days before; thank you and Google review email 2 days after; Rebooking workflow initiates; project archives.
-4. follow ups (5 stages): 2 follow-up emails if client stops responding; auto-archives if no reply.
-5. Rebooking (6 stages): 2 emails leading up to the anniversary date of the original event to encourage rebooking.
+1. 1- Event Decor Inquiry (4 stages): Auto-reply, questionnaire, initiates follow ups, prompts Billing workflow. NOTE: upon review, this needs to be added to "Website capture form" lead capture form.
+2. 2- Event Decor Billing (5 stages): Quote, calendar update upon 1st invoice payment, event confirmation. Default payment schedule of 50% due on receipt + remainder due 14 days before the event.
+3. 3- Event Decor Fulfillment (8 stages): Tagging for pipeline, event reminder (7 days before), thank you + Google review request, initiates Rebooking workflow, archives project.
+4. follow ups (5 stages): 2 follow-up emails in case client stops replying. "Quote Sent" tag stops this workflow. Auto-archives after 5 days if no response.
+5. Rebooking (6 stages): 2 emails leading up to the anniversary date of the original project (60 days and 30 days before). Auto-archives after completion.
 
 PIPELINES:
-- Leads: New Leads → Contacted → 2-4 Days Old → 4-6 Days Old → 7+ Days Old
-- Outstanding Quotes: Quote Sent → 1-2 Days Old → 3-4 Days Old → 5-7 Days Old → 7+ Days Old
-- Confirmed Events: Confirmed Event → Next 30 Days → Next 7 Days → Event Passed
-- Potential Rebookings: Possible Rebooking → Send Reach Out 1 → Contacted → Send Reach Out 2
+1. Leads (5 phases): New Leads > Contacted > 2-4 Days Old > 4-6 Days Old > 7+ Days Old
+2. Outstanding Quotes (5 phases): New > 1-2 Days Old > 3-4 Days Old > 5-7 Days Old > 7+ Days Old
+3. Confirmed Events (4 phases): Confirmed > Next 30 Days > Next 7 Days > Event Passed
+4. Potential Rebookings (4 phases): New > Send Reach Out 1 > Contacted > Send Reach Out 2
 
-AUTOMATIONS:
-- Auto-reply email and text sent immediately after lead submits inquiry form
-- Project lands on calendar automatically upon lead capture
-- Follow-ups workflow starts automatically after questionnaire is sent
-- Quote leads to contract automatically
-- Contract leads to invoice automatically
-- Calendar updates on first invoice payment
-- Thanks for booking email sends after calendar update
-- Fulfillment workflow starts automatically after booking confirmation
-- Event reminder email sends 7 days before event
-- Thank you and Google review email sends 2 days after event
-- Rebooking workflow initiates automatically after fulfillment
-- 20 pipeline tags move leads and clients through all 4 pipelines
+AUTOMATIONS (38 total):
+- Lead Capture Form (4): Auto email reply, auto text reply, project lands on calendar, workflow starts
+- Documents (6): Upcoming/past-due invoice reminders (INCOMPLETE - need to set up), questionnaire/quote/contract/invoice confirmations
+- Workflows (8): Questionnaire triggers follow ups, quote leads to contract, contract leads to invoice, calendar updates on payment, thanks for booking email, fulfillment workflow starts, event reminder 7 days before, tags update pipeline
+- Pipelines (20): Automated movement through all 4 pipelines based on workflow actions and time-based triggers
 
 SPECIAL NOTES:
-- Lead capture form needs the "decor inquiry" tag and "1 - Event Decor Inquiry" workflow added to activate pipelines and workflows
-- Invoice and quote reminders need to be set up in Account Settings > Reminders
-- Products & services list was left as-is; default payment schedule of 50% due on receipt + remainder due 14 days before event was applied
-- Set project time to match SETUP time (not event start time) for accurate calendar
-- If asked something outside your knowledge, say you are not sure and suggest Nicole or the 17hats help center at help.17hats.com as the best resource.`
+- Products & services list was left as-is since decisions were not provided. Can be updated via bulk upload in Account Settings > Products & Services.
+- Default payment schedule of 50% due on receipt + remainder due 14 days before event was applied to the Event Decor Quote template.
+- No automated document reminders were set due to not hearing back about current outstanding quotes and invoices.
+- The "decor inquiry" tag and 1 - Event Decor Inquiry workflow need to be added to the "Website capture form" lead capture form to activate the full workflow & pipeline automation.
+- The [INTERNAL] Rebooking Form URL is: https://premierpartyco.17hats.com/p#/lcf/zbnnfdddfxbwnpcpdrcdbdgnkhvxwssr
+
+Your role: Answer questions about Premier Party Co's specific 17hats setup, general 17hats how-to questions, and help them navigate their workflows. If asked something outside your knowledge, suggest they contact Nicole directly at letnicolehelp.com or visit the 17hats help center at help.17hats.com.
+
+Always be warm, helpful, and specific. Reference their actual setup when relevant. Keep responses concise but complete. Do NOT make up specific features or details you don't know - say "I'm not sure about that specific detail; Nicole or the 17hats help center would be the best resource."`;
 
 // ================================================================
 // CHAT LOGIC — only change PROXY_URL, nothing else needed
 // ✏️ CHANGE: Paste your Cloudflare Worker URL here (same for every client portal)
 // ================================================================
 const PROXY_URL      = 'https://robot-nicole-proxy.letnicolehelp.workers.dev/'; // ✏️ your Cloudflare Worker URL
-
+const PORTAL_INDUSTRY = 'Balloon'; // e.g. 'Balloon', 'Photography', 'Floral', 'Events', 'General'
 let chatHistory = [];
 
 async function sendMessage() {
@@ -2009,46 +1826,74 @@ async function loadBlogPosts() {
 loadBlogPosts();
 
 // ================================================================
-// ANNOUNCEMENTS — fetches active items from Notion via Worker
-// Manage all announcements in Notion: Portal Announcements DB
-// Check "Active" to show, uncheck to hide. Sort Order controls order.
-// No portal files need updating — changes in Notion appear live.
+// ANNOUNCEMENTS — fetches from announcements.json in your GitHub repo
+// To update: edit announcements.json and push to GitHub. All portals
+// update automatically. No need to touch individual portal files.
 // ================================================================
 async function loadAnnouncements() {
-  if (!PROXY_URL || PROXY_URL.includes('YOUR_WORKER_URL_HERE')) return;
-
+  const list = document.getElementById('announcements-list');
+  const card = document.getElementById('announcements-card');
   try {
-    const res = await fetch(PROXY_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'announcements', industry: PORTAL_INDUSTRY })
-    });
+    const res = await fetch('https://lnh-gh.github.io/robot-nicole-client-portal/announcements.json?nocache=' + Date.now());
     const data = await res.json();
-    if (!data.items || data.items.length === 0) return;
-
-    const list = document.getElementById('announcements-list');
-    if (!list) return;
-
-    list.innerHTML = data.items.map(item => `
-      <a href="${item.url}" target="_blank" style="display:flex; align-items:flex-start; gap:14px; padding:14px 16px; border:1px solid var(--border); border-radius:10px; text-decoration:none; transition:all 0.2s;" onmouseover="this.style.borderColor='var(--copper)'" onmouseout="this.style.borderColor='var(--border)'">
-        <div style="font-size:24px; flex-shrink:0; margin-top:2px;">${item.emoji || '✦'}</div>
-        <div>
-          <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
-            <div style="font-size:14px; font-weight:500; color:var(--text);">${item.title}</div>
-            ${item.label ? `<span style="font-size:10px; background:rgba(184,125,82,0.12); color:var(--copper); padding:2px 8px; border-radius:20px;">${item.label}</span>` : ''}
-          </div>
-          <div style="font-size:12.5px; color:var(--text-light); line-height:1.5;">${item.desc}</div>
-        </div>
-        <div style="font-size:16px; color:var(--copper); flex-shrink:0; margin-left:auto; margin-top:2px;">→</div>
-      </a>`).join('');
+    const filtered = data.filter(function(item) {
+      return !item.industry ||
+        item.industry.length === 0 ||
+        item.industry.includes('General') ||
+        item.industry.includes(PORTAL_INDUSTRY);
+    });
+    if (!filtered.length) return;
+    list.innerHTML = filtered.map(function(item) {
+      var labelHtml = item.label ? '<div style="font-size:10px; letter-spacing:0.1em; text-transform:uppercase; color:var(--copper); margin-bottom:3px;">' + item.label + '</div>' : '';
+      return '<a href="' + (item.url || '#') + '" target="_blank" style="display:flex; gap:14px; align-items:flex-start; text-decoration:none; padding:12px; border-radius:8px; border:1px solid var(--border);">'
+        + '<span style="font-size:22px; flex-shrink:0;">' + (item.emoji || '✦') + '</span>'
+        + '<div>' + labelHtml
+        + '<div style="font-size:13.5px; font-weight:500; color:var(--text); margin-bottom:3px;">' + item.title + '</div>'
+        + '<div style="font-size:12.5px; color:var(--text-light); line-height:1.5;">' + (item.desc || '') + '</div>'
+        + '</div></a>';
+    }).join('');
+    card.style.display = 'block';
   } catch(e) {
-    // Silently fail — placeholder content stays visible
+    // Silently fail — announcements are optional
   }
 }
-
 loadAnnouncements();
-
 // YouTube is embedded directly — no API key needed.
+
+// ================================================================
+// CHANGE REQUESTS
+// ✏️ CHANGE: Update PORTAL_CLIENT_NAME per client
+// ================================================================
+const PORTAL_CLIENT_NAME = 'Premier Party Co'; // ✏️ change per client
+
+function submitRequest() {
+  const summary = document.getElementById('req-summary').value.trim();
+  const detail  = document.getElementById('req-detail').value.trim();
+  const why     = document.getElementById('req-why').value.trim();
+  const urgency = document.getElementById('req-urgency').value;
+  const status  = document.getElementById('req-status');
+
+  if (!summary || !detail) {
+    status.style.display = 'block';
+    status.style.color = '#c0392b';
+    status.textContent = 'Please fill in both the summary and details fields.';
+    return;
+  }
+
+  const subject = 'Portal Change Request: ' + summary + ' (' + PORTAL_CLIENT_NAME + ')';
+  const body = 'CHANGE REQUEST FROM: ' + PORTAL_CLIENT_NAME
+    + '\n\nSummary: ' + summary
+    + '\n\nDetails:\n' + detail
+    + (why ? '\n\nWhy / Context:\n' + why : '')
+    + '\n\nUrgency: ' + urgency
+    + '\n\n---\nSent from ' + PORTAL_CLIENT_NAME + ' client portal';
+
+  window.location.href = 'mailto:nicole@letnicolehelp.com?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(body);
+
+  status.style.display = 'block';
+  status.style.color = 'var(--green)';
+  status.textContent = 'Your email client should open with the request details. Send it and Nicole will follow up!';
+}
 
 </script>
 </body>
