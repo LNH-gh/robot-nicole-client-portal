@@ -901,7 +901,7 @@
     </div>
     <div class="topbar-right">
       <a href="#" class="btn btn-outline" onclick="printSection(); return false;" title="Save or print your portal">🖨️ Save as PDF</a>
-      <a href="/cdn-cgi/l/email-protection#5a34333935363f1a363f2e34333935363f323f362a74393537" class="btn btn-outline">📧 Email Nicole</a>
+      <a href="mailto:nicole@letnicolehelp.com" class="btn btn-outline">📧 Email Nicole</a>
       <a href="#" class="btn btn-copper" onclick="showSection('ask-robot-nicole')">🤖 Ask Robot Nicole</a>
     </div>
   </div>
@@ -1007,7 +1007,6 @@
               <li><span class="step-num">2</span><span>Questionnaire sent to client when availability confirmed</span></li>
               <li><span class="step-num">3</span><span>Follow-ups workflow starts automatically after questionnaire is sent</span></li>
               <li><span class="step-num">4</span><span>Billing workflow started manually when ready to quote</span></li>
-              <li><span class="step-num">5</span><span>Quote automatically leads to contract; contract to invoice</span></li>
             </ul>
           </div>
         </div>
@@ -1025,10 +1024,11 @@
           <div class="workflow-body">
             <p data-notion-field="Workflow 2 Description">Quote, calendar update upon 1st invoice payment, event confirmation, starts Fulfillment workflow.</p>
             <ul class="workflow-steps">
-              <li><span class="step-num">1</span><span>Quote sent; calendar updates automatically upon first payment</span></li>
-              <li><span class="step-num">2</span><span>Thanks for booking email sends automatically after calendar update</span></li>
-              <li><span class="step-num">3</span><span>Fulfillment workflow starts automatically after booking confirmation</span></li>
-              <li><span class="step-num">4</span><span>Pipeline tags update throughout to move client through stages</span></li>
+              <li><span class="step-num">1</span><span>Quote/contract/invoice sent</span></li>
+              <li><span class="step-num">2</span><span>Calendar updates automatically upon first payment</span></li>
+              <li><span class="step-num">3</span><span>Thanks for booking email sends automatically after calendar update</span></li>
+              <li><span class="step-num">4</span><span>Fulfillment workflow starts automatically after booking confirmation</span></li>
+              <li><span class="step-num">5</span><span>Reminder to add takedown time to calendar if relevant</span></li>
             </ul>
           </div>
         </div>
@@ -1046,9 +1046,14 @@
           <div class="workflow-body">
             <p data-notion-field="Workflow 3 Description">Tagging for pipeline movement, event reminder email, thank you email, initiates Rebooking workflow.</p>
             <ul class="workflow-steps">
-              <li><span class="step-num">1</span><span>Tags move client through Confirmed Events pipeline automatically</span></li>
-              <li><span class="step-num">2</span><span>Event reminder email sends 7 days before the event</span></li>
-              <li><span class="step-num">3</span><span>Thank you & Google review email sends 2 days after event</span></li>
+              <li><span class="step-num">1</span><span>Tag moves client across pipeline 30 days before event</span></li>
+              <li><span class="step-num">2</span><span>Tag moves client across pipeline 7 days before event</span></li>
+              <li><span class="step-num">3</span><span>Event reminder email sends automatically 7 days before the event</span></li>
+              <li><span class="step-num">4</span><span>Reminder to send text template 2 days before the event</span></li>
+              <li><span class="step-num">5</span><span>Tag moves client across pipeline 1 day after event</span></li>
+              <li><span class="step-num">6</span><span>Thank you & Google review email cues up 2 days after event</span></li>
+              <li><span class="step-num">7</span><span>Reminder to use [INTERNAL] Rebooking form to set up repeat workflow</span></li>
+              <li><span class="step-num">8</span><span>Automated archive</span></li>
             </ul>
           </div>
         </div>
