@@ -2027,7 +2027,7 @@ async function loadBlogPosts() {
   const loading = document.getElementById('blog-loading');
   const error = document.getElementById('blog-error');
 
-  if (!PROXY_URL || PROXY_URL.includes('YOUR_WORKER_URL_HERE')) {
+  if (!PROXY_URL || PROXY_URL.includes('https://robot-nicole-proxy.letnicolehelp.workers.dev/')) {
     if (loading) loading.style.display = 'none';
     if (error) error.style.display = 'block';
     return;
