@@ -2309,7 +2309,7 @@ Always be warm, helpful, and specific. Reference their actual setup when relevan
 // CHAT LOGIC — only change PROXY_URL, nothing else needed
 // ✏️ CHANGE: Paste your Cloudflare Worker URL here (same for every client portal)
 // ================================================================
-const PROXY_URL      = https://robot-nicole-proxy.letnicolehelp.workers.dev/; // ✏️ your Cloudflare Worker URL
+const PROXY_URL      = 'https://robot-nicole-proxy.letnicolehelp.workers.dev/'; // ✏️ your Cloudflare Worker URL
 
 // ================================================================
 // CHAT HISTORY — localStorage, 30-day rolling window
@@ -2429,7 +2429,7 @@ async function loadBlogPosts() {
   const loading = document.getElementById('blog-loading');
   const error = document.getElementById('blog-error');
 
-  if (!PROXY_URL || PROXY_URL.includes(https://robot-nicole-proxy.letnicolehelp.workers.dev/)) {
+  if (!PROXY_URL || PROXY_URL.includes('https://robot-nicole-proxy.letnicolehelp.workers.dev/')) {
     if (loading) loading.style.display = 'none';
     if (error) error.style.display = 'block';
     return;
