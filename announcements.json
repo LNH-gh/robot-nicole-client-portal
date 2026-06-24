@@ -6,7 +6,8 @@
     "emoji": "✨",
     "label": "14-day free trial; yearly subscription",
     "industry": ["Balloon"]
-  }, {
+  }, 
+ {
     "title": "Invoice Incognito",
     "desc": "Turn your invoices into price-free work orders you can share with your team.",
     "url": "https://invoiceincognito.com/",
