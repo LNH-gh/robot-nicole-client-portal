@@ -1,0 +1,2144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Breathe Images | Client Portal</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --green: #2d5246;
+    --green-light: #3a6858;
+    --green-pale: #eef4f1;
+    --copper: #b87d52;
+    --copper-light: #d4a57a;
+    --copper-pale: #fdf5ed;
+    --cream: #faf8f5;
+    --text: #1e3329;
+    --text-mid: #4a6358;
+    --text-light: #8aab9a;
+    --white: #ffffff;
+    --border: rgba(184,125,82,0.2);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: "Montserrat", sans-serif;
+    background: var(--cream);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  .sidebar {
+    position: fixed;
+    left: 0; top: 0; bottom: 0;
+    width: 260px;
+    background: var(--green);
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    padding: 0 0 24px 0;
+    overflow-y: auto;
+  }
+
+  .sidebar-logo {
+    padding: 32px 28px 24px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+  }
+
+  .sidebar-logo .by-nicole {
+    font-family: "Montserrat", sans-serif;
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--copper-light);
+    margin-bottom: 4px;
+  }
+
+  .sidebar-logo .client-name {
+    font-family: "Montserrat", sans-serif;
+    font-size: 22px;
+    font-weight: 500;
+    color: white;
+    line-height: 1.2;
+  }
+
+  .sidebar-logo .portal-label {
+    font-size: 11px;
+    color: rgba(255,255,255,0.45);
+    letter-spacing: 0.1em;
+    margin-top: 2px;
+  }
+
+  .sidebar-section { padding: 20px 0 8px; }
+
+  .sidebar-section-label {
+    font-size: 9px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.3);
+    padding: 0 28px;
+    margin-bottom: 6px;
+  }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 28px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 13.5px;
+    color: rgba(255,255,255,0.65);
+    border-left: 2px solid transparent;
+    text-decoration: none;
+  }
+
+  .nav-item:hover, .nav-item.active {
+    background: rgba(255,255,255,0.07);
+    color: white;
+    border-left-color: var(--copper-light);
+  }
+
+  .nav-item .icon { font-size: 15px; opacity: 0.8; width: 18px; text-align: center; flex-shrink: 0; }
+
+  .sidebar-footer {
+    margin-top: auto;
+    padding: 20px 28px 0;
+    border-top: 1px solid rgba(255,255,255,0.1);
+  }
+
+  .sidebar-footer p { font-size: 11px; color: rgba(255,255,255,0.3); line-height: 1.6; }
+  .sidebar-footer a { color: var(--copper-light); text-decoration: none; font-size: 11px; }
+
+  .main { margin-left: 260px; min-height: 100vh; }
+
+  .topbar {
+    background: white;
+    border-bottom: 1px solid var(--border);
+    padding: 16px 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+  }
+
+  .topbar-left { display: flex; align-items: center; gap: 12px; }
+  .setup-date { font-size: 12px; color: var(--text-light); }
+  .setup-date span { color: var(--copper); font-weight: 500; }
+  .topbar-right { display: flex; gap: 10px; }
+
+  .btn {
+    padding: 8px 18px;
+    border-radius: 6px;
+    font-size: 12.5px;
+    font-family: "Montserrat", sans-serif;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border: none;
+  }
+
+  .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text-mid); }
+  .btn-outline:hover { border-color: var(--copper); color: var(--copper); }
+  .btn-primary { background: var(--green); color: white; }
+  .btn-primary:hover { background: var(--green-light); }
+  .btn-copper { background: var(--copper); color: white; }
+  .btn-copper:hover { background: var(--copper-light); }
+
+  .page-section { display: none; padding: 40px; animation: fadeIn 0.3s ease; }
+  .page-section.active { display: block; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .section-header { margin-bottom: 32px; }
+
+  .section-header h1 {
+    font-family: "Montserrat", sans-serif;
+    font-size: 36px;
+    font-weight: 500;
+    color: var(--green);
+    line-height: 1.2;
+    margin-bottom: 6px;
+  }
+
+  .section-header p { color: var(--text-mid); font-size: 14px; line-height: 1.6; }
+
+  .stats-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; margin-bottom: 32px; }
+
+  .stat-card { background: white; border: 1px solid var(--border); border-radius: 12px; padding: 20px 22px; }
+  .stat-card .stat-label { font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-light); margin-bottom: 8px; }
+  .stat-card .stat-value { font-family: "Montserrat", sans-serif; font-size: 32px; font-weight: 500; color: var(--green); line-height: 1; }
+  .stat-card .stat-sub { font-size: 11.5px; color: var(--text-light); margin-top: 4px; }
+
+  .card { background: white; border: 1px solid var(--border); border-radius: 12px; padding: 28px; margin-bottom: 20px; }
+
+  .card-title {
+    font-family: "Montserrat", sans-serif;
+    font-size: 20px;
+    font-weight: 500;
+    color: var(--green);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .workflow-list { display: flex; flex-direction: column; gap: 12px; }
+
+  .workflow-item { border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+
+  .workflow-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 18px;
+    cursor: pointer;
+    background: var(--green-pale);
+    transition: background 0.2s;
+  }
+
+  .workflow-header:hover { background: #deeae4; }
+  .workflow-header-left { display: flex; align-items: center; gap: 12px; }
+  .workflow-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--copper); flex-shrink: 0; }
+  .workflow-name { font-size: 14px; font-weight: 500; color: var(--text); }
+
+  .workflow-tag {
+    font-size: 10.5px;
+    background: rgba(184,125,82,0.12);
+    color: var(--copper);
+    padding: 2px 8px;
+    border-radius: 20px;
+    letter-spacing: 0.05em;
+  }
+
+  .workflow-toggle { font-size: 13px; color: var(--text-light); transition: transform 0.2s; }
+  .workflow-toggle.open { transform: rotate(180deg); }
+
+  .workflow-body { display: none; padding: 18px; background: white; border-top: 1px solid var(--border); }
+  .workflow-body.open { display: block; }
+  .workflow-body p { font-size: 13.5px; color: var(--text-mid); line-height: 1.7; margin-bottom: 12px; }
+
+  .workflow-steps { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+
+  .workflow-steps li {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    font-size: 13px;
+    color: var(--text-mid);
+    line-height: 1.5;
+  }
+
+  .step-num {
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    background: var(--green);
+    color: white;
+    font-size: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  .update-timeline { position: relative; padding-left: 28px; }
+
+  .update-timeline::before {
+    content: '';
+    position: absolute;
+    left: 8px; top: 6px; bottom: 6px;
+    width: 1px;
+    background: var(--border);
+  }
+
+  .update-item { position: relative; margin-bottom: 28px; }
+
+  .update-item::before {
+    content: '';
+    position: absolute;
+    left: -24px; top: 5px;
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    border: 2px solid var(--copper);
+    background: var(--cream);
+  }
+
+  .update-timing { font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--copper); margin-bottom: 5px; }
+  .update-title { font-size: 15px; font-weight: 500; color: var(--text); margin-bottom: 6px; }
+  .update-desc { font-size: 13px; color: var(--text-mid); line-height: 1.6; }
+
+  .content-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+
+  .content-card {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    text-decoration: none;
+    display: block;
+    transition: all 0.2s;
+  }
+
+  .content-card:hover { border-color: var(--copper-light); transform: translateY(-2px); box-shadow: 0 4px 20px rgba(45,82,70,0.08); }
+
+  .content-card-thumb {
+    height: 110px;
+    background: var(--green);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .content-card-thumb::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(184,125,82,0.2) 0%, transparent 60%);
+  }
+
+  .yt-thumb { background: linear-gradient(135deg, #1a3d30 0%, #2d5246 100%); }
+  .content-card-body { padding: 14px 16px; }
+  .content-card-type { font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--copper); margin-bottom: 4px; }
+  .content-card-title { font-size: 13.5px; font-weight: 500; color: var(--text); line-height: 1.4; }
+
+  .chat-wrapper {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    height: 500px;
+  }
+
+  .chat-header { background: var(--green); padding: 16px 22px; display: flex; align-items: center; gap: 12px; }
+
+  .chat-avatar {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background: var(--copper);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+
+  .chat-header-info h3 { font-size: 14px; font-weight: 500; color: white; }
+  .chat-header-info p { font-size: 11px; color: rgba(255,255,255,0.5); }
+
+  .chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    background: var(--cream);
+  }
+
+  .message { display: flex; gap: 10px; max-width: 85%; }
+  .message.user { align-self: flex-end; flex-direction: row-reverse; }
+
+  .message-bubble { padding: 11px 15px; border-radius: 12px; font-size: 13.5px; line-height: 1.6; }
+
+  .message.assistant .message-bubble {
+    background: white;
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: 2px 12px 12px 12px;
+  }
+
+  .message.user .message-bubble {
+    background: var(--green);
+    color: white;
+    border-radius: 12px 2px 12px 12px;
+  }
+
+  .message-avatar {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  .assistant-avatar { background: var(--copper); }
+  .user-avatar { background: var(--green-light); }
+
+  .chat-input-area {
+    padding: 16px;
+    border-top: 1px solid var(--border);
+    background: white;
+    display: flex;
+    gap: 10px;
+    align-items: flex-end;
+  }
+
+  .chat-input {
+    flex: 1;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-family: "Montserrat", sans-serif;
+    font-size: 13.5px;
+    color: var(--text);
+    resize: none;
+    outline: none;
+    transition: border-color 0.2s;
+    min-height: 42px;
+    max-height: 120px;
+  }
+
+  .chat-input:focus { border-color: var(--copper-light); }
+  .chat-input::placeholder { color: var(--text-light); }
+
+  .chat-send {
+    width: 42px; height: 42px;
+    border-radius: 8px;
+    background: var(--green);
+    color: white;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    transition: background 0.2s;
+    flex-shrink: 0;
+  }
+
+  .chat-send:hover { background: var(--green-light); }
+  .chat-send:disabled { background: var(--text-light); cursor: not-allowed; }
+
+  .thinking { display: flex; gap: 4px; padding: 8px 4px; }
+  .thinking span { width: 6px; height: 6px; border-radius: 50%; background: var(--copper-light); animation: bounce 1.2s infinite; }
+  .thinking span:nth-child(2) { animation-delay: 0.2s; }
+  .thinking span:nth-child(3) { animation-delay: 0.4s; }
+
+  @keyframes bounce {
+    0%, 80%, 100% { transform: translateY(0); opacity: 0.4; }
+    40% { transform: translateY(-6px); opacity: 1; }
+  }
+
+  .resources-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+
+  .resource-card {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 22px;
+    text-decoration: none;
+    display: block;
+    transition: all 0.2s;
+  }
+
+  .resource-card:hover { border-color: var(--copper); transform: translateY(-2px); box-shadow: 0 4px 20px rgba(45,82,70,0.08); }
+  .resource-icon { font-size: 26px; margin-bottom: 12px; }
+  .resource-title { font-size: 14px; font-weight: 500; color: var(--text); margin-bottom: 6px; }
+  .resource-desc { font-size: 12.5px; color: var(--text-light); line-height: 1.5; }
+
+  .accent-banner {
+    background: linear-gradient(135deg, var(--green) 0%, var(--green-light) 100%);
+    border-radius: 12px;
+    padding: 28px 32px;
+    margin-bottom: 28px;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .accent-banner::before { content: ''; position: absolute; right: -20px; top: -20px; width: 160px; height: 160px; border-radius: 50%; border: 30px solid rgba(184,125,82,0.15); }
+  .accent-banner::after { content: ''; position: absolute; right: 60px; bottom: -30px; width: 100px; height: 100px; border-radius: 50%; border: 20px solid rgba(184,125,82,0.1); }
+
+  .accent-banner h2 { font-family: "Montserrat", sans-serif; font-size: 26px; font-weight: 400; color: white; margin-bottom: 6px; font-style: italic; }
+  .accent-banner p { font-size: 13px; color: rgba(255,255,255,0.65); max-width: 400px; }
+
+  .tag-pill { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; background: rgba(184,125,82,0.15); color: var(--copper); letter-spacing: 0.05em; }
+
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+
+  /* ── PASSWORD OVERLAY ── */
+  .pw-overlay {
+    position: fixed;
+    inset: 0;
+    background: var(--green);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    padding: 40px;
+    transition: opacity 0.5s ease, visibility 0.5s ease;
+  }
+
+  .pw-overlay.unlocked {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+  }
+
+  .pw-overlay::before {
+    content: '';
+    position: absolute;
+    right: -60px; top: -60px;
+    width: 320px; height: 320px;
+    border-radius: 50%;
+    border: 50px solid rgba(184,125,82,0.12);
+  }
+
+  .pw-overlay::after {
+    content: '';
+    position: absolute;
+    left: -40px; bottom: -40px;
+    width: 220px; height: 220px;
+    border-radius: 50%;
+    border: 35px solid rgba(184,125,82,0.08);
+  }
+
+  .pw-box {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 20px;
+    padding: 48px 44px;
+    width: 100%;
+    max-width: 420px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    z-index: 1;
+    backdrop-filter: blur(10px);
+  }
+
+  .pw-logo { font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--copper-light); margin-bottom: 6px; }
+  .pw-client { font-family: 'Montserrat', sans-serif; font-size: 26px; font-weight: 600; color: white; margin-bottom: 4px; text-align: center; }
+  .pw-subtitle { font-size: 13px; color: rgba(255,255,255,0.4); margin-bottom: 36px; text-align: center; }
+  .pw-lock { font-size: 32px; margin-bottom: 20px; }
+  .pw-label { font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,0.45); align-self: flex-start; margin-bottom: 8px; }
+
+  .pw-input {
+    width: 100%;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 10px;
+    padding: 14px 18px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 15px;
+    color: white;
+    outline: none;
+    letter-spacing: 0.1em;
+    transition: border-color 0.2s;
+    margin-bottom: 14px;
+  }
+
+  .pw-input::placeholder { color: rgba(255,255,255,0.2); }
+  .pw-input:focus { border-color: var(--copper-light); }
+  .pw-input.shake { animation: shake 0.4s ease; border-color: #e07070; }
+
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20% { transform: translateX(-8px); }
+    40% { transform: translateX(8px); }
+    60% { transform: translateX(-5px); }
+    80% { transform: translateX(5px); }
+  }
+
+  .pw-btn {
+    width: 100%;
+    background: var(--copper);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 14px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+    margin-bottom: 16px;
+  }
+
+  .pw-btn:hover { background: var(--copper-light); }
+  .pw-btn:active { transform: scale(0.98); }
+  .pw-error { font-size: 12px; color: #f0a0a0; text-align: center; min-height: 18px; }
+  .pw-footer { margin-top: 32px; font-size: 11px; color: rgba(255,255,255,0.2); letter-spacing: 0.08em; }
+
+  /* ── CLIENT LOGO ── */
+  .client-logo {
+    height: 36px;
+    width: auto;
+    max-width: 140px;
+    object-fit: contain;
+    display: block;
+  }
+
+  .client-logo-lg {
+    height: 64px;
+    width: auto;
+    max-width: 200px;
+    object-fit: contain;
+    display: block;
+    margin: 0 auto 16px;
+  }
+
+  .client-logo-placeholder {
+    height: 36px;
+    display: flex;
+    align-items: center;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--green);
+    letter-spacing: 0.02em;
+  }
+
+  .client-logo-placeholder-lg {
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    font-weight: 600;
+    color: white;
+    letter-spacing: 0.02em;
+    margin-bottom: 16px;
+  }
+
+  /* ── MOBILE HAMBURGER ── */
+  .hamburger {
+    display: none;
+    position: fixed;
+    top: 14px; left: 14px;
+    z-index: 200;
+    width: 40px; height: 40px;
+    border-radius: 10px;
+    background: var(--green);
+    border: none;
+    cursor: pointer;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.2);
+  }
+  .hamburger span { display: block; width: 18px; height: 2px; background: white; border-radius: 2px; transition: all 0.25s ease; }
+  .hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+  .hamburger.open span:nth-child(2) { opacity: 0; }
+  .hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+  .mobile-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 98; }
+  .mobile-overlay.visible { display: block; }
+
+  /* ── NOTIFICATION BADGE ── */
+  .nav-badge {
+    display: inline-block;
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--copper);
+    margin-left: 6px;
+    flex-shrink: 0;
+    box-shadow: 0 0 0 2px rgba(184,125,82,0.3);
+    animation: pulse-badge 2s infinite;
+  }
+  @keyframes pulse-badge {
+    0%, 100% { box-shadow: 0 0 0 2px rgba(184,125,82,0.3); }
+    50% { box-shadow: 0 0 0 5px rgba(184,125,82,0); }
+  }
+
+  /* ── PRINT / SAVE AS PDF ── */
+  @media print {
+    .sidebar, .hamburger, .mobile-overlay, .pw-overlay, #welcomeModal, .topbar-right { display: none !important; }
+    .main { margin-left: 0 !important; }
+    .page-section { display: block !important; page-break-after: always; }
+    .workflow-body { display: block !important; max-height: none !important; }
+    body { background: white; }
+    .card { box-shadow: none; border: 1px solid #ddd; }
+  }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 768px) {
+    .sidebar { transform: translateX(-100%); transition: transform 0.3s ease; z-index: 99; width: 280px; }
+    .sidebar.mobile-open { transform: translateX(0); }
+    .hamburger { display: flex; }
+    .main { margin-left: 0; }
+    .topbar { padding: 14px 16px 14px 64px; }
+    .page-section { padding: 24px 16px; }
+    .stats-row { grid-template-columns: 1fr 1fr; gap: 10px; }
+    .content-grid { grid-template-columns: 1fr; }
+    .resources-grid { grid-template-columns: 1fr 1fr; }
+    .two-col { grid-template-columns: 1fr; }
+    .accent-banner { flex-direction: column; gap: 16px; }
+    .accent-banner h2 { font-size: 20px; }
+    .chat-wrapper { height: 420px; }
+  }
+  @media (max-width: 480px) {
+    .stats-row { grid-template-columns: 1fr 1fr; }
+    .resources-grid { grid-template-columns: 1fr; }
+    .topbar-right .btn-outline { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- WELCOME MODAL -->
+<div class="pw-overlay" id="welcomeModal" style="display:none; background: rgba(30,51,41,0.92); backdrop-filter: blur(8px);">
+  <div class="pw-box" style="max-width:480px; gap:0; text-align:center;">
+    <div style="font-size:36px; margin-bottom:16px;">📸</div>
+    <div class="pw-logo">Welcome to your</div>
+    <div class="pw-client" style="margin-bottom:12px;">Breathe Images Portal</div>
+    <div style="width:40px; height:2px; background:var(--copper); border-radius:2px; margin: 0 auto 24px;"></div>
+    <p style="font-size:13.5px; color:rgba(255,255,255,0.65); line-height:1.7; margin-bottom:28px;">Everything Nicole built for you; in one place. Here's a quick look at what's inside:</p>
+    <div style="display:flex; flex-direction:column; gap:10px; width:100%; margin-bottom:32px; text-align:left;">
+      <div style="display:flex; align-items:flex-start; gap:12px; background:rgba(255,255,255,0.06); border-radius:10px; padding:12px 14px;">
+        <span style="font-size:16px; flex-shrink:0;">◈</span>
+        <div><div style="font-size:13px; font-weight:600; color:white; margin-bottom:2px;">Overview</div><div style="font-size:12px; color:rgba(255,255,255,0.45);">Your account stats, quick tips, and at-a-glance summary</div></div>
+      </div>
+      <div style="display:flex; align-items:flex-start; gap:12px; background:rgba(255,255,255,0.06); border-radius:10px; padding:12px 14px;">
+        <span style="font-size:16px; flex-shrink:0;">⟳</span>
+        <div><div style="font-size:13px; font-weight:600; color:white; margin-bottom:2px;">Workflows &amp; Automation</div><div style="font-size:12px; color:rgba(255,255,255,0.45);">Every pipeline Nicole built; with step-by-step breakdowns</div></div>
+      </div>
+      <div style="display:flex; align-items:flex-start; gap:12px; background:rgba(255,255,255,0.06); border-radius:10px; padding:12px 14px;">
+        <span style="font-size:16px; flex-shrink:0;">🎥</span>
+        <div><div style="font-size:13px; font-weight:600; color:white; margin-bottom:2px;">Zoom Recordings</div><div style="font-size:12px; color:rgba(255,255,255,0.45);">All your session recordings and notes in one place</div></div>
+      </div>
+      <div style="display:flex; align-items:flex-start; gap:12px; background:rgba(255,255,255,0.06); border-radius:10px; padding:12px 14px;">
+        <span style="font-size:16px; flex-shrink:0;">🤖</span>
+        <div><div style="font-size:13px; font-weight:600; color:white; margin-bottom:2px;">Ask Robot Nicole</div><div style="font-size:12px; color:rgba(255,255,255,0.45);">Your AI assistant trained on your exact 17hats setup; 24/7</div></div>
+      </div>
+    </div>
+    <button class="pw-btn" onclick="dismissWelcome()" style="margin-bottom:0;">Let's go! →</button>
+  </div>
+</div>
+
+<!-- PASSWORD OVERLAY -->
+<div class="pw-overlay" id="pwOverlay">
+  <div class="pw-box">
+    <div class="pw-lock">🔒</div>
+    <div class="pw-logo">A Portal by let Nicole help</div>
+    <div class="pw-client">Breathe Images</div>
+    <div class="pw-subtitle">Client Portal</div>
+    <div class="pw-label">Enter your portal password</div>
+    <input type="password" class="pw-input" id="pwInput" placeholder="••••••••" onkeydown="if(event.key==='Enter')checkPassword()">
+    <button class="pw-btn" onclick="checkPassword()">Enter Portal →</button>
+    <div class="pw-error" id="pwError"></div>
+    <div class="pw-footer">letnicolehelp.com</div>
+  </div>
+</div>
+
+<!-- MOBILE HAMBURGER -->
+<button class="hamburger" id="hamburger" onclick="toggleMobileMenu()" aria-label="Menu">
+  <span></span><span></span><span></span>
+</button>
+<div class="mobile-overlay" id="mobileOverlay" onclick="closeMobileMenu()"></div>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="by-nicole">A Portal by let Nicole help</div>
+    <div class="client-name">Breathe Images</div>
+    <div class="portal-label">Client Portal · 2026</div>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-section-label">Your Setup</div>
+    <a class="nav-item active" onclick="showSection('overview')">
+      <span class="icon">◈</span> Overview
+    </a>
+    <a class="nav-item" onclick="showSection('workflows')">
+      <span class="icon">⟳</span> Workflows
+    </a>
+    <a class="nav-item" onclick="showSection('pipelines')">
+      <span class="icon">◫</span> Pipelines
+    </a>
+    <a class="nav-item" onclick="showSection('automations')">
+      <span class="icon">⚙️</span> Automations
+    </a>
+    <a class="nav-item" onclick="showSection('bookings')">
+      <span class="icon">📅</span> Bookings
+    </a>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-section-label">Resources</div>
+    <a class="nav-item" onclick="showSection('zoom-recordings')">
+      <span class="icon">🎥</span> Zoom Sessions
+    </a>
+    <a class="nav-item" id="nav-whats-new" onclick="showSection('whats-new')">
+      <span class="icon">✦</span> What's New from Nicole<span class="nav-badge" id="newsBadge" style="display:none;"></span>
+    </a>
+    <a class="nav-item" onclick="showSection('resources')">
+      <span class="icon">⊞</span> Resource Library
+    </a>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-section-label">Support</div>
+    <a class="nav-item" onclick="showSection('ask-robot-nicole')">
+      <span class="icon">🤖</span> Ask Robot Nicole
+    </a>
+    <a class="nav-item" onclick="showSection('requests')">
+      <span class="icon">✏️</span> Request a Change
+    </a>
+    <a class="nav-item" onclick="showSection('get-help')">
+      <span class="icon">◉</span> Get Help from Nicole
+    </a>
+  </div>
+
+  <div class="sidebar-footer">
+    <p>Set up by Nicole · June 2026<br>
+    <span id="lastUpdatedLine" style="color:rgba(255,255,255,0.2); font-size:10px;"></span><br>
+    <a href="https://letnicolehelp.com" target="_blank">letnicolehelp.com</a></p>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+  <div class="topbar">
+    <div class="topbar-left">
+      <img src="https://justbreathe.17hats.com/perl/client/account/0/logo/1769116819" alt="Breathe Images" class="client-logo" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+<div class="client-logo-placeholder" style="display:none;">Breathe Images</div>
+      <span class="tag-pill">17hats · Active</span>
+    </div>
+    <div class="topbar-right">
+      <a href="#" class="btn btn-outline" onclick="printSection(); return false;" title="Save or print your portal">🖨️ Save as PDF</a>
+      <a href="mailto:nicole@letnicolehelp.com" class="btn btn-outline">📧 Email Nicole</a>
+      <a href="#" class="btn btn-copper" onclick="showSection('ask-robot-nicole')">🤖 Ask Robot Nicole</a>
+    </div>
+  </div>
+
+  <!-- ══════ OVERVIEW ══════ -->
+  <section class="page-section active" id="overview">
+    <div class="accent-banner">
+      <div>
+        <h2>Welcome back, Breathe Images ✨</h2>
+        <p>Everything Nicole set up for you: your workflows, resources &amp; AI assistant...all in one place.</p>
+      </div>
+    </div>
+
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-label">Workflows Built</div>
+        <div class="stat-value">12</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Pipelines <p>Built</div>
+        <div class="stat-value">2</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Automations <p>Running</div>
+        <div class="stat-value">36</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Recommended tune-up</div>
+        <div class="stat-value">Dec '26</div>
+      </div>
+    </div>
+
+    <div class="two-col">
+      <div class="card">
+        <div class="card-title">📋 Your Account at a Glance</div>
+        <p style="font-size:13.5px; color:var(--text-mid); line-height:1.7;">Nicole set up your 17hats account in June 2026 with workflows for Theatre, Event and Headshot photography (actors and corporate).</p>
+        <br>
+        <a class="btn btn-outline" onclick="showSection('workflows')" style="font-size:12px;">View all workflows →</a>
+      </div>
+      <div class="card">
+        <div class="card-title">⚡ Quick Tips for Your Setup</div>
+        <ul style="list-style:none; display:flex; flex-direction:column; gap:10px;">
+          <li style="font-size:13px; color:var(--text-mid); display:flex; gap:10px; align-items:flex-start;"><span style="color:var(--copper); flex-shrink:0;">✦</span> For Theatre projects, be sure to use only the 1st show date as the project date; all other show dates get added as additional events to the same project + start their own workflows</li>
+          <li style="font-size:13px; color:var(--text-mid); display:flex; gap:10px; align-items:flex-start;"><span style="color:var(--copper); flex-shrink:0;">✦</span> Theatre and Event projects both lead to the ~Theatre/Events Gallery Delivered workflow at the end</li>
+          <li style="font-size:13px; color:var(--text-mid); display:flex; gap:10px; align-items:flex-start;"><span style="color:var(--copper); flex-shrink:0;">✦</span> To add a client's gallery link to their project (and for automated emails), click the small pencil button on the right side of the project screen to edit, then find the field for the link and paste it in</li>
+          <li style="font-size:13px; color:var(--text-mid); display:flex; gap:10px; align-items:flex-start;"><span style="color:var(--copper); flex-shrink:0;">✦</span> Watch for the to-do's that indicate an email will send after completion; these emails automatically go after you check it complete</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════ WORKFLOWS ══════ -->
+  <section class="page-section" id="workflows">
+    <div class="section-header">
+      <h1>Workflows &amp; Automation</h1>
+      <p>Every workflow Nicole built for your 17hats account. Click any item to see how it works.</p>
+    </div>
+
+    <div class="card">
+      <div class="card-title">🎭 Theatre Workflows</div>
+      <div class="workflow-list">
+        <div class="workflow-item">
+          <div class="workflow-header" onclick="toggleWorkflow(this)">
+            <div class="workflow-header-left">
+              <div class="workflow-dot"></div>
+              <span class="workflow-name">🎭 Theatre 1-Inquiry</span>
+              <span class="workflow-tag">5 stages</span>
+            </div>
+            <span class="workflow-toggle">▾</span>
+          </div>
+          <div class="workflow-body">
+            <p>Adding events to calendar, confirming with client, sending invoice</p>
+            <ul class="workflow-steps">
+              <li><span class="step-num">1</span>🟣 edit project: add 1st date/time/location &amp; attach "🎭 Theatre 2-Event" workflow (Casey; after workflow started)</li>
+              <li><span class="step-num">2</span>🟣 add additional dates/times/locations to project events (DO NOT use for project date) &amp; attach "🎭 Theatre 2-Event" workflow to each (Casey; after above)</li>
+              <li><span class="step-num">3</span>Send email: Theatre - Available (Casey; after above; moves client to "Waiting on Payment" in pipeline)</li>
+              <li><span class="step-num">4</span>Send invoice: Theatre (Kate; 28 days before base date)</li>
+              <li><span class="step-num">5</span>Archive the Project (30 days after base date)</li>
+            </ul>
+          </div>
+        </div>
+        <div class="workflow-item">
+          <div class="workflow-header" onclick="toggleWorkflow(this)">
+            <div class="workflow-header-left">
+              <div class="workflow-dot"></div>
+              <span class="workflow-name">🎭 Theatre 2-Event</span>
+              <span class="workflow-tag">8 stages</span>
+            </div>
+            <span class="workflow-toggle">▾</span>
+          </div>
+          <div class="workflow-body">
+            <p>Gallery creation, reminder and gallery sharing</p>
+            <ul class="workflow-steps">
+              <li><span class="step-num">1</span>Add Tag: +confirmed shoot (automatic upon starting workflow)</li>
+              <li><span class="step-num">2</span>🟡 make gallery in Pixiset to expire 30 days after shoot date (Kate; 7 days before base date; removed from "Kate: pre-shoot" in pipeline upon completion)</li>
+              <li><span class="step-num">3</span>Send email: Theatre - Day Before (automated)</li>
+              <li><span class="step-num">4</span>Add Tag: +editing (automatic on base date; moves client to "Casey: editing" in pipeline)</li>
+              <li><span class="step-num">5</span>🟣 dump raw images on computer, bring into lightroom and do full cull as well as press cull (Casey; 1 day after base date)</li>
+              <li><span class="step-num">6</span>🟣 Edit press, dump in gallery &amp; save gallery link to project (email will auto-send to contact w/ link) (Casey; sends "Theatre/Event - first (press) images" email upon completion)</li>
+              <li><span class="step-num">7</span>🟣 finish whole gallery; put in Pixieset &amp; archive (email will auto-send to contact w/ link) (Casey; sends "Theatre/Event - all images" email upon completion)</li>
+              <li><span class="step-num">8</span>Create Workflow: ~Theatre/Events Gallery Delivered (automatic)</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">🗓️ Event Workflows</div>
+      <div class="workflow-list">
+        <div class="workflow-item">
+          <div class="workflow-header" onclick="toggleWorkflow(this)">
+            <div class="workflow-header-left">
+              <div class="workflow-dot"></div>
+              <span class="workflow-name">🗓️ Events 1-Inquiry</span>
+              <span class="workflow-tag">3 stages</span>
+            </div>
+            <span class="workflow-toggle">▾</span>
+          </div>
+          <div class="workflow-body">
+            <p>Follow-ups if no booking made ("confirmed shoot" tag automatically pauses this workflow)</p>
+            <ul class="workflow-steps">
+              <li><span class="step-num">1</span>Send email: Event Follow-up 1 (Casey; 1 day after workflow starts)</li>
+              <li><span class="step-num">2</span>Send email: Event Follow-up 2 (Casey; 3 days after above)</li>
+              <li><span class="step-num">3</span>Archive the Project (Casey; 2 days after above)</li>
+            </ul>
+          </div>
+        </div>
+        <div class="workflow-item">
+          <div class="workflow-header" onclick="toggleWorkflow(this)">
+            <div class="workflow-header-left">
+              <div class="workflow-dot"></div>
+              <span class="workflow-name">🗓️ Events 2-Booking</span>
+              <span class="workflow-tag">5 stages</span>
+            </div>
+            <span class="workflow-toggle">▾</span>
+          </div>
+          <div class="workflow-body">
+            <p>Updating invoice, confirmation, 1 week reminder</p>
+            <ul class="workflow-steps">
+              <li><span class="step-num">1</span>Add/Remove Tags: +confirmed shoot -lead contacted -new lead (automated)</li>
+              <li><span class="step-num">2</span>🟣 update proj &amp; invoice as needed (time &amp; tax); conf email will auto-send to client (Casey)</li>
+              <li><span class="step-num">3</span>🟣 update proj &amp; invoice as needed (time &amp; tax); conf email will auto-send to client (Casey; sends "Event Booking Confirmation" email upon completion)</li>
+              <li><span class="step-num">4</span>Send email: Event Booking 1 week out (automated; 7 days before base date)</li>
+              <li><span class="step-num">5</span>Create Workflow: 🗓️ Events 3-Editing (automated)</li>
+            </ul>
+          </div>
+        </div>
+        <div class="workflow-item">
+          <div class="workflow-header" onclick="toggleWorkflow(this)">
+            <div class="workflow-header-left">
+              <div class="workflow-dot"></div>
+              <span class="workflow-name">🗓️ Events 3-Editing</span>
+              <span class="workflow-tag">8 stages</span>
+            </div>
+            <span class="workflow-toggle">▾</span>
+          </div>
+          <div class="workflow-body">
+            <p>Gallery creation, thank you, editing, gallery sharing</p>
+            <ul class="workflow-steps">
+              <li><span class="step-num">1</span>🟡 make gallery in Pixiset to expire 30 days after shoot date (Kate; removes client from "Kate: pre-shoot" pipeline phase)</li>
+              <li><span class="step-num">2</span>Add Tag: +editing (automated; on base date)</li>
+              <li><span class="step-num">3</span>Send email: Thank You - Events (Casey)</li>
+              <li><span class="step-num">4</span>🟣 dump raw images on computer, bring into lightroom and do full cull as well as press cull (Casey; 1 day after base date)</li>
+              <li><span class="step-num">5</span>🟣 Edit, dump in gallery &amp; save gallery link to project (email will auto-send to contact w/ link) (Casey; sends "Theatre/Event - first (press) images" upon completion)</li>
+              <li><span class="step-num">6</span>🟣 finish whole gallery; put in Pixieset &amp; archive (email will auto-send to contact w/ link) (Casey; sends "Theatre/Event - all images" upon completion)</li>
+              <li><span class="step-num">7</span>Create Workflow: ~Theatre/Events Gallery Delivered (automated)</li>
+              <li><span class="step-num">8</span>Archive the Project 30 days after base date</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">📤 Shared Delivery Workflow</div>
+      <div class="workflow-list">
+        <div class="workflow-item">
+          <div class="workflow-header" onclick="toggleWorkflow(this)">
+            <div class="workflow-header-left">
+              <div class="workflow-dot"></div>
+              <span class="workflow-name">~Theatre/Events Gallery Delivered</span>
+              <span class="workflow-tag">3 stages</span>
+            </div>
+            <span class="workflow-toggle">▾</span>
+          </div>
+          <div class="workflow-body">
+            <p>Select social posts and gallery deletion reminder</p>
+            <ul class="workflow-steps">
+              <li><span class="step-num">1</span>🟣 select favs in Pixiset for Emma Jean to pull from for a post (Casey; moves client to "Emma Jean: marketing" pipeline phase)</li>
+              <li><span class="step-num">2</span>🔵 use selected images &amp; plans post(s) (Emma Jean; removes client from "Emma Jean: marketing" pipeline phase)</li>
+              <li><span class="step-num">3</span>Send email: Gallery Deletion (updated) (automatic; 23 days after workflow activated)</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">🖼️ Headshot Workflows</div>
+      <div class="workflow-list">
+        <div class="workflow-item">
+          <div class="workflow-header" onclick="toggleWorkflow(this)">
+            <div class="workflow-header-left">
+              <div class="workflow-dot"></div>
+              <span class="workflow-name">🖼️ Headshots 1-Inquiry</span>
+              <span class="workflow-tag">3 stages</span>
+            </div>
+            <span class="workflow-toggle">▾</span>
+          </div>
+          <div class="workflow-body">
+            <p>Follow-ups if no booking made ("confirmed shoot" tag automatically pauses this workflow)</p>
+            <ul class="workflow-steps">
+              <li><span class="step-num">1</span>Send email: Headshot Follow-up 1 (Casey; 1 day after workflow starts)</li>
+              <li><span class="step-num">2</span>Send email: Headshot Follow-up 2 (Casey; 3 days after above)</li>
+              <li><span class="step-num">3</span>Archive the Project (Casey; 2 days after above)</li>
+            </ul>
+          </div>
+        </div>
+        <div class="workflow-item">
+          <div class="workflow-header" onclick="toggleWorkflow(this)">
+            <div class="workflow-header-left">
+              <div class="workflow-dot"></div>
+              <span class="workflow-name">🖼️ Headshots 2-Booking (Actors)</span>
+              <span class="workflow-tag">5 stages</span>
+            </div>
+            <span class="workflow-toggle">▾</span>
+          </div>
+          <div class="workflow-body">
+            <p>Confirmation, prep email, day before email</p>
+            <ul class="workflow-steps">
+              <li><span class="step-num">1</span>Add/Remove Tags: +confirmed shoot -lead contacted -new lead (automated)</li>
+              <li><span class="step-num">2</span>Send email: Headshot Booking Confirmation (automated)</li>
+              <li><span class="step-num">3</span>Send email: Prep Email (automated; 7 days before base date)</li>
+              <li><span class="step-num">4</span>Create Workflow: 🖼️ Headshots 3-Editing (automated)</li>
+              <li><span class="step-num">5</span>Send email: Day Before Session (automated)</li>
+            </ul>
+          </div>
+        </div>
+        <div class="workflow-item">
+          <div class="workflow-header" onclick="toggleWorkflow(this)">
+            <div class="workflow-header-left">
+              <div class="workflow-dot"></div>
+              <span class="workflow-name">🖼️ Headshots 2-Booking (Corporate)</span>
+              <span class="workflow-tag">5 stages</span>
+            </div>
+            <span class="workflow-toggle">▾</span>
+          </div>
+          <div class="workflow-body">
+            <p>Confirmation, prep email, day before email</p>
+            <ul class="workflow-steps">
+              <li><span class="step-num">1</span>Add/Remove Tags: +confirmed shoot -lead contacted -new lead (automated)</li>
+              <li><span class="step-num">2</span>Send email: Headshot Booking Confirmation (automated)</li>
+              <li><span class="step-num">3</span>Send email: Prep Email (automated; 7 days before base date)</li>
+              <li><span class="step-num">4</span>Create Workflow: 🖼️ Headshots 3-Editing (automated)</li>
+              <li><span class="step-num">5</span>Send email: Day Before Session (automated)</li>
+            </ul>
+          </div>
+        </div>
+        <div class="workflow-item">
+          <div class="workflow-header" onclick="toggleWorkflow(this)">
+            <div class="workflow-header-left">
+              <div class="workflow-dot"></div>
+              <span class="workflow-name">🖼️ Headshots 3-Editing</span>
+              <span class="workflow-tag">8 stages</span>
+            </div>
+            <span class="workflow-toggle">▾</span>
+          </div>
+          <div class="workflow-body">
+            <p>Gallery setup, thank you, culling, favorites</p>
+            <ul class="workflow-steps">
+              <li><span class="step-num">1</span>🟢 make gallery in Pixiset to expire 30 days after shoot date (Kate)</li>
+              <li><span class="step-num">2</span>Add Tag: +editing (automated)</li>
+              <li><span class="step-num">3</span>Send email: Thank You - Actors (Casey; after above)</li>
+              <li><span class="step-num">4</span>🟣 dump photos onto studio computer/lightroom (Casey; 1 day after base date)</li>
+              <li><span class="step-num">5</span>🟣 cull images, save gallery link to project &amp; send (email will auto-send to client w/ link) (Casey; sends "Headshots - proof gallery" email upon completion)</li>
+              <li><span class="step-num">6</span>🟣 pull favorites from Pixiset into lightroom (email will auto-send to client to notify) (Casey; sends "Pulled Favs" email upon completion)</li>
+              <li><span class="step-num">7</span>Create Workflow: 🖼️ Headshots 4-Gallery Delivered (automated)</li>
+              <li><span class="step-num">8</span>🟣 notify Kate of final amount to invoice (Casey)</li>
+            </ul>
+          </div>
+        </div>
+        <div class="workflow-item">
+          <div class="workflow-header" onclick="toggleWorkflow(this)">
+            <div class="workflow-header-left">
+              <div class="workflow-dot"></div>
+              <span class="workflow-name">🖼️ Headshots 4-Gallery Delivered</span>
+              <span class="workflow-tag">10 stages</span>
+            </div>
+            <span class="workflow-toggle">▾</span>
+          </div>
+          <div class="workflow-body">
+            <p>Editing, client approval, wetransfer</p>
+            <ul class="workflow-steps">
+              <li><span class="step-num">1</span>🟣 prelim edits &amp; edit in evoto (Casey)</li>
+              <li><span class="step-num">2</span>🟣 export photos to archive (Casey)</li>
+              <li><span class="step-num">3</span>🟣 create proof of selected formatted headshot (Casey)</li>
+              <li><span class="step-num">4</span>Send email: Headshots - approve formatted (Kate)</li>
+              <li><span class="step-num">5</span>Pause for client print approval</li>
+              <li><span class="step-num">6</span>🟢 order headshot prints on whcc to ship to client (Kate)</li>
+              <li><span class="step-num">7</span>🟢 wetransfer client their headshots &amp; formatted headshots (email will auto-send to client to notify) (Kate; sends "Headshots - full delivery" email upon completion)</li>
+              <li><span class="step-num">8</span>Create Workflow: 🖼️ Headshots 5-Offboarding (automated)</li>
+              <li><span class="step-num">9</span>🟠 posts image(s) on social media, tagging client (Emma Jean)</li>
+              <li><span class="step-num">10</span>🟠 upload best image to the website portfolio (Emma Jean)</li>
+            </ul>
+          </div>
+        </div>
+        <div class="workflow-item">
+          <div class="workflow-header" onclick="toggleWorkflow(this)">
+            <div class="workflow-header-left">
+              <div class="workflow-dot"></div>
+              <span class="workflow-name">🖼️ Headshots 5-Offboarding</span>
+              <span class="workflow-tag">3 stages</span>
+            </div>
+            <span class="workflow-toggle">▾</span>
+          </div>
+          <div class="workflow-body">
+            <p>Review request and repeat reach out</p>
+            <ul class="workflow-steps">
+              <li><span class="step-num">1</span>Send email: Review Request (Casey; 7 days after workflow starts)</li>
+              <li><span class="step-num">2</span>Send email: Headshots - time for another session? (Kate; 340 days after previous item)</li>
+              <li><span class="step-num">3</span>Archive project (automated)</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════ PIPELINES ══════ -->
+  <section class="page-section" id="pipelines">
+    <div class="section-header">
+      <h1>Pipelines</h1>
+      <p>Visual maps of your Breathe Images pipelines; exactly how Nicole set them up in 17hats.</p>
+    </div>
+
+    <div class="card">
+      <div class="card-title">🗂️ Leads Pipeline</div>
+      <p style="font-size:13px; color:var(--text-light); margin-bottom:16px;">5 phases: tracks all incoming leads from first contact through booking or archive.</p>
+      <img src="https://i.imgur.com/tihkUTr.png" alt="Leads Pipeline" style="width:100%; border-radius:8px; border:1px solid var(--border);">
+    </div>
+
+    <div class="card">
+      <div class="card-title">🗂️ Photo Shoots Pipeline</div>
+      <p style="font-size:13px; color:var(--text-light); margin-bottom:16px;">4 phases: tracks confirmed shoots through pre-shoot prep, editing, and marketing handoff.</p>
+      <img src="https://i.imgur.com/MPxPIGV.png" alt="Photo Shoots Pipeline" style="width:100%; border-radius:8px; border:1px solid var(--border);">
+    </div>
+  </section>
+
+  <!-- ══════ AUTOMATIONS ══════ -->
+  <section class="page-section" id="automations">
+    <div class="section-header">
+      <h1>Automations</h1>
+      <p>Everything running automatically in the background of your 17hats account. Click any group to see the details.</p>
+    </div>
+
+    <div class="card">
+      <div class="card-title">⚙️ Automations Running in the Background</div>
+      <div class="workflow-list">
+        <div class="workflow-item">
+          <div class="workflow-header" onclick="toggleWorkflow(this)">
+            <div class="workflow-header-left">
+              <div class="workflow-dot"></div>
+              <span class="workflow-name">Lead Capture</span>
+              <span class="workflow-tag">4 automations</span>
+            </div>
+            <span class="workflow-toggle">▾</span>
+          </div>
+          <div class="workflow-body">
+            <p>These automations fire when a new lead submits the lead capture form.</p>
+            <ul class="workflow-steps">
+              <li><span class="step-num">1</span>Automatic email reply sent to client</li>
+              <li><span class="step-num">2</span>Client lands in "New Lead" phase of pipeline</li>
+              <li><span class="step-num">3</span>Project created</li>
+              <li><span class="step-num">4</span>Workflow starts according to service selected</li>
+            </ul>
+          </div>
+        </div>
+        <div class="workflow-item">
+          <div class="workflow-header" onclick="toggleWorkflow(this)">
+            <div class="workflow-header-left">
+              <div class="workflow-dot"></div>
+              <span class="workflow-name">Pipeline Phase Movements</span>
+              <span class="workflow-tag">11 automations</span>
+            </div>
+            <span class="workflow-toggle">▾</span>
+          </div>
+          <div class="workflow-body">
+            <p>Automatic pipeline phase changes triggered by workflow actions and time-based rules.</p>
+            <ul class="workflow-steps">
+              <li><span class="step-num">1</span>Lead lands in "New Lead" upon submitting lead capture form</li>
+              <li><span class="step-num">2</span>Lead moves to "Contacted" when Follow-up 1 email is sent (Headshots &amp; Events), or when Available email is sent (Theatre)</li>
+              <li><span class="step-num">3</span>Lead moves to "3 Days Old" 3 days after landing in "Contacted"</li>
+              <li><span class="step-num">4</span>Lead moves to "7+ Days Old" 4 days after above</li>
+              <li><span class="step-num">5</span>Lead moves to "Waiting on Payment" after Available email is sent (Theatre)</li>
+              <li><span class="step-num">6</span>Client moves to "Kate: pre-shoot" upon confirmed booking</li>
+              <li><span class="step-num">7</span>Client removed from "Kate: pre-shoot" after gallery creation marked completed</li>
+              <li><span class="step-num">8</span>Client moves to "Casey: editing" on shoot date</li>
+              <li><span class="step-num">9</span>Client moves to "Kate: proofs" after Casey completes creation of proof with selected headshot</li>
+              <li><span class="step-num">10</span>Client moves to "Emma Jean: marketing" when Kate completes wetransfer (Headshots) or when Casey selects favs in Pixiset (Theatre/Events)</li>
+              <li><span class="step-num">11</span>Client removed from "Emma Jean: marketing" when she completes website portfolio (Headshots) or when she uses images for planned posts (Theatre/Events)</li>
+            </ul>
+          </div>
+        </div>
+        <div class="workflow-item">
+          <div class="workflow-header" onclick="toggleWorkflow(this)">
+            <div class="workflow-header-left">
+              <div class="workflow-dot"></div>
+              <span class="workflow-name">Theatre &amp; Event Workflow Automations</span>
+              <span class="workflow-tag">10 automations</span>
+            </div>
+            <span class="workflow-toggle">▾</span>
+          </div>
+          <div class="workflow-body">
+            <p>Automated emails, tags, and workflow transitions within Theatre and Event workflows.</p>
+            <ul class="workflow-steps">
+              <li><span class="step-num">1</span>Theatre - Day Before email sends 1 day before base date</li>
+              <li><span class="step-num">2</span>Theatre/Event - first (press) images email sends upon checking "🟣 Edit press, dump in gallery &amp; save gallery link to project" to do as complete (🎭 Theatre 2-Event workflow and 🗓️ Events 3-Editing workflow)</li>
+              <li><span class="step-num">3</span>Theatre/Event - all images email sends upon checking "🟣 finish whole gallery; put in Pixieset &amp; archive" to do as complete (🎭 Theatre 2-Event workflow and 🗓️ Events 3-Editing workflow)</li>
+              <li><span class="step-num">4</span>🎭 Theatre 2-Event workflow automatically flows into ~Theatre/Events Gallery Delivered workflow after to-do above</li>
+              <li><span class="step-num">5</span>Gallery Deletion (updated) sends 23 days after ~Theatre/Events Gallery Delivered workflow is activated</li>
+              <li><span class="step-num">6</span>"confirmed shoot" tag automatically pauses 🗓️ Events 1-Inquiry workflow</li>
+              <li><span class="step-num">7</span>Event Booking Confirmation email sends upon checking "🟣 update proj &amp; invoice as needed (time &amp; tax); conf email will auto-send to client" to do as complete</li>
+              <li><span class="step-num">8</span>Event Booking 1 week out sends 7 days before base date</li>
+              <li><span class="step-num">9</span>🗓️ Events 2-Booking workflow flows into 🗓️ Events 3-Editing workflow after email above</li>
+              <li><span class="step-num">10</span>🗓️ Events 3-Editing workflow flows into ~Theatre/Events Gallery Delivered workflow after all images email</li>
+            </ul>
+          </div>
+        </div>
+        <div class="workflow-item">
+          <div class="workflow-header" onclick="toggleWorkflow(this)">
+            <div class="workflow-header-left">
+              <div class="workflow-dot"></div>
+              <span class="workflow-name">Headshot Workflow Automations</span>
+              <span class="workflow-tag">11 automations</span>
+            </div>
+            <span class="workflow-toggle">▾</span>
+          </div>
+          <div class="workflow-body">
+            <p>Automated emails, tags, and workflow transitions within Headshot workflows.</p>
+            <ul class="workflow-steps">
+              <li><span class="step-num">1</span>"confirmed shoot" tag automatically pauses 🖼️ Headshots 1-Inquiry workflow</li>
+              <li><span class="step-num">2</span>Headshot Booking Confirmation email sends after booking confirmed (🖼️ Headshots 2-Booking (Actors) workflow and 🖼️ Headshots 2-Booking (Corporate) workflow)</li>
+              <li><span class="step-num">3</span>Prep Email sends 7 days before base date (🖼️ Headshots 2-Booking (Actors) workflow and 🖼️ Headshots 2-Booking (Corporate) workflow)</li>
+              <li><span class="step-num">4</span>🖼️ Headshots 2-Booking (Actors) and 🖼️ Headshots 2-Booking (Corporate) workflows flow into 🖼️ Headshots 3-Editing workflow after email above</li>
+              <li><span class="step-num">5</span>Day Before Session email sends 1 day before base date (🖼️ Headshots 2-Booking (Actors) workflow and 🖼️ Headshots 2-Booking (Corporate) workflow)</li>
+              <li><span class="step-num">6</span>Headshots - proof gallery email sends upon checking "🟣 cull images, save gallery link to project &amp; send" to do as complete</li>
+              <li><span class="step-num">7</span>Pulled Favs email sends upon checking "🟣 pull favorites from Pixiset into lightroom" to do as complete</li>
+              <li><span class="step-num">8</span>🖼️ Headshots 3-Editing workflow flows into 🖼️ Headshots 4-Gallery Delivered workflow after email above</li>
+              <li><span class="step-num">9</span>Headshots - full delivery email sends upon checking "🟡 wetransfer client their headshots &amp; formatted headshots" to do as complete</li>
+              <li><span class="step-num">10</span>🖼️ Headshots 4-Gallery Delivered workflow flows into 🖼️ Headshots 5-Offboarding workflow after sending email above</li>
+              <li><span class="step-num">11</span>Headshot projects auto archive after Headshots - time for another session? email sends 340 days following initial shoot</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+<!-- ══════ BOOKINGS ══════ -->
+  <section class="page-section" id="bookings">
+    <div class="section-header">
+      <h1>Bookings</h1>
+      <p>Your availability schedules and the services/sessions configured within each one.</p>
+    </div>
+
+    <div class="card">
+      <div class="card-title">📅 Shoot Availability</div>
+      <div style="margin-bottom:16px;">
+        <a href="https://justbreathe.17hats.com/p#/scheduling/snzskzhdktwxscdsbrxksxwrwgbwbdtr" target="_blank" class="btn btn-outline" style="font-size:12px;">Open Scheduling Page →</a>
+      </div>
+      <div style="background:var(--copper-pale); border-radius:8px; padding:16px 18px; margin-bottom:20px;">
+        <div style="font-size:11px; letter-spacing:0.1em; text-transform:uppercase; color:var(--copper); margin-bottom:10px;">Schedule Details</div>
+        <div style="display:flex; flex-direction:column; gap:8px;">
+            <div style="display:flex; gap:10px; font-size:13px; color:var(--text-mid); line-height:1.5;">
+              <span style="color:var(--copper); font-weight:500; white-space:nowrap; min-width:160px;">Calendars cross-checked</span>
+              <span style="color:var(--text-light); font-style:italic;">Casey Gardner Ford - breatheimagesllc@gmail.com</span>
+            </div>
+            <div style="display:flex; gap:10px; font-size:13px; color:var(--text-mid); line-height:1.5;">
+              <span style="color:var(--copper); font-weight:500; white-space:nowrap; min-width:160px;">Can't book with less than</span>
+              <span style="color:var(--text-light); font-style:italic;">96 hours notice</span>
+            </div>
+            <div style="display:flex; gap:10px; font-size:13px; color:var(--text-mid); line-height:1.5;">
+              <span style="color:var(--copper); font-weight:500; white-space:nowrap; min-width:160px;">Can't book out more than</span>
+              <span style="color:var(--text-light); font-style:italic;">90 days</span>
+            </div>
+<div style="display:flex; gap:10px; font-size:13px; color:var(--text-mid); line-height:1.5;">
+              <span style="color:var(--copper); font-weight:500; white-space:nowrap; min-width:160px;">Limit(s) per day/week</span>
+              <span style="color:var(--text-light); font-style:italic;">3 per day</span>
+            </div>
+            <div style="display:flex; gap:10px; font-size:13px; color:var(--text-mid); line-height:1.5;">
+              <span style="color:var(--copper); font-weight:500; white-space:nowrap; min-width:160px;">Prevent cancelling within</span>
+              <span style="color:var(--text-light); font-style:italic;">48 hours</span>
+            </div>
+            <div style="display:flex; gap:10px; font-size:13px; color:var(--text-mid); line-height:1.5;">
+              <span style="color:var(--copper); font-weight:500; white-space:nowrap; min-width:160px;">General availability</span>
+              <span style="color:var(--text-light); font-style:italic;">Mon, Wed, Thurs 9am-5pm</span>
+            </div>
+        </div>
+      </div>
+      <div class="workflow-list">
+        <div class="workflow-item">
+          <div class="workflow-header" onclick="toggleWorkflow(this)">
+            <div class="workflow-header-left">
+              <div class="workflow-dot"></div>
+              <span class="workflow-name">In Studio Actor Headshot Session</span>
+              <span class="workflow-tag">service</span>
+            </div>
+            <span class="workflow-toggle">▾</span>
+          </div>
+          <div class="workflow-body">
+            <div style="display:flex; flex-direction:column; gap:8px;">
+              <div style="display:flex; gap:10px; font-size:13px; color:var(--text-mid); line-height:1.5;"><span style="color:var(--copper); font-weight:500; white-space:nowrap; min-width:160px;">Duration</span><span style="color:var(--text-light); font-style:italic;">45 minutes</span></div>
+              <div style="display:flex; gap:10px; font-size:13px; color:var(--text-mid); line-height:1.5;"><span style="color:var(--copper); font-weight:500; white-space:nowrap; min-width:160px;">Buffer(s)</span><span style="color:var(--text-light); font-style:italic;">15 min after</span></div>
+              <div style="display:flex; gap:10px; font-size:13px; color:var(--text-mid); line-height:1.5;"><span style="color:var(--copper); font-weight:500; white-space:nowrap; min-width:160px;">Questions</span><span style="color:var(--text-light); font-style:italic;">Do you have an agent/agency?; Have you ever had your headshots taken before?; With your headshots, you will receive some printed headshots! So I need your shipping address to streamline the ordering process. Please put in the address you would like me to ship those goodies to. (text); Address (maps to Address line 1); City (maps to Address city); State (maps to Address state); Zip Code (maps to Address zip code)</span></div>
+              <div style="display:flex; gap:10px; font-size:13px; color:var(--text-mid); line-height:1.5;"><span style="color:var(--copper); font-weight:500; white-space:nowrap; min-width:160px;">Payments</span><span style="color:var(--text-light); font-style:italic;">In Studio Actor Headshot ($400; w/ Fulton County tax; $100 due at booking; remainder 1 day after booking date)</span></div>
+              <div style="display:flex; gap:10px; font-size:13px; color:var(--text-mid); line-height:1.5;"><span style="color:var(--copper); font-weight:500; white-space:nowrap; min-width:160px;">Location</span><span style="color:var(--text-light); font-style:italic;">Breathe Images Studio</span></div>
+              <div style="display:flex; gap:10px; font-size:13px; color:var(--text-mid); line-height:1.5;"><span style="color:var(--copper); font-weight:500; white-space:nowrap; min-width:160px;">Messaging</span><span style="color:var(--text-light); font-style:italic;">n/a</span></div>
+              <div style="display:flex; gap:10px; font-size:13px; color:var(--text-mid); line-height:1.5;"><span style="color:var(--copper); font-weight:500; white-space:nowrap; min-width:160px;">Project management</span><span style="color:var(--text-light); font-style:italic;">adds "actor headshots" contact tag, adds to last project if available</span></div>
+              <div style="display:flex; gap:10px; font-size:13px; color:var(--text-mid); line-height:1.5;"><span style="color:var(--copper); font-weight:500; white-space:nowrap; min-width:160px;">Approval settings</span><span style="color:var(--text-light); font-style:italic;">n/a</span></div>
+              <div style="display:flex; gap:10px; font-size:13px; color:var(--text-mid); line-height:1.5;"><span style="color:var(--copper); font-weight:500; white-space:nowrap; min-width:160px;">Confirmation settings</span><span style="color:var(--text-light); font-style:italic;">lands on breatheimagesllc@gmail.com calendar, WILL START NEW WORKFLOW AFTER APPROVAL</span></div>
+              <div style="display:flex; gap:10px; font-size:13px; color:var(--text-mid); line-height:1.5;"><span style="color:var(--copper); font-weight:500; white-space:nowrap; min-width:160px;">Cancellation settings</span><span style="color:var(--text-light); font-style:italic;">n/a</span></div>
+              <div style="display:flex; gap:10px; font-size:13px; color:var(--text-mid); line-height:1.5;"><span style="color:var(--copper); font-weight:500; white-space:nowrap; min-width:160px;">Reminder settings</span><span style="color:var(--text-light); font-style:italic;">n/a (in workflow)</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="workflow-item">
+          <div class="workflow-header" onclick="toggleWorkflow(this)">
+            <div class="workflow-header-left">
+              <div class="workflow-dot"></div>
+              <span class="workflow-name">In Studio Corporate Headshot Session</span>
+              <span class="workflow-tag">service</span>
+            </div>
+            <span class="workflow-toggle">▾</span>
+          </div>
+          <div class="workflow-body">
+            <div style="display:flex; flex-direction:column; gap:8px;">
+              <div style="display:flex; gap:10px; font-size:13px; color:var(--text-mid); line-height:1.5;"><span style="color:var(--copper); font-weight:500; white-space:nowrap; min-width:160px;">Duration</span><span style="color:var(--text-light); font-style:italic;">45 minutes</span></div>
+              <div style="display:flex; gap:10px; font-size:13px; color:var(--text-mid); line-height:1.5;"><span style="color:var(--copper); font-weight:500; white-space:nowrap; min-width:160px;">Buffer(s)</span><span style="color:var(--text-light); font-style:italic;">n/a</span></div>
+              <div style="display:flex; gap:10px; font-size:13px; color:var(--text-mid); line-height:1.5;"><span style="color:var(--copper); font-weight:500; white-space:nowrap; min-width:160px;">Questions</span><span style="color:var(--text-light); font-style:italic;">n/a</span></div>
+              <div style="display:flex; gap:10px; font-size:13px; color:var(--text-mid); line-height:1.5;"><span style="color:var(--copper); font-weight:500; white-space:nowrap; min-width:160px;">Payments</span><span style="color:var(--text-light); font-style:italic;">SINGLE Corporate/High School Headshot ($400; Fulton County tax; Pay in full w/ tips enabled)</span></div>
+              <div style="display:flex; gap:10px; font-size:13px; color:var(--text-mid); line-height:1.5;"><span style="color:var(--copper); font-weight:500; white-space:nowrap; min-width:160px;">Location</span><span style="color:var(--text-light); font-style:italic;">Breathe Images Studio</span></div>
+              <div style="display:flex; gap:10px; font-size:13px; color:var(--text-mid); line-height:1.5;"><span style="color:var(--copper); font-weight:500; white-space:nowrap; min-width:160px;">Messaging</span><span style="color:var(--text-light); font-style:italic;">n/a</span></div>
+              <div style="display:flex; gap:10px; font-size:13px; color:var(--text-mid); line-height:1.5;"><span style="color:var(--copper); font-weight:500; white-space:nowrap; min-width:160px;">Project management</span><span style="color:var(--text-light); font-style:italic;">adds "pro headshots" contact and project tag, also adds "corporate" and "headshots" project tags, adds to last project if available</span></div>
+              <div style="display:flex; gap:10px; font-size:13px; color:var(--text-mid); line-height:1.5;"><span style="color:var(--copper); font-weight:500; white-space:nowrap; min-width:160px;">Approval settings</span><span style="color:var(--text-light); font-style:italic;">n/a</span></div>
+              <div style="display:flex; gap:10px; font-size:13px; color:var(--text-mid); line-height:1.5;"><span style="color:var(--copper); font-weight:500; white-space:nowrap; min-width:160px;">Confirmation settings</span><span style="color:var(--text-light); font-style:italic;">lands on breatheimagesllc@gmail.com calendar, WILL START NEW WORKFLOW UPON APPROVAL</span></div>
+              <div style="display:flex; gap:10px; font-size:13px; color:var(--text-mid); line-height:1.5;"><span style="color:var(--copper); font-weight:500; white-space:nowrap; min-width:160px;">Cancellation settings</span><span style="color:var(--text-light); font-style:italic;">n/a</span></div>
+              <div style="display:flex; gap:10px; font-size:13px; color:var(--text-mid); line-height:1.5;"><span style="color:var(--copper); font-weight:500; white-space:nowrap; min-width:160px;">Reminder settings</span><span style="color:var(--text-light); font-style:italic;">n/a (in workflow)</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">📅 Event Photography</div>
+      <div style="margin-bottom:16px;">
+        <a href="https://justbreathe.17hats.com/p#/scheduling/vMY3rs7JLSns" target="_blank" class="btn btn-outline" style="font-size:12px;">Open Scheduling Page →</a>
+      </div>
+      <div style="background:var(--copper-pale); border-radius:8px; padding:16px 18px; margin-bottom:20px;">
+        <div style="font-size:11px; letter-spacing:0.1em; text-transform:uppercase; color:var(--copper); margin-bottom:10px;">Schedule Details</div>
+        <div style="display:flex; flex-direction:column; gap:8px;">
+            <div style="display:flex; gap:10px; font-size:13px; color:var(--text-mid); line-height:1.5;">
+              <span style="color:var(--copper); font-weight:500; white-space:nowrap; min-width:160px;">Calendars cross-checked</span>
+              <span style="color:var(--text-light); font-style:italic;">Casey Gardner Ford - Booked Calendar, Casey Gardner Ford - Lead Calendar, Casey Gardner Ford - breatheimagesllc@gmail.com</span>
+            </div>
+            <div style="display:flex; gap:10px; font-size:13px; color:var(--text-mid); line-height:1.5;">
+              <span style="color:var(--copper); font-weight:500; white-space:nowrap; min-width:160px;">Can't book with less than</span>
+              <span style="color:var(--text-light); font-style:italic;">48 hours notice</span>
+            </div>
+            <div style="display:flex; gap:10px; font-size:13px; color:var(--text-mid); line-height:1.5;">
+              <span style="color:var(--copper); font-weight:500; white-space:nowrap; min-width:160px;">Can't book out more than</span>
+              <span style="color:var(--text-light); font-style:italic;">180 days</span>
+            </div>
+            <div style="display:flex; gap:10px; font-size:13px; color:var(--text-mid); line-height:1.5;">
+              <span style="color:var(--copper); font-weight:500; white-space:nowrap; min-width:160px;">Prevent cancelling within</span>
+              <span style="color:var(--text-light); font-style:italic;">48 hours</span>
+            </div>
+            <div style="display:flex; gap:10px; font-size:13px; color:var(--text-mid); line-height:1.5;">
+              <span style="color:var(--copper); font-weight:500; white-space:nowrap; min-width:160px;">General availability</span>
+              <span style="color:var(--text-light); font-style:italic;">Every day, 5am-11:30pm</span>
+            </div>
+        </div>
+      </div>
+      <div class="workflow-list">
+        <div class="workflow-item">
+          <div class="workflow-header" onclick="toggleWorkflow(this)">
+            <div class="workflow-header-left">
+              <div class="workflow-dot"></div>
+              <span class="workflow-name">Event Photography</span>
+              <span class="workflow-tag">service</span>
+            </div>
+            <span class="workflow-toggle">▾</span>
+          </div>
+          <div class="workflow-body">
+            <div style="display:flex; flex-direction:column; gap:8px;">
+              <div style="display:flex; gap:10px; font-size:13px; color:var(--text-mid); line-height:1.5;"><span style="color:var(--copper); font-weight:500; white-space:nowrap; min-width:160px;">Duration</span><span style="color:var(--text-light); font-style:italic;">120 minutes</span></div>
+              <div style="display:flex; gap:10px; font-size:13px; color:var(--text-mid); line-height:1.5;"><span style="color:var(--copper); font-weight:500; white-space:nowrap; min-width:160px;">Buffer(s)</span><span style="color:var(--text-light); font-style:italic;">30 min before and after</span></div>
+              <div style="display:flex; gap:10px; font-size:13px; color:var(--text-mid); line-height:1.5;"><span style="color:var(--copper); font-weight:500; white-space:nowrap; min-width:160px;">Questions</span><span style="color:var(--text-light); font-style:italic;">What type of event are we photographing? (maps to Project name); What is the event location? (Full & exact address, please!) (maps to event location); We have a 2-hour minimum for event photography; how long will you want our services? (maps to Project notes); And how should we address the invoice? (text); Address (maps to Address line 1); City (maps to Address city); State (maps to Address state); Zip Code (maps to Address zip code); What should we know about the event, the location, or anything else? (The more info the better!) (Optional) (maps to Project notes</span></div>
+              <div style="display:flex; gap:10px; font-size:13px; color:var(--text-mid); line-height:1.5;"><span style="color:var(--copper); font-weight:500; white-space:nowrap; min-width:160px;">Payments</span><span style="color:var(--text-light); font-style:italic;">Event Photography service ($500 for first two hours, $100 for each additional hour) $100 due at booking; remainder due on booking date</span></div>
+              <div style="display:flex; gap:10px; font-size:13px; color:var(--text-mid); line-height:1.5;"><span style="color:var(--copper); font-weight:500; white-space:nowrap; min-width:160px;">Location</span><span style="color:var(--text-light); font-style:italic;">n/a</span></div>
+              <div style="display:flex; gap:10px; font-size:13px; color:var(--text-mid); line-height:1.5;"><span style="color:var(--copper); font-weight:500; white-space:nowrap; min-width:160px;">Messaging</span><span style="color:var(--text-light); font-style:italic;">Terms: Note that your invoice will be adjusted to reflect actual event duration and any applicable tax. Your deposit holds the date.</span></div>
+              <div style="display:flex; gap:10px; font-size:13px; color:var(--text-mid); line-height:1.5;"><span style="color:var(--copper); font-weight:500; white-space:nowrap; min-width:160px;">Project management</span><span style="color:var(--text-light); font-style:italic;">adds "event photography" tag to contact and project; adds to last project if available</span></div>
+              <div style="display:flex; gap:10px; font-size:13px; color:var(--text-mid); line-height:1.5;"><span style="color:var(--copper); font-weight:500; white-space:nowrap; min-width:160px;">Approval settings</span><span style="color:var(--text-light); font-style:italic;">n/a</span></div>
+              <div style="display:flex; gap:10px; font-size:13px; color:var(--text-mid); line-height:1.5;"><span style="color:var(--copper); font-weight:500; white-space:nowrap; min-width:160px;">Confirmation settings</span><span style="color:var(--text-light); font-style:italic;">goes to breatheimagesllc@gmail.com calendar; starts Events 2-Booking workflow</span></div>
+              <div style="display:flex; gap:10px; font-size:13px; color:var(--text-mid); line-height:1.5;"><span style="color:var(--copper); font-weight:500; white-space:nowrap; min-width:160px;">Cancellation settings</span><span style="color:var(--text-light); font-style:italic;">n/a</span></div>
+              <div style="display:flex; gap:10px; font-size:13px; color:var(--text-mid); line-height:1.5;"><span style="color:var(--copper); font-weight:500; white-space:nowrap; min-width:160px;">Reminder settings</span><span style="color:var(--text-light); font-style:italic;">n/a (in workflow)</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════ RECOMMENDED UPDATES ══════ -->
+  <section class="page-section" id="updates">
+    <div class="section-header">
+      <h1>Recommended Updates</h1>
+      <p>As your business grows, your 17hats system should grow with it. Here's what Nicole recommends revisiting.</p>
+    </div>
+
+    <div class="update-timeline">
+
+      <div class="update-item">
+        <div class="update-timing">3 months in · September 2026</div>
+        <div class="update-title">Review your email templates</div>
+        <div class="update-desc">After a few months of using your automated emails, review the language and tone. Your voice may have evolved, and you may want to tweak the wording based on how clients respond.</div>
+      </div>
+
+      <div class="update-item">
+        <div class="update-timing">6 months in · December 2026</div>
+        <div class="update-title">Recommended tune-up</div>
+        <div class="update-desc">At the 6-month mark, Nicole recommends a quick check-in to make sure your workflows still match how you're operating. New event types, team changes, or pricing updates may warrant adjustments.</div>
+      </div>
+
+      <div class="update-item">
+        <div class="update-timing">12 months · June 2027</div>
+        <div class="update-title">Full system audit</div>
+        <div class="update-desc">At the one-year mark, it's worth doing a complete review; active pipelines, automation sequences, unused tags, and new 17hats features. Nicole offers a 1-hour Audit service for this.</div>
+      </div>
+
+      <div class="update-item">
+        <div class="update-timing">Ongoing</div>
+        <div class="update-title">New 17hats features</div>
+        <div class="update-desc">17hats releases updates regularly. Nicole covers new features on YouTube as they drop; check the "What's New" section of this portal to stay up to date.</div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ══════ ZOOM SESSIONS ══════ -->
+  <section class="page-section" id="zoom-recordings">
+    <div class="section-header">
+      <h1>Zoom Sessions</h1>
+      <p>All your session recordings with Nicole in one place: watch, rewatch, and reference anytime.</p>
+    </div>
+
+    <div class="card">
+      <div class="card-title">🎥 Session 1 · Walkthrough</div>
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; flex-wrap:wrap; gap:10px;">
+        <span style="font-size:12px; color:var(--text-light); letter-spacing:0.05em;">June 25, 2026</span>
+      </div>
+      <div style="background:var(--green-pale); border-radius:8px; padding:16px 18px;">
+        <div style="font-size:11px; letter-spacing:0.1em; text-transform:uppercase; color:var(--text-light); margin-bottom:10px;">Session Notes</div>
+        <p style="font-size:13px; color:var(--text-light); font-style:italic;">Recording link and notes will be added after the session.</p>
+      </div>
+    </div>
+
+    <!-- "More coming" placeholder -->
+    <div class="card" style="border: 1px dashed var(--border); background: var(--cream);">
+      <div style="text-align:center; padding: 20px 0;">
+        <div style="font-size:28px; margin-bottom:10px;">🎥</div>
+        <div style="font-size:14px; font-weight:500; color:var(--text-mid); margin-bottom:6px;">More recordings will appear here</div>
+        <div style="font-size:12.5px; color:var(--text-light);">Nicole adds new sessions as they're completed.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════ WHAT'S NEW ══════ -->
+  <section class="page-section" id="whats-new">
+    <div class="section-header">
+      <h1>What's New from Nicole</h1>
+      <p>Latest posts, videos, and tips; all relevant to your 17hats setup.</p>
+    </div>
+
+    <div class="card" id="announcements-card" style="display:none;">
+      <div class="card-title">✨ From Nicole</div>
+      <div id="announcements-list" style="display:flex; flex-direction:column; gap:12px;"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">📹 Latest YouTube Videos</div>
+      <div style="margin-bottom:14px;">
+        <iframe
+          src="https://www.youtube.com/embed/videoseries?list=PLpfpFiNP9vG4dosv5VjAlmvMc9GjF0j7B&rel=0"
+          style="width:100%; height:360px; border:none; border-radius:10px;"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowfullscreen>
+        </iframe>
+      </div>
+      <a href="https://youtube.com/@letnicolehelp" target="_blank" class="btn btn-outline" style="font-size:12px;">View all on YouTube →</a>
+    </div>
+
+    <div class="card">
+      <div class="card-title">✍️ Latest from Nicole's Blog</div>
+      <div id="blog-loading" style="text-align:center; padding:30px; color:var(--text-light); font-size:13px;">Loading latest posts...</div>
+      <div class="content-grid" id="blog-grid" style="display:none;"></div>
+      <div id="blog-error" style="display:none; text-align:center; padding:20px;">
+        <p style="font-size:13px; color:var(--text-light); margin-bottom:12px;">Couldn't load posts automatically.</p>
+        <a href="https://www.letnicolehelp.com/blog" target="_blank" class="btn btn-outline">View Blog →</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════ RESOURCE LIBRARY ══════ -->
+  <section class="page-section" id="resources">
+    <div class="section-header">
+      <h1>Resource Library</h1>
+      <p>Tools, links, and references hand-picked for your setup.</p>
+    </div>
+
+    <div class="resources-grid">
+      <a href="https://help.17hats.com" target="_blank" class="resource-card">
+        <div class="resource-icon">📚</div>
+        <div class="resource-title">17hats Help Center</div>
+        <div class="resource-desc">Official documentation for any feature or question about your account.</div>
+      </a>
+      <a href="https://letnicolehelp.com" target="_blank" class="resource-card">
+        <div class="resource-icon">🌐</div>
+        <div class="resource-title">letnicolehelp.com</div>
+        <div class="resource-desc">Blog posts, guides, and services from Nicole; your ongoing 17hats resource.</div>
+      </a>
+      <a href="https://youtube.com/@letnicolehelp" target="_blank" class="resource-card">
+        <div class="resource-icon">▶</div>
+        <div class="resource-title">Nicole's YouTube Channel</div>
+        <div class="resource-desc">How-to videos, 17hats walkthroughs, and feature deep dives.</div>
+      </a>
+      <a href="#" class="resource-card" onclick="showSection('ask-robot-nicole')">
+        <div class="resource-icon">◎</div>
+        <div class="resource-title">Ask Robot Nicole</div>
+        <div class="resource-desc">Robot Nicole is trained on your 17hats setup. Ask it anything, anytime.</div>
+      </a>
+      <a href="https://instagram.com/letnicolehelp" target="_blank" class="resource-card">
+        <div class="resource-icon">📱</div>
+        <div class="resource-title">@letnicolehelp on Instagram</div>
+        <div class="resource-desc">Quick 17hats tips, reels, and behind-the-scenes from Nicole.</div>
+      </a>
+      <a href="https://letnicolehelp.17hats.com/p#/scheduling/ktcgccxcfptwkcbrhgzsvkdzsgpcxntx/s/61821" target="_blank" class="resource-card">
+        <div class="resource-icon">📅</div>
+        <div class="resource-title">Book a Tech Check</div>
+        <div class="resource-desc">Ready for an update? Book a call with Nicole.</div>
+      </a>
+    </div>
+  </section>
+
+  <!-- ══════ ASK ROBOT NICOLE ══════ -->
+  <section class="page-section" id="ask-robot-nicole">
+    <div class="section-header">
+      <h1>Ask Robot Nicole</h1>
+      <p>Robot Nicole knows your Breathe Images 17hats setup. Ask it anything; workflows, automations, how Nicole configured something, 17hats how-tos.</p>
+    </div>
+
+    <div class="chat-wrapper">
+      <div class="chat-header">
+        <div class="chat-avatar">◎</div>
+        <div class="chat-header-info">
+          <h3>Claude · Breathe Images Assistant</h3>
+          <p>Trained on your 17hats setup by Nicole · letnicolehelp.com</p>
+        </div>
+      </div>
+      <div class="chat-messages" id="chatMessages">
+        <div class="message assistant">
+          <div class="message-avatar assistant-avatar">◎</div>
+          <div class="message-bubble">Hi! I'm Robot Nicole, configured specifically for <strong>Breathe Images'</strong> 17hats setup. I know how Nicole built your workflows, automations and pipelines. Ask me anything, like "How does my Theatre inquiry workflow work?" or "What happens automatically when a lead comes in?"</div>
+        </div>
+      </div>
+      <div class="chat-input-area">
+        <textarea class="chat-input" id="chatInput" placeholder="Ask about your 17hats setup..." rows="1" onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+        <button class="chat-send" id="sendBtn" onclick="sendMessage()">➤</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════ GET HELP ══════ -->
+  <section class="page-section" id="get-help">
+    <div class="section-header">
+      <h1>Get Help from Nicole</h1>
+      <p>When you need more than your portal can offer; Nicole's here.</p>
+    </div>
+
+    <div class="two-col">
+      <div class="card">
+        <div class="card-title">📅 Book a Session</div>
+        <p style="font-size:13.5px; color:var(--text-mid); line-height:1.7; margin-bottom:20px;">Your setup includes two 1-hour walkthrough Tech Check calls, but additional call packs are always available!</p>
+        <a href="https://letnicolehelp.17hats.com/p#/lcf/xnngshvxghfzwsnxzpvzbndcxxsfwndb" target="_blank" class="btn btn-copper">Book a Tech Check Call →</a>
+      </div>
+
+      <div class="card">
+        <div class="card-title">📧 Send Nicole a Message</div>
+        <p style="font-size:13.5px; color:var(--text-mid); line-height:1.7; margin-bottom:20px;">Have a question that Robot Nicole can't answer? Reach out directly. Nicole typically responds within 1-2 business days.</p>
+        <div style="display:flex; flex-direction:column; gap:10px;">
+          <input type="text" id="msgSubject" placeholder="Subject" style="border:1px solid var(--border); border-radius:7px; padding:10px 13px; font-family:'Montserrat',sans-serif; font-size:13px; outline:none; color:var(--text); background:var(--cream);">
+          <textarea rows="4" id="msgBody" placeholder="Your question or request..." style="border:1px solid var(--border); border-radius:7px; padding:10px 13px; font-family:'Montserrat',sans-serif; font-size:13px; outline:none; color:var(--text); background:var(--cream); resize:none;"></textarea>
+          <button class="btn btn-primary" style="align-self:flex-start;" onclick="openEmail()">Send Message →</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="background: var(--green-pale);">
+      <div class="card-title">💌 Stay in Nicole's World</div>
+      <div class="resources-grid" style="margin:0;">
+        <a href="https://youtube.com/@letnicolehelp" target="_blank" class="resource-card">
+          <div class="resource-icon">▶</div>
+          <div class="resource-title">YouTube</div>
+        </a>
+        <a href="https://instagram.com/letnicolehelp" target="_blank" class="resource-card">
+          <div class="resource-icon">📸</div>
+          <div class="resource-title">Instagram</div>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════ REQUEST A CHANGE ══════ -->
+  <section class="page-section" id="requests">
+    <div class="section-header">
+      <h1>Request a Change</h1>
+      <p>Want to update something in your 17hats setup? Submit it here and Nicole will review it within 1-2 business days.</p>
+    </div>
+
+    <div class="card" style="border-left: 3px solid var(--copper);">
+      <div class="card-title">💡 Before you submit</div>
+      <p style="font-size:13.5px; color:var(--text-mid); line-height:1.7;">Not sure if your request is a quick fix or something bigger? Ask Robot Nicole first; she can help you figure out what's involved before you submit. Minor updates to existing workflows are typically included in your annual maintenance. New workflows, pipelines, or event types are quoted separately.</p>
+    </div>
+
+    <div class="card">
+      <div class="card-title">✏️ Submit a Change Request</div>
+      <div style="display:flex; flex-direction:column; gap:14px;">
+        <div>
+          <label style="font-size:11px; letter-spacing:0.1em; text-transform:uppercase; color:var(--text-light); display:block; margin-bottom:6px;">Request Summary *</label>
+          <input type="text" id="req-summary" placeholder="e.g. Add a new event type for corporate orders" style="width:100%; border:1px solid var(--border); border-radius:7px; padding:10px 13px; font-family:'Montserrat',sans-serif; font-size:13px; outline:none; color:var(--text); background:var(--cream);">
+        </div>
+        <div>
+          <label style="font-size:11px; letter-spacing:0.1em; text-transform:uppercase; color:var(--text-light); display:block; margin-bottom:6px;">Full Details *</label>
+          <textarea id="req-detail" rows="4" placeholder="Describe exactly what you'd like changed or added..." style="width:100%; border:1px solid var(--border); border-radius:7px; padding:10px 13px; font-family:'Montserrat',sans-serif; font-size:13px; outline:none; color:var(--text); background:var(--cream); resize:vertical;"></textarea>
+        </div>
+        <div>
+          <label style="font-size:11px; letter-spacing:0.1em; text-transform:uppercase; color:var(--text-light); display:block; margin-bottom:6px;">Why / Context</label>
+          <textarea id="req-why" rows="2" placeholder="Why do you need this change? What's happening in your business?" style="width:100%; border:1px solid var(--border); border-radius:7px; padding:10px 13px; font-family:'Montserrat',sans-serif; font-size:13px; outline:none; color:var(--text); background:var(--cream); resize:vertical;"></textarea>
+        </div>
+        <div>
+          <label style="font-size:11px; letter-spacing:0.1em; text-transform:uppercase; color:var(--text-light); display:block; margin-bottom:6px;">Urgency</label>
+          <select id="req-urgency" style="width:100%; border:1px solid var(--border); border-radius:7px; padding:10px 13px; font-family:'Montserrat',sans-serif; font-size:13px; outline:none; color:var(--text); background:var(--cream);">
+            <option value="Normal">Normal; no rush</option>
+            <option value="High">High; needed soon</option>
+            <option value="Low">Low; whenever you get to it</option>
+          </select>
+        </div>
+        <div>
+          <button class="btn btn-copper" id="req-submit-btn" onclick="submitRequest()">Submit Request →</button>
+          <div id="req-status" style="font-size:13px; margin-top:10px; display:none;"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<script>
+// ================================================================
+// PASSWORD + PORTAL CONFIG
+// ================================================================
+const PORTAL_PASSWORD    = 'BreatheCGF';  // ← Nicole: set the client password here
+const PORTAL_LAST_UPDATED = 'June 23, 2026';
+const WHATS_NEW_UPDATED   = '2026-06-23T00:00:00Z';
+const CLIENT_KEY          = 'breathe_images';
+
+function checkPassword() {
+  const input = document.getElementById('pwInput');
+  if (input.value === PORTAL_PASSWORD) {
+    document.getElementById('pwOverlay').classList.add('unlocked');
+    setTimeout(() => {
+      document.getElementById('pwOverlay').style.display = 'none';
+      const welcomed = localStorage.getItem(CLIENT_KEY + '_welcomed');
+      if (!welcomed) {
+        document.getElementById('welcomeModal').style.display = 'flex';
+        localStorage.setItem(CLIENT_KEY + '_welcomed', '1');
+      }
+    }, 500);
+    initPortal();
+  } else {
+    input.classList.add('shake');
+    document.getElementById('pwError').textContent = 'Incorrect password. Try again.';
+    setTimeout(() => input.classList.remove('shake'), 400);
+  }
+}
+
+function dismissWelcome() {
+  const modal = document.getElementById('welcomeModal');
+  if (modal) { modal.classList.add('unlocked'); setTimeout(() => modal.style.display = 'none', 500); }
+}
+
+function initPortal() {
+  const el = document.getElementById('lastUpdatedLine');
+  if (el) el.textContent = 'Last updated: ' + PORTAL_LAST_UPDATED;
+  const lastSeen = localStorage.getItem(CLIENT_KEY + '_news_seen');
+  const badge = document.getElementById('newsBadge');
+  if (badge && (!lastSeen || new Date(lastSeen) < new Date(WHATS_NEW_UPDATED))) {
+    badge.style.display = 'inline-block';
+  }
+}
+
+// ================================================================
+// ACCOUNT AGE
+// ================================================================
+(function() {
+  const setupDate   = new Date('2026-06-22');
+  const checkInDate = new Date('2026-12-22');
+  const now = new Date();
+  const ageEl = document.getElementById('acctAge');
+  const statusEl = document.getElementById('reviewStatus');
+  if (!ageEl || !statusEl) return;
+  const daysSinceSetup = Math.floor((now - setupDate) / (1000 * 60 * 60 * 24));
+  const months = Math.floor(daysSinceSetup / 30);
+  if (daysSinceSetup < 30) { ageEl.textContent = 'New!'; }
+  else if (months < 12) { ageEl.textContent = months + ' mo'; }
+  else { const yrs = Math.floor(months / 12); const mo = months % 12; ageEl.textContent = yrs + 'yr' + (mo > 0 ? ' ' + mo + 'mo' : ''); }
+  if (now >= checkInDate) { statusEl.textContent = 'Tune-up review due ✦'; statusEl.style.color = 'var(--copper)'; }
+  else { const daysUntil = Math.ceil((checkInDate - now) / (1000 * 60 * 60 * 24)); statusEl.textContent = 'Tune-up in ' + daysUntil + ' days'; statusEl.style.color = 'var(--text-light)'; }
+})();
+
+// ================================================================
+// NAVIGATION
+// ================================================================
+function showSection(id) {
+  document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const matchingNav = document.querySelector('.nav-item[onclick*="' + id + '"]');
+  if (matchingNav) matchingNav.classList.add('active');
+  window.scrollTo(0, 0);
+  if (id === 'whats-new') {
+    const badge = document.getElementById('newsBadge');
+    if (badge) badge.style.display = 'none';
+  }
+  closeMobileMenu();
+}
+
+function toggleWorkflow(header) {
+  const body = header.nextElementSibling;
+  const toggle = header.querySelector('.workflow-toggle');
+  body.classList.toggle('open');
+  toggle.classList.toggle('open');
+}
+
+function toggleMobileMenu() {
+  document.querySelector('.sidebar').classList.toggle('mobile-open');
+  document.getElementById('hamburger').classList.toggle('open');
+  document.getElementById('mobileOverlay').classList.toggle('visible');
+}
+
+function closeMobileMenu() {
+  document.querySelector('.sidebar').classList.remove('mobile-open');
+  document.getElementById('hamburger').classList.remove('open');
+  document.getElementById('mobileOverlay').classList.remove('visible');
+}
+
+function printSection() { window.print(); }
+
+function openEmail() {
+  const subject = document.getElementById('msgSubject').value.trim() || 'Question about my 17hats setup';
+  const body    = document.getElementById('msgBody').value.trim() || '';
+  window.location.href = 'mailto:nicole@letnicolehelp.com?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(body);
+}
+
+document.querySelectorAll('.nav-item').forEach(item => {
+  item.addEventListener('click', function() {
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    this.classList.add('active');
+  });
+});
+
+// ================================================================
+// ASK CLAUDE — CLIENT CONTEXT
+// ================================================================
+
+const CLIENT_CONTEXT = `You are an AI assistant built into a private client portal created by Nicole at Let Nicole Help (letnicolehelp.com), a 17hats setup specialist.
+
+CLIENT NAME: Breathe Images
+SETUP DATE: June 2026
+BUSINESS TYPE: Photography (theatre, events, headshots)
+EVENT TYPES: Theatre photography, event photography, headshot photography (actors and corporate)
+
+TEAM MEMBERS:
+- Casey: handles initial lead contact, editing, raw image processing
+- Kate: handles invoicing, gallery creation in Pixiset, proofing, wetransfer delivery
+- Emma Jean: handles marketing; website portfolio updates, social media posts from selected images
+
+DAILY WORKFLOW:
+Dashboard is the daily starting point for everyone on the team; workflow and to-do items appear there by due date. Pipelines give the bird's eye view of all leads and clients (navigate between pipelines top right). When entering a project, check "What's coming up in the next 7 days" first, then click into the workflow to see completed and upcoming steps.
+
+PIPELINES:
+1. Leads Pipeline (5 phases): New Lead → Contacted → 3 Days Old → 7+ Days Old → Waiting on Payment
+2. Photo Shoots Pipeline (4 phases): Kate: pre-shoot → Casey: editing → Kate: proofs → Emma Jean: marketing
+
+WORKFLOWS BUILT:
+
+THEATRE WORKFLOWS:
+1. 🎭 Theatre 1-Inquiry (5 stages): Adding events to calendar, confirming with client, sending invoice
+   Steps: Edit project to add 1st date/time/location and attach Theatre 2-Event workflow (Casey) → Add additional dates/times/locations as project events and attach Theatre 2-Event workflow to each (Casey; DO NOT use for project date) → Send Theatre - Available email (Casey; moves client to "Waiting on Payment") → Send Theatre invoice (Kate; 28 days before base date) → Archive the Project (30 days after base date)
+
+2. 🎭 Theatre 2-Event (8 stages): Gallery creation, reminder and gallery sharing
+   Steps: Add +confirmed shoot tag (automatic) → Make gallery in Pixiset to expire 30 days after shoot (Kate; 7 days before base date) → Theatre - Day Before email (automated) → Add +editing tag (automatic on base date; moves to "Casey: editing") → Dump raw images, bring into lightroom, full cull and press cull (Casey) → Edit press, dump in gallery and save gallery link to project; email auto-sends first (press) images to contact (Casey) → Finish whole gallery, put in Pixieset and archive; email auto-sends all images to contact (Casey) → Create ~Theatre/Events Gallery Delivered workflow (automatic)
+
+EVENT WORKFLOWS:
+3. 🗓️ Events 1-Inquiry (3 stages): Follow-ups if no booking made ("confirmed shoot" tag automatically pauses this workflow)
+   Steps: Send Event Follow-up 1 email (Casey; 1 day after workflow starts) → Send Event Follow-up 2 email (Casey; 3 days after above) → Archive the Project (Casey; 2 days after above)
+
+4. 🗓️ Events 2-Booking (5 stages): Updating invoice, confirmation, 1 week reminder
+   Steps: Add/Remove Tags: +confirmed shoot -lead contacted -new lead (automated) → Update project and invoice as needed (Casey) → Update project and invoice; Event Booking Confirmation email auto-sends to client upon completion (Casey) → Event Booking 1 week out email (automated; 7 days before base date) → Create Events 3-Editing workflow (automated)
+
+5. 🗓️ Events 3-Editing (8 stages): Gallery creation, thank you, editing, gallery sharing
+   Steps: Make gallery in Pixiset to expire 30 days after shoot (Kate) → Add +editing tag (automated on base date) → Send Thank You - Events email (Casey) → Dump raw images, bring into lightroom, full cull and press cull (Casey) → Edit, dump in gallery and save gallery link; first (press) images email auto-sends (Casey) → Finish whole gallery, put in Pixieset and archive; all images email auto-sends (Casey) → Create ~Theatre/Events Gallery Delivered workflow (automated) → Archive the Project 30 days after base date
+
+SHARED DELIVERY WORKFLOW:
+6. ~Theatre/Events Gallery Delivered (3 stages): Select social posts and gallery deletion reminder
+   Steps: Select favs in Pixiset for Emma Jean to pull from for a post (Casey; moves client to "Emma Jean: marketing") → Use selected images and plan post(s) (Emma Jean; removes client from "Emma Jean: marketing") → Gallery Deletion (updated) email (automatic; 23 days after workflow activated)
+
+HEADSHOT WORKFLOWS:
+7. 🖼️ Headshots 1-Inquiry (3 stages): Follow-ups if no booking made ("confirmed shoot" tag automatically pauses this workflow)
+   Steps: Send Headshot Follow-up 1 email (Casey; 1 day after workflow starts) → Send Headshot Follow-up 2 email (Casey; 3 days after above) → Archive the Project (Casey; 2 days after above)
+
+8. 🖼️ Headshots 2-Booking (Actors) (5 stages): Confirmation, prep email, day before email
+   Steps: Add/Remove Tags: +confirmed shoot -lead contacted -new lead (automated) → Send Headshot Booking Confirmation (automated) → Send Prep Email (automated; 7 days before base date) → Create Headshots 3-Editing workflow (automated) → Send Day Before Session email (automated)
+
+9. 🖼️ Headshots 2-Booking (Corporate) (5 stages): Confirmation, prep email, day before email
+   Steps: Same flow as Actors booking above
+
+10. 🖼️ Headshots 3-Editing (8 stages): Gallery setup, thank you, culling, favorites
+   Steps: Make gallery in Pixiset to expire 30 days after shoot (Kate) → Add +editing tag (automated) → Send Thank You - Actors email (Casey) → Dump photos onto studio computer/lightroom (Casey; 1 day after base date) → Cull images, save gallery link to project; proof gallery email auto-sends to client (Casey) → Pull favorites from Pixiset into lightroom; Pulled Favs email auto-sends to client (Casey) → Create Headshots 4-Gallery Delivered workflow (automated) → Notify Kate of final amount to invoice (Casey)
+
+11. 🖼️ Headshots 4-Gallery Delivered (10 stages): Editing, client approval, wetransfer
+   Steps: Prelim edits and edit in evoto (Casey) → Export photos to archive (Casey) → Create proof of selected formatted headshot (Casey) → Send Headshots - approve formatted email (Kate) → Pause for client print approval → Order headshot prints on whcc to ship to client (Kate) → Wetransfer client their headshots and formatted headshots; full delivery email auto-sends (Kate) → Create Headshots 5-Offboarding workflow (automated) → Post image(s) on social media, tagging client (Emma Jean) → Upload best image to the website portfolio (Emma Jean)
+
+12. 🖼️ Headshots 5-Offboarding (3 stages): Review request and repeat reach out
+   Steps: Send Review Request email (Casey; 7 days after workflow starts) → Send Headshots - time for another session? email (Kate; 340 days after previous item) → Archive project (automated)
+
+LEAD CAPTURE AUTOMATIONS:
+- Automatic email reply sent to client
+- Client lands in "New Lead" phase of pipeline
+- Project created
+- Workflow starts according to service selected
+
+PIPELINE PHASE MOVEMENT AUTOMATIONS:
+- Lead lands in "New Lead" upon submitting lead capture form
+- Lead moves to "Contacted" when Follow-up 1 email is sent (Headshots and Events), or when Available email is sent (Theatre)
+- Lead moves to "3 Days Old" 3 days after landing in "Contacted"
+- Lead moves to "7+ Days Old" 4 days after above
+- Lead moves to "Waiting on Payment" after Available email is sent (Theatre)
+- Client moves to "Kate: pre-shoot" upon confirmed booking
+- Client removed from "Kate: pre-shoot" after gallery creation marked completed
+- Client moves to "Casey: editing" on shoot date
+- Client moves to "Kate: proofs" after Casey completes creation of proof with selected headshot
+- Client moves to "Emma Jean: marketing" when Kate completes wetransfer (Headshots) or when Casey selects favs in Pixiset (Theatre/Events)
+- Client removed from "Emma Jean: marketing" when she completes website portfolio (Headshots) or when she uses images for planned posts (Theatre/Events)
+
+BOOKING SCHEDULES:
+
+1. Shoot Availability (https://justbreathe.17hats.com/p#/scheduling/snzskzhdktwxscdsbrxksxwrwgbwbdtr)
+   Calendars cross-checked: Casey Gardner Ford - breatheimagesllc@gmail.com
+   Can't book with less than: 96 hours notice
+   Can't book out more than: 90 days
+   Limit: 3 per day
+   Prevent cancelling within: 48 hours
+   General availability: Mon, Wed, Thurs 9am-5pm
+
+   Service A: In Studio Actor Headshot Session
+   - Duration: 45 minutes (15 min buffer after)
+   - Questions: Do you have an agent/agency?; Have you ever had your headshots taken before?; shipping address fields (address, city, state, zip)
+   - Payments: $400 w/ Fulton County tax; $100 due at booking; remainder 1 day after booking date
+   - Location: Breathe Images Studio
+   - Project management: adds "actor headshots" contact tag; adds to last project if available
+   - Confirmation: lands on breatheimagesllc@gmail.com calendar; WILL START NEW WORKFLOW AFTER APPROVAL
+   - Reminders: handled in workflow
+
+   Service B: In Studio Corporate Headshot Session
+   - Duration: 45 minutes (no buffer)
+   - Questions: none
+   - Payments: $400 w/ Fulton County tax; pay in full w/ tips enabled
+   - Location: Breathe Images Studio
+   - Project management: adds "pro headshots" contact and project tag; also adds "corporate" and "headshots" project tags; adds to last project if available
+   - Confirmation: lands on breatheimagesllc@gmail.com calendar; WILL START NEW WORKFLOW UPON APPROVAL
+   - Reminders: handled in workflow
+
+2. Event Photography (https://justbreathe.17hats.com/p#/scheduling/vMY3rs7JLSns)
+   Calendars cross-checked: Casey Gardner Ford - Booked Calendar, Lead Calendar, breatheimagesllc@gmail.com
+   Can't book with less than: 48 hours notice
+   Can't book out more than: 180 days
+   Prevent cancelling within: 48 hours
+   General availability: Every day, 5am-11:30pm
+
+   Service: Event Photography
+   - Duration: 120 minutes (30 min buffer before and after)
+   - Questions: What type of event? (maps to Project name); event location (maps to event location); how long will you want our services? (2-hour minimum; maps to Project notes); invoice address fields; anything else we should know? (optional; maps to Project notes)
+   - Payments: $500 for first two hours, $100 each additional hour; $100 due at booking; remainder due on booking date
+   - Messaging/Terms: Invoice will be adjusted to reflect actual event duration and any applicable tax; deposit holds the date
+   - Project management: adds "event photography" tag to contact and project; adds to last project if available
+   - Confirmation: goes to breatheimagesllc@gmail.com calendar; starts Events 2-Booking workflow
+   - Reminders: handled in workflow
+
+KEY TIPS:
+- For Theatre projects, use only the 1st show date as the project date; all other show dates get added as additional events to the same project and start their own workflows
+- Theatre and Event projects both lead to the ~Theatre/Events Gallery Delivered workflow at the end
+- To add a client's gallery link to their project (and for automated emails), click the small pencil button on the right side of the project screen to edit, then find the field for the link and paste it in
+- Watch for the to-do's that indicate an email will send after completion; these emails automatically go after you check it complete
+- Color-coded to-do assignments: 🟣 = Casey, 🟡 = Kate, 🔵 = Emma Jean
+
+Your role: Answer questions about Breathe Images' specific 17hats setup, general 17hats how-to questions, and help them navigate their workflows. If asked something outside your knowledge, suggest they contact Nicole directly at letnicolehelp.com or visit the 17hats help center at help.17hats.com.
+
+Always be warm, helpful, and specific. Reference their actual setup when relevant. Keep responses concise but complete. Do NOT make up specific features or details you don't know.`;
+
+// ================================================================
+// CHAT LOGIC
+// ================================================================
+const PROXY_URL      = 'https://robot-nicole-proxy.letnicolehelp.workers.dev/';
+const PORTAL_INDUSTRY = 'Photography';
+let chatHistory = [];
+
+async function sendMessage() {
+  const input = document.getElementById('chatInput');
+  const btn = document.getElementById('sendBtn');
+  const messages = document.getElementById('chatMessages');
+  const text = input.value.trim();
+  if (!text) return;
+
+  appendMessage('user', text);
+  chatHistory.push({ role: 'user', content: text });
+  input.value = '';
+  input.style.height = 'auto';
+  btn.disabled = true;
+
+  const thinking = document.createElement('div');
+  thinking.className = 'message assistant';
+  thinking.innerHTML = '<div class="message-avatar assistant-avatar">◎</div><div class="message-bubble"><div class="thinking"><span></span><span></span><span></span></div></div>';
+  messages.appendChild(thinking);
+  messages.scrollTop = messages.scrollHeight;
+
+  try {
+    const response = await fetch(PROXY_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        system: CLIENT_CONTEXT,
+        messages: chatHistory,
+        client_key: CLIENT_KEY
+      })
+    });
+    const data = await response.json();
+    const reply = data.content?.[0]?.text || "Sorry, I couldn't get a response. Try again!";
+    chatHistory.push({ role: 'assistant', content: reply });
+    thinking.remove();
+    appendMessage('assistant', reply);
+  } catch (err) {
+    thinking.remove();
+    appendMessage('assistant', "Hmm, something went wrong connecting to the AI. Please try again in a moment.");
+  }
+
+  btn.disabled = false;
+  messages.scrollTop = messages.scrollHeight;
+}
+
+function appendMessage(role, text) {
+  const messages = document.getElementById('chatMessages');
+  const div = document.createElement('div');
+  div.className = 'message ' + role;
+  const avatarContent = role === 'assistant' ? '◎' : '✦';
+  const avatarClass = role === 'assistant' ? 'assistant-avatar' : 'user-avatar';
+  div.innerHTML = '<div class="message-avatar ' + avatarClass + '">' + avatarContent + '</div><div class="message-bubble">' + text.replace(/\n/g,'<br>').replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>') + '</div>';
+  messages.appendChild(div);
+  messages.scrollTop = messages.scrollHeight;
+}
+
+function autoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+}
+
+function handleKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendMessage();
+  }
+}
+
+// ================================================================
+// WIX BLOG AUTO-FEED
+// ================================================================
+async function loadBlogPosts() {
+  const grid = document.getElementById('blog-grid');
+  const loading = document.getElementById('blog-loading');
+  const error = document.getElementById('blog-error');
+
+  if (!PROXY_URL || PROXY_URL.includes('YOUR_WORKER_URL_HERE')) {
+    if (loading) loading.style.display = 'none';
+    if (error) error.style.display = 'block';
+    return;
+  }
+
+  try {
+    const response = await fetch(PROXY_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'blog_posts', limit: 4 })
+    });
+    const data = await response.json();
+
+    if (!data.posts || data.posts.length === 0) throw new Error('No posts');
+
+    grid.innerHTML = data.posts.map((post, i) => {
+      let thumbUrl = '';
+      if (post.media?.wixMedia?.image?.url) { thumbUrl = post.media.wixMedia.image.url; }
+      else if (post.media?.embedMedia?.thumbnail?.url) { thumbUrl = post.media.embedMedia.thumbnail.url; }
+      const thumbStyle = thumbUrl
+        ? "background-image:url('" + thumbUrl + "'); background-size:cover; background-position:center;"
+        : 'background: linear-gradient(135deg, #1a3d30 0%, #2d5246 100%);';
+
+      const excerpt = post.excerpt ? post.excerpt.substring(0, 100) + (post.excerpt.length > 100 ? '...' : '') : '';
+      const postUrl = post.url ? post.url.base + post.url.path : 'https://www.letnicolehelp.com/blog';
+
+      return '<a href="' + postUrl + '" target="_blank" class="content-card">'
+        + '<div class="content-card-thumb yt-thumb" style="' + thumbStyle + '">'
+        + (!thumbUrl ? '<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:28px;opacity:0.4;">✦</div>' : '')
+        + '</div>'
+        + '<div class="content-card-body">'
+        + '<div class="content-card-type">From Nicole\'s Blog' + (i === 0 ? ' · New' : '') + '</div>'
+        + '<div class="content-card-title">' + post.title + '</div>'
+        + (excerpt ? '<div style="font-size:11.5px; color:var(--text-light); margin-top:4px; line-height:1.5;">' + excerpt + '</div>' : '')
+        + '</div></a>';
+    }).join('');
+
+    loading.style.display = 'none';
+    grid.style.display = 'grid';
+  } catch(e) {
+    loading.style.display = 'none';
+    error.style.display = 'block';
+  }
+}
+
+loadBlogPosts();
+
+// ================================================================
+// ANNOUNCEMENTS
+// ================================================================
+async function loadAnnouncements() {
+  const list = document.getElementById('announcements-list');
+  const card = document.getElementById('announcements-card');
+  try {
+    const res = await fetch('https://lnh-gh.github.io/robot-nicole-client-portal/announcements.json?nocache=' + Date.now());
+    const data = await res.json();
+    const filtered = data.filter(function(item) {
+      return !item.industry ||
+        item.industry.length === 0 ||
+        item.industry.includes('General') ||
+        item.industry.includes(PORTAL_INDUSTRY);
+    });
+    if (!filtered.length) return;
+    list.innerHTML = filtered.map(function(item) {
+      var labelHtml = item.label ? '<div style="font-size:10px; letter-spacing:0.1em; text-transform:uppercase; color:var(--copper); margin-bottom:3px;">' + item.label + '</div>' : '';
+      return '<a href="' + (item.url || '#') + '" target="_blank" style="display:flex; gap:14px; align-items:flex-start; text-decoration:none; padding:12px; border-radius:8px; border:1px solid var(--border);">'
+        + '<span style="font-size:22px; flex-shrink:0;">' + (item.emoji || '✦') + '</span>'
+        + '<div>' + labelHtml
+        + '<div style="font-size:13.5px; font-weight:500; color:var(--text); margin-bottom:3px;">' + item.title + '</div>'
+        + '<div style="font-size:12.5px; color:var(--text-light); line-height:1.5;">' + (item.desc || '') + '</div>'
+        + '</div></a>';
+    }).join('');
+    card.style.display = 'block';
+  } catch(e) {}
+}
+loadAnnouncements();
+
+// ================================================================
+// CHANGE REQUESTS
+// ================================================================
+const PORTAL_CLIENT_NAME = 'Breathe Images';
+
+function submitRequest() {
+  const summary = document.getElementById('req-summary').value.trim();
+  const detail  = document.getElementById('req-detail').value.trim();
+  const why     = document.getElementById('req-why').value.trim();
+  const urgency = document.getElementById('req-urgency').value;
+  const status  = document.getElementById('req-status');
+
+  if (!summary || !detail) {
+    status.style.display = 'block';
+    status.style.color = '#c0392b';
+    status.textContent = 'Please fill in both the summary and details fields.';
+    return;
+  }
+
+  const subject = 'Portal Change Request: ' + summary + ' (' + PORTAL_CLIENT_NAME + ')';
+  const body = 'CHANGE REQUEST FROM: ' + PORTAL_CLIENT_NAME
+    + '\n\nSummary: ' + summary
+    + '\n\nDetails:\n' + detail
+    + (why ? '\n\nWhy / Context:\n' + why : '')
+    + '\n\nUrgency: ' + urgency
+    + '\n\n---\nSent from ' + PORTAL_CLIENT_NAME + ' client portal';
+
+  window.location.href = 'mailto:nicole@letnicolehelp.com?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(body);
+
+  status.style.display = 'block';
+  status.style.color = 'var(--green)';
+  status.textContent = 'Your email client should open with the request details. Send it and Nicole will follow up!';
+}
+
+</script>
+</body>
+</html>
