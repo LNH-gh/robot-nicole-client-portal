@@ -2375,7 +2375,10 @@ async function sendMessage() {
         model: 'claude-sonnet-4-20250514',
         max_tokens: 1000,
         system: CLIENT_CONTEXT,
-        messages: chatHistory,
+        messages: chatHistory.map(({ role, content }) => ({
+  role,
+  content
+})),
         client_key: CLIENT_KEY  // used by Worker for KV log labeling
       })
     });
