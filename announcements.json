@@ -1,5 +1,12 @@
 [
-  {
+ {
+    "title": "Asset Assign",
+    "desc": "Rental inventory tracker built specifically for event decor pros, with phrase-checking for multiple styles.",
+    "url": "https://www.assetassign.app/",
+    "emoji": "✨",
+    "label": "14-day free trial; yearly subscription",
+    "industry": ["Balloon"]
+  }, {
     "title": "Invoice Incognito",
     "desc": "Turn your invoices into price-free work orders you can share with your team.",
     "url": "https://invoiceincognito.com/",
