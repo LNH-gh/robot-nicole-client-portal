@@ -234,8 +234,8 @@ def classify_journey_step(step_text, team_members, tag_phase_map=None):
     node = {
         'text': text, 'type': 'automated', 'member_name': '', 'member_emoji': '',
         'member_color': '', 'description': text, 'timing': '',
-        'is_client_facing': False, 'is_auto_email': False, 'is_transition': False,
-        'transition_target': '', 'pipeline_change': '',
+        'is_client_facing': False, 'is_auto_email': False, 'is_questionnaire': False,
+        'is_transition': False, 'transition_target': '', 'pipeline_change': '',
     }
 
     paren_match = re.search(r'\(([^)]+)\)\s*$', text)
@@ -278,6 +278,10 @@ def classify_journey_step(step_text, team_members, tag_phase_map=None):
         node['type'] = 'transition'
         node['is_transition'] = True
         node['transition_target'] = clean_name(base.replace('Create Workflow:', '').strip())
+    elif re.match(r'send questionnaire:', base, re.IGNORECASE):
+        node['type'] = 'email'
+        node['is_client_facing'] = True
+        node['is_questionnaire'] = True
     elif base.startswith('Add Tag:') or base.startswith('Add/Remove Tags:'):
         node['type'] = 'automated'
     elif 'archive' in base.lower():
@@ -364,14 +368,29 @@ def build_workflow_card(group_label, wf_items_html):
       </div>
     </div>'''
 
-def split_auto_by_path(items):
-    """Split automation items into sub-groups by path (Theatre, Headshot, Event, etc.).
-    Returns list of (sub_label, sub_items). Items matching multiple paths appear in each."""
-    paths = [
-        ('Theatre', ['theatre']),
-        ('Events', ['event']),
-        ('Headshots', ['headshot']),
-    ]
+def derive_service_paths(d):
+    """Derive service path categories from Journey Branches or Workflow Groups.
+    Returns list of (label, [keywords]) for splitting automations by service type."""
+    raw = d.get('Journey Branches', '') or d.get('Workflow Groups', '')
+    if not raw:
+        return []
+    paths = []
+    for line in raw.strip().split('\n'):
+        line = line.strip()
+        if ':' not in line: continue
+        label = line.split(':')[0].strip()
+        clean = re.sub(r'[\U0001f300-\U0001fAFF️️]', '', label).strip()
+        if clean.lower().startswith('shared'): continue
+        keyword = clean.lower().rstrip('s')
+        paths.append((clean, [keyword]))
+    return paths
+
+
+def split_auto_by_path(items, paths=None):
+    """Split automation items into sub-groups by service path.
+    paths: list of (label, [keywords]). Falls back to empty if not provided."""
+    if not paths:
+        return []
     buckets = {p: [] for p, _ in paths}
     for item in items:
         low = item.lower()
@@ -379,8 +398,6 @@ def split_auto_by_path(items):
         if matched:
             for p in matched:
                 buckets[p].append(item)
-        else:
-            pass
     result = []
     for p, _ in paths:
         if buckets[p]:
@@ -388,7 +405,54 @@ def split_auto_by_path(items):
     return result
 
 
-def build_auto_group(name, count, desc, items_raw, split_by_path=False):
+def extract_automations_from_steps(all_wf):
+    """Auto-extract pipeline and workflow automations from workflow step text.
+    Returns (pipeline_items, workflow_items) lists."""
+    pipeline_items = []
+    workflow_items = []
+    for wf_num in sorted(all_wf.keys()):
+        w = all_wf[wf_num]
+        wf_name = re.sub(r'[\U0001f300-\U0001fAFF️️]', '', w['name']).strip()
+        steps = parse_steps(w['steps'])
+        for step in steps:
+            low = step.lower()
+            is_auto = '(automated' in low or 'auto' in low
+            if re.match(r'send email:', step, re.IGNORECASE):
+                email_name = re.sub(r'^send email:\s*', '', step, flags=re.IGNORECASE).strip()
+                email_name = re.split(r'\s*\(', email_name)[0].strip()
+                tag_match = re.search(r'add.*?tag.*?"([^"]+)"', step, re.IGNORECASE)
+                if tag_match:
+                    workflow_items.append(f'{email_name} email adds "{tag_match.group(1)}" tag')
+                else:
+                    workflow_items.append(f'{email_name} email sends ({wf_name})')
+            elif re.match(r'add/remove tags?:', step, re.IGNORECASE):
+                tag_part = re.sub(r'^add/remove tags?:\s*', '', step, flags=re.IGNORECASE).strip()
+                tag_part = re.split(r'\s*\(', tag_part)[0].strip()
+                tags_added = re.findall(r'\+([^\s\-+]+(?:\s+[^\s\-+]+)*)', tag_part)
+                tags_removed = re.findall(r'-([^\s\-+]+(?:\s+[^\s\-+]+)*)', tag_part)
+                timing = ''
+                timing_m = re.search(r'\((?:automated;\s*)?(.+?)\)', step)
+                if timing_m:
+                    timing = f' ({timing_m.group(1)})'
+                parts = []
+                if tags_added:
+                    parts.append('+' + ', +'.join(tags_added))
+                if tags_removed:
+                    parts.append('-' + ', -'.join(tags_removed))
+                if parts:
+                    workflow_items.append(f'{" ".join(parts)} tag change{timing} ({wf_name})')
+            elif re.match(r'create workflow:', step, re.IGNORECASE):
+                target = re.sub(r'^create workflow:\s*', '', step, flags=re.IGNORECASE).strip()
+                target = re.split(r'\s*\(', target)[0].strip()
+                workflow_items.append(f'{wf_name} flows into {target}')
+            elif 'flows into' in low:
+                workflow_items.append(f'{step} ({wf_name})')
+            elif is_auto and ('pipeline' in low or 'phase' in low or 'moves to' in low):
+                pipeline_items.append(step)
+    return pipeline_items, workflow_items
+
+
+def build_auto_group(name, count, desc, items_raw, split_by_path=False, service_paths=None):
     """Build one automation group as a standalone card, optionally split by path."""
     items = parse_steps(items_raw) if isinstance(items_raw, str) else items_raw
     icon_map = {
@@ -397,11 +461,12 @@ def build_auto_group(name, count, desc, items_raw, split_by_path=False):
         'Pipeline Phase Movements': '🗂️',
         'Workflow Automations': '⚡',
         'Document Automations': '📄',
+        'Questionnaire Automations': '📋',
     }
     icon = icon_map.get(name, '⚙️')
 
     if split_by_path and len(items) > 4:
-        sub_groups = split_auto_by_path(items)
+        sub_groups = split_auto_by_path(items, paths=service_paths)
         if len(sub_groups) > 1:
             body_html = ''
             for sub_label, sub_items in sub_groups:
@@ -730,7 +795,7 @@ def build_pipeline_card(name, phase_count, image_url, phases_data=None):
 
 # ─── JOURNEY MAP BUILDERS ────────────────────────────────
 
-def build_journey_row(node):
+def build_journey_row(node, questionnaires=None):
     """Build one 3-column row for the journey map (timing | step | pipeline)."""
     cls_map = {'manual': '', 'automated': ' auto', 'email': ' email', 'client_action': ' client'}
     cls = cls_map.get(node['type'], ' auto')
@@ -744,11 +809,16 @@ def build_journey_row(node):
     else:
         icon = '⚡'
 
+    if node.get('is_questionnaire'):
+        icon = '📋'
+
     if node['member_name']:
         mbg = hex_to_rgba(node['member_color']) if node['member_color'] else 'rgba(0,0,0,0.06)'
         tag_html = f'<span class="jt-who" style="background:{mbg};color:{node["member_color"]}">{esc(node["member_name"])}</span>'
     elif node.get('is_auto_email'):
         tag_html = '<span class="jt-email-tag">auto to client</span>'
+    elif node.get('is_questionnaire'):
+        tag_html = '<span class="jt-email-tag">client fills out</span>'
     elif node['type'] == 'email':
         tag_html = '<span class="jt-email-tag">client receives</span>'
     elif node['type'] == 'client_action':
@@ -761,6 +831,19 @@ def build_journey_row(node):
     timing_html = esc(node['timing']) if node['timing'] else ''
     pipeline_html = f'→ {esc(node["pipeline_change"])}' if node['pipeline_change'] else ''
 
+    q_detail = ''
+    if node.get('is_questionnaire') and questionnaires:
+        q_name = re.sub(r'^send questionnaire:\s*', '', node['description'], flags=re.IGNORECASE).strip()
+        for qn, qq in questionnaires:
+            if qn.lower() == q_name.lower():
+                pills = ' '.join(f'<span class="bk-q-pill">{esc(q)}</span>' for q in qq)
+                q_detail = f'''
+                <div class="jt-q-detail">
+                  <div class="jt-q-label">Info gathered</div>
+                  <div class="bk-q-list">{pills}</div>
+                </div>'''
+                break
+
     return f'''              <div class="jt-row">
                 <div class="jt-timing">{timing_html}</div>
                 <div class="jt-step{cls}">
@@ -769,10 +852,10 @@ def build_journey_row(node):
                   {tag_html}
                 </div>
                 <div class="jt-pipeline">{pipeline_html}</div>
-              </div>'''
+              </div>{q_detail}'''
 
 
-def build_journey_branch(idx, label, wf_nums, all_wf, team_members, tag_phase_map=None):
+def build_journey_branch(idx, label, wf_nums, all_wf, team_members, tag_phase_map=None, questionnaires=None):
     """Build one journey branch tab content."""
     html = ''
     for wi, wf_num in enumerate(wf_nums):
@@ -791,7 +874,7 @@ def build_journey_branch(idx, label, wf_nums, all_wf, team_members, tag_phase_ma
             if node['is_transition']:
                 transition_target = node['transition_target']
                 continue
-            html += build_journey_row(node) + '\n'
+            html += build_journey_row(node, questionnaires=questionnaires) + '\n'
 
         if transition_target and wi < len(wf_nums) - 1:
             html += f'            <div class="jt-transition">↓ Flows into: {esc(transition_target)}</div>\n'
@@ -800,7 +883,7 @@ def build_journey_branch(idx, label, wf_nums, all_wf, team_members, tag_phase_ma
     return f'          <div class="journey-branch{active}" id="jb-{idx}">\n{html}          </div>'
 
 
-def build_journey_section(journey_branches, all_wf, team_members, lead_capture_items, lc_form_fields=None, tag_phase_map=None):
+def build_journey_section(journey_branches, all_wf, team_members, lead_capture_items, lc_form_fields=None, tag_phase_map=None, questionnaires=None):
     """Build the complete Client Experience section HTML."""
     member_dots = ''
     for mname, minfo in team_members.items():
@@ -830,7 +913,7 @@ def build_journey_section(journey_branches, all_wf, team_members, lead_capture_i
     )
 
     branches = '\n'.join(
-        build_journey_branch(i, label, nums, all_wf, team_members, tag_phase_map)
+        build_journey_branch(i, label, nums, all_wf, team_members, tag_phase_map, questionnaires=questionnaires)
         for i, (label, nums) in enumerate(journey_branches)
     )
 
@@ -1064,11 +1147,18 @@ def generate_portal(data_path, output_path):
     # ── Build automations ──
     auto_html = ''
     auto_groups = []
+    service_paths = derive_service_paths(d)
 
     if booking_auto_items:
         auto_html += build_auto_group('Booking Automations', len(booking_auto_items),
             'Automations triggered when a client books through a scheduling page.', booking_auto_items) + '\n'
         auto_groups.append(('Booking Automations', booking_auto_items))
+
+    has_manual_pl = d.get('Automations - Pipelines', '') not in ('', 'TBD')
+    has_manual_wf = d.get('Automations - Workflows', '') not in ('', 'TBD')
+
+    if not has_manual_pl or not has_manual_wf:
+        extracted_pl, extracted_wf = extract_automations_from_steps(all_wf)
 
     for label, field, desc, split in [
         ('Lead Capture', 'Automations - Lead Capture', 'These automations fire when a new lead submits the lead capture form.', False),
@@ -1077,9 +1167,16 @@ def generate_portal(data_path, output_path):
         ('Document Automations', 'Automations - Documents', 'Document-related automations.', False),
     ]:
         raw = d.get(field, '')
-        if not raw or raw == 'TBD': continue
-        items = parse_steps(raw)
-        auto_html += build_auto_group(label, len(items), desc, items, split_by_path=split) + '\n'
+        if (not raw or raw == 'TBD'):
+            if field == 'Automations - Pipelines' and not has_manual_pl and extracted_pl:
+                items = extracted_pl
+            elif field == 'Automations - Workflows' and not has_manual_wf and extracted_wf:
+                items = extracted_wf
+            else:
+                continue
+        else:
+            items = parse_steps(raw)
+        auto_html += build_auto_group(label, len(items), desc, items, split_by_path=split, service_paths=service_paths) + '\n'
         auto_groups.append((label, items))
 
     num_auto = sum(len(items) for _, items in auto_groups)
@@ -1171,11 +1268,20 @@ def generate_portal(data_path, output_path):
     lc_fields_raw = d.get('Lead Capture Form Fields', '')
     lc_fields = [f.strip() for f in lc_fields_raw.split(';') if f.strip()] if lc_fields_raw else []
 
+    # ── Parse questionnaires ──
+    questionnaires = []
+    for i in range(1, 13):
+        qname = d.get(f'Questionnaire {i} Name', '')
+        if not qname: continue
+        qraw = d.get(f'Questionnaire {i} Questions', '')
+        qlist = [q.strip() for q in qraw.split(';') if q.strip()] if qraw else []
+        questionnaires.append((qname, qlist))
+
     if journey_branches:
         pipeline_auto_text = d.get('Automations - Pipelines', '')
         workflow_auto_text = d.get('Automations - Workflows', '')
         tag_phase_map = parse_tag_to_phase_map(pipeline_auto_text, workflow_auto_text)
-        journey_section = build_journey_section(journey_branches, all_wf, team_members, lead_capture_items, lc_form_fields=lc_fields, tag_phase_map=tag_phase_map)
+        journey_section = build_journey_section(journey_branches, all_wf, team_members, lead_capture_items, lc_form_fields=lc_fields, tag_phase_map=tag_phase_map, questionnaires=questionnaires)
         journey_nav = '''    <a class="nav-item" onclick="showSection('client-experience')">
       <span class="icon">🗺️</span> Client Experience
     </a>'''
@@ -1278,6 +1384,8 @@ def generate_portal(data_path, output_path):
   .jt-auto-tag {{ font-size:10px; color:var(--cb-primary); background:var(--cb-primary-pale); padding:2px 8px; border-radius:10px; white-space:nowrap; flex-shrink:0; }}
   .jt-email-tag {{ font-size:10px; color:var(--cb-accent1); background:var(--cb-accent1-pale); padding:2px 8px; border-radius:10px; white-space:nowrap; flex-shrink:0; }}
   .jt-transition {{ margin:14px 0; padding:6px 14px; background:var(--cb-primary-pale); border:1px dashed var(--cb-primary-light); border-radius:16px; font-size:12px; color:var(--cb-primary); font-weight:500; width:fit-content; margin-left:108px; }}
+  .jt-q-detail {{ margin:-2px 0 6px 108px; padding:8px 14px; background:var(--copper-pale); border:1px solid var(--border); border-radius:8px; }}
+  .jt-q-label {{ font-size:10px; letter-spacing:0.08em; text-transform:uppercase; color:var(--copper); font-weight:500; margin-bottom:6px; }}
   @media (max-width:768px) {{ .journey-tabs {{ flex-wrap:wrap; }} .journey-tab {{ min-width:48%; }} .jt-row {{ grid-template-columns:1fr; gap:4px; }} .jt-timing,.jt-pipeline {{ padding-left:12px; }} .jt-col-header {{ display:none; }} }}'''
 
     journey_js = 'function showJourneyBranch(idx){document.querySelectorAll(".journey-branch").forEach(function(b,i){if(i===idx)b.classList.add("active");else b.classList.remove("active");});document.querySelectorAll(".journey-tab").forEach(function(t,i){if(i===idx)t.classList.add("active");else t.classList.remove("active");});}'
