@@ -119,6 +119,212 @@ def parse_booking_services(raw):
     return services
 
 
+def parse_team_members(d):
+    """Parse Team Members from JSON data. Returns {name: {emoji, color}}."""
+    raw = d.get('Team Members')
+    if isinstance(raw, dict) and raw:
+        return raw
+    return {}
+
+
+def hex_to_rgba(hex_color, alpha='0.12'):
+    """Convert #9b59b6 to rgba(155,89,182,0.12)."""
+    h = hex_color.lstrip('#')
+    if len(h) != 6:
+        return f'rgba(128,128,128,{alpha})'
+    r, g, b = int(h[0:2], 16), int(h[2:4], 16), int(h[4:6], 16)
+    return f'rgba({r},{g},{b},{alpha})'
+
+
+def parse_pipeline_automations(auto_text, pipelines, all_wf):
+    """Parse pipeline automation text into structured phase data per pipeline.
+
+    pipelines: [(name, phase_count, image_url), ...]
+    Returns: [(name, phase_count, image_url, [phase_dict, ...]), ...]
+    Each phase_dict: {name, entries: [trigger_text, ...], exits: [trigger_text, ...], wf_tags: [name, ...]}
+    """
+    items = parse_steps(auto_text) if auto_text else []
+    phases_list = []
+
+    for item in items:
+        m = re.search(r'(lands in|moves to|removed from)\s+"([^"]+)"', item)
+        if not m:
+            continue
+        action, phase_name = m.group(1), m.group(2)
+        trigger = item[m.end():].strip().lstrip(',').strip()
+        if not trigger:
+            trigger = item[:m.start()].strip().rstrip(',').strip()
+
+        if phases_list and phases_list[-1]['name'] == phase_name:
+            p = phases_list[-1]
+        else:
+            p = {'name': phase_name, 'entries': [], 'exits': [], 'wf_tags': set()}
+            phases_list.append(p)
+
+        if action == 'removed from':
+            p['exits'].append(trigger)
+        else:
+            p['entries'].append(trigger)
+
+        for wn in all_wf:
+            wf_clean = clean_name(all_wf[wn]['name'])
+            if wf_clean.lower() in item.lower():
+                p['wf_tags'].add(wf_clean)
+
+    result = []
+    idx = 0
+    for pname, pcount, pimg in pipelines:
+        count = int(pcount) if pcount else 0
+        pipeline_phases = []
+        for i in range(count):
+            if idx < len(phases_list):
+                pd = phases_list[idx]
+                pd['wf_tags'] = sorted(pd['wf_tags'])
+                pipeline_phases.append(pd)
+                idx += 1
+        result.append((pname, count, pimg, pipeline_phases))
+
+    return result
+
+
+def parse_tag_to_phase_map(pipeline_auto_text, workflow_auto_text=''):
+    """Build a mapping from tag names to pipeline phase names from automation text.
+    Also builds a step keyword → phase mapping from workflow automations."""
+    tag_map = {}
+    if not pipeline_auto_text:
+        return tag_map
+    items = parse_steps(pipeline_auto_text)
+    for item in items:
+        phase_match = re.search(r'(?:lands in|moves to)\s+"([^"]+)"', item)
+        if not phase_match:
+            continue
+        tag_match = re.search(r'\btag:\s*([^)]+)\)', item)
+        if tag_match:
+            tag_map[tag_match.group(1).strip().lower()] = phase_match.group(1)
+            continue
+        tag_match2 = re.search(r'"([^"]+)"\s+tag\s+is\s+added', item)
+        if tag_match2:
+            tag_map[tag_match2.group(1).strip().lower()] = phase_match.group(1)
+            continue
+        tag_match3 = re.search(r'adds\s+"([^"]+)"\s+tag', item)
+        if tag_match3:
+            tag_map[tag_match3.group(1).strip().lower()] = phase_match.group(1)
+
+    # Build step keyword → phase mapping from workflow automations
+    # e.g. "Dump raw images to-do adds 'theatre press' tag" → tag maps to Press Cull
+    step_map = []
+    if workflow_auto_text:
+        wf_items = parse_steps(workflow_auto_text)
+        for item in wf_items:
+            todo_match = re.search(r'^(.+?)\s+to-do\s+adds\s+"([^"]+)"\s+tag', item, re.IGNORECASE)
+            if todo_match:
+                keyword = todo_match.group(1).strip().lower()
+                tag = todo_match.group(2).strip().lower()
+                if tag in tag_map:
+                    step_map.append((keyword, tag_map[tag]))
+    if step_map:
+        tag_map['__step_map__'] = step_map
+
+    return tag_map
+
+
+def classify_journey_step(step_text, team_members, tag_phase_map=None):
+    """Classify a workflow step for the journey map."""
+    text = step_text.strip()
+    node = {
+        'text': text, 'type': 'automated', 'member_name': '', 'member_emoji': '',
+        'member_color': '', 'description': text, 'timing': '',
+        'is_client_facing': False, 'is_auto_email': False, 'is_transition': False,
+        'transition_target': '', 'pipeline_change': '',
+    }
+
+    paren_match = re.search(r'\(([^)]+)\)\s*$', text)
+    paren = paren_match.group(1) if paren_match else ''
+    base = text[:paren_match.start()].strip() if paren_match else text
+
+    found_member = False
+    for mname, minfo in team_members.items():
+        emoji = minfo.get('emoji', '')
+        if emoji and base.startswith(emoji):
+            node.update(type='manual', member_name=mname, member_emoji=emoji,
+                        member_color=minfo.get('color', '#888'),
+                        description=base[len(emoji):].strip())
+            found_member = True
+            break
+
+    if not found_member and paren:
+        for mname, minfo in team_members.items():
+            if mname.lower() in paren.lower():
+                node.update(member_name=mname, member_emoji=minfo.get('emoji', ''),
+                            member_color=minfo.get('color', '#888'))
+                found_member = True
+                break
+
+    if paren:
+        parts = [p.strip() for p in paren.split(';')]
+        timing_parts = [p for p in parts
+                        if not any(m.lower() in p.lower() for m in team_members)
+                        and 'moves' not in p.lower()
+                        and p.lower().strip() not in ('automatic', 'automated',
+                            'automatic upon starting workflow')]
+        node['timing'] = '; '.join(timing_parts)
+
+    if base.startswith('Send email:') or base.startswith('Send invoice:'):
+        node['type'] = 'email'
+        node['is_client_facing'] = True
+        if paren and ('automatic' in paren.lower() or 'automated' in paren.lower()):
+            node['is_auto_email'] = True
+    elif base.startswith('Create Workflow:'):
+        node['type'] = 'transition'
+        node['is_transition'] = True
+        node['transition_target'] = clean_name(base.replace('Create Workflow:', '').strip())
+    elif base.startswith('Add Tag:') or base.startswith('Add/Remove Tags:'):
+        node['type'] = 'automated'
+    elif 'archive' in base.lower():
+        node['type'] = 'automated'
+    elif base.startswith('Pause for'):
+        node['type'] = 'client_action'
+        node['is_client_facing'] = True
+
+    if paren and ('automatic' in paren.lower() or 'automated' in paren.lower()):
+        if node['type'] not in ('email', 'transition', 'client_action'):
+            node['type'] = 'automated'
+
+    if found_member and node['type'] == 'automated':
+        if not (paren and ('automatic' in paren.lower() or 'automated' in paren.lower())):
+            node['type'] = 'manual'
+
+    pm = re.search(r'moves (?:client |.+?)?to [“”]([^””]+)[“”]', text, re.IGNORECASE)
+    if pm:
+        node['pipeline_change'] = pm.group(1)
+
+    if not node['pipeline_change'] and tag_phase_map:
+        # Check for +tag syntax in step text
+        tag_matches = re.findall(r'\+([a-z][a-z0-9 ]+)', text.lower())
+        for tag in tag_matches:
+            tag_clean = tag.strip()
+            if tag_clean in tag_phase_map:
+                node['pipeline_change'] = tag_phase_map[tag_clean]
+                break
+        # Check for adds "tagname" tag pattern (use last match — later tags are typically more significant)
+        if not node['pipeline_change']:
+            adds_matches = re.findall(r'adds\s+"([^"]+)"\s+tag', text, re.IGNORECASE)
+            for tag in reversed(adds_matches):
+                tag_clean = tag.strip().lower()
+                if tag_clean in tag_phase_map:
+                    node['pipeline_change'] = tag_phase_map[tag_clean]
+                    break
+        # Check for step-to-phase mapping (for steps whose tags are in automations, not step text)
+        if not node['pipeline_change'] and '__step_map__' in tag_phase_map:
+            desc_low = node['description'].lower()
+            for keyword, phase in tag_phase_map['__step_map__']:
+                if keyword in desc_low:
+                    node['pipeline_change'] = phase
+                    break
+
+    return node
+
+
 # ─── HTML BUILDERS ────────────────────────────────────────
 
 def build_step_li(steps):
@@ -158,25 +364,72 @@ def build_workflow_card(group_label, wf_items_html):
       </div>
     </div>'''
 
-def build_auto_group(name, count, desc, items_raw):
-    """Build one expandable automation group."""
+def split_auto_by_path(items):
+    """Split automation items into sub-groups by path (Theatre, Headshot, Event, etc.).
+    Returns list of (sub_label, sub_items). Items matching multiple paths appear in each."""
+    paths = [
+        ('Theatre', ['theatre']),
+        ('Events', ['event']),
+        ('Headshots', ['headshot']),
+    ]
+    buckets = {p: [] for p, _ in paths}
+    for item in items:
+        low = item.lower()
+        matched = [p for p, keywords in paths if any(k in low for k in keywords)]
+        if matched:
+            for p in matched:
+                buckets[p].append(item)
+        else:
+            pass
+    result = []
+    for p, _ in paths:
+        if buckets[p]:
+            result.append((p, buckets[p]))
+    return result
+
+
+def build_auto_group(name, count, desc, items_raw, split_by_path=False):
+    """Build one automation group as a standalone card, optionally split by path."""
     items = parse_steps(items_raw) if isinstance(items_raw, str) else items_raw
-    return f'''        <div class="workflow-item">
-          <div class="workflow-header" onclick="toggleWorkflow(this)">
-            <div class="workflow-header-left">
-              <div class="workflow-dot"></div>
-              <span class="workflow-name">{esc(name)}</span>
-              <span class="workflow-tag">{count} automations</span>
-            </div>
-            <span class="workflow-toggle">▾</span>
-          </div>
-          <div class="workflow-body">
-            <p>{esc(desc)}</p>
-            <ul class="workflow-steps">
-{build_step_li(items)}
-            </ul>
-          </div>
-        </div>'''
+    icon_map = {
+        'Booking Automations': '📅',
+        'Lead Capture': '🎯',
+        'Pipeline Phase Movements': '🗂️',
+        'Workflow Automations': '⚡',
+        'Document Automations': '📄',
+    }
+    icon = icon_map.get(name, '⚙️')
+
+    if split_by_path and len(items) > 4:
+        sub_groups = split_auto_by_path(items)
+        if len(sub_groups) > 1:
+            body_html = ''
+            for sub_label, sub_items in sub_groups:
+                sub_items_html = ''
+                for item in sub_items:
+                    sub_items_html += f'          <div class="at-item"><span class="at-bullet">⚡</span><span>{esc(item)}</span></div>\n'
+                body_html += f'''      <div class="at-subgroup">
+        <div class="at-subgroup-label">{esc(sub_label)} <span style="color:var(--text-light); font-weight:400;">· {len(sub_items)}</span></div>
+{sub_items_html}      </div>\n'''
+            return f'''    <div class="card">
+      <div class="card-title at-toggle" onclick="this.classList.toggle('open')">{icon} {esc(name)} <span style="font-size:12px; color:var(--text-light); font-weight:400;">· {count}</span><span class="at-arrow">▶</span></div>
+      <div class="at-body">
+      <p style="font-size:12.5px; color:var(--text-light); margin-bottom:14px; line-height:1.5;">{esc(desc)}</p>
+{body_html}      </div>
+    </div>'''
+
+    items_html = ''
+    for item in items:
+        items_html += f'''          <div class="at-item"><span class="at-bullet">⚡</span><span>{esc(item)}</span></div>\n'''
+
+    return f'''    <div class="card">
+      <div class="card-title at-toggle" onclick="this.classList.toggle('open')">{icon} {esc(name)} <span style="font-size:12px; color:var(--text-light); font-weight:400;">· {count}</span><span class="at-arrow">▶</span></div>
+      <div class="at-body">
+      <p style="font-size:12.5px; color:var(--text-light); margin-bottom:14px; line-height:1.5;">{esc(desc)}</p>
+      <div class="at-list">
+{items_html}      </div>
+      </div>
+    </div>'''
 
 def build_detail_row(label, value):
     """Build a copper-label / value detail row."""
@@ -185,89 +438,465 @@ def build_detail_row(label, value):
               <span style="color:var(--text-light); font-style:italic;">{esc(value)}</span>
             </div>'''
 
+
+def _svc_detail_val(details, key):
+    """Find a value by key (case-insensitive) in a list of (label, value) pairs."""
+    for k, v in details:
+        if key.lower() in k.lower():
+            return v
+    return ''
+
+
+def _extract_price(payments_str):
+    """Pull the first dollar amount from a payments string."""
+    if not payments_str:
+        return ''
+    m = re.search(r'\$[\d,]+(?:\.\d{2})?', payments_str)
+    return m.group(0) if m else ''
+
+
+def _extract_questions_summary(questions_str):
+    """Turn a long questions string into short pill labels."""
+    if not questions_str or questions_str.lower() == 'n/a':
+        return []
+    parts = re.split(r';\s*', questions_str)
+    pills = []
+    for p in parts:
+        p = p.strip()
+        if not p:
+            continue
+        p = re.sub(r'\(maps to [^)]+\)', '', p).strip()
+        p = re.sub(r'\(text\)', '', p).strip()
+        p = re.sub(r'\(Optional\)', '', p, flags=re.IGNORECASE).strip()
+        if len(p) > 30:
+            p = p[:28] + '…'
+        if p:
+            pills.append(p)
+    return pills
+
+
 def build_booking_service(name, details):
-    """Build one expandable booking service item."""
-    rows = '\n'.join([build_detail_row(k, v) for k, v in details])
-    return f'''        <div class="workflow-item">
-          <div class="workflow-header" onclick="toggleWorkflow(this)">
-            <div class="workflow-header-left">
-              <div class="workflow-dot"></div>
-              <span class="workflow-name">{esc(name)}</span>
-              <span class="workflow-tag">service</span>
-            </div>
-            <span class="workflow-toggle">▾</span>
-          </div>
-          <div class="workflow-body">
-            <div style="display:flex; flex-direction:column; gap:8px;">
-{rows}
-            </div>
-          </div>
+    """Build one service card group: a duration mini-card + main details card."""
+    duration = _svc_detail_val(details, 'Duration')
+    buffers = _svc_detail_val(details, 'Buffer')
+    payments = _svc_detail_val(details, 'Payments')
+    location = _svc_detail_val(details, 'Location')
+    proj_mgmt = _svc_detail_val(details, 'Project management')
+    confirm = _svc_detail_val(details, 'Confirmation')
+    questions = _svc_detail_val(details, 'Questions')
+    messaging = _svc_detail_val(details, 'Messaging')
+    reminder = _svc_detail_val(details, 'Reminder')
+
+    # Duration mini-card
+    dur_card = ''
+    if duration:
+        dur_display = esc(duration)
+        buf_html = ''
+        if buffers and buffers.lower() != 'n/a':
+            buf_html = f'<div style="font-size:10px; color:var(--text-light); margin-top:4px;">+ {esc(buffers)}</div>'
+        dur_card = f'''<div class="bk-dur-card">
+          <div style="font-size:10px; letter-spacing:0.08em; text-transform:uppercase; color:var(--text-light); margin-bottom:4px;">Duration</div>
+          <div style="font-size:16px; font-weight:600; color:var(--green);">{dur_display}</div>{buf_html}
         </div>'''
 
+    # Price + payment description
+    price = _extract_price(payments)
+    price_line = ''
+    if price:
+        pay_desc = esc(payments) if payments and payments.lower() != 'none' else ''
+        price_line = f'<div class="bk-svc-price">{esc(price)}</div>'
+        if pay_desc:
+            price_line += f'<div style="font-size:11px; color:var(--text-light); margin-bottom:8px;">{pay_desc}</div>'
+
+    rows = []
+    if payments and not price:
+        if payments.lower() != 'none':
+            rows.append(f'<div class="bk-svc-row"><span class="bk-svc-label">Payment</span><span class="bk-svc-value">{esc(payments)}</span></div>')
+    if payments and price:
+        deposit_info = ''
+        if 'due at booking' in payments.lower():
+            m = re.search(r'\$[\d,]+(?:\.\d{2})?\s+due at booking', payments, re.IGNORECASE)
+            deposit_info = m.group(0) if m else ''
+        elif 'pay in full' in payments.lower():
+            deposit_info = 'Pay in full'
+        if deposit_info:
+            rows.append(f'<div class="bk-svc-row"><span class="bk-svc-label">Deposit</span><span class="bk-svc-value">{esc(deposit_info)}</span></div>')
+    if location and location.lower() != 'n/a':
+        rows.append(f'<div class="bk-svc-row"><span class="bk-svc-label">Location</span><span class="bk-svc-value">{esc(location)}</span></div>')
+    if messaging and messaging.lower() != 'n/a':
+        rows.append(f'<div class="bk-svc-row"><span class="bk-svc-label">Terms note</span><span class="bk-svc-value" style="font-style:italic; font-size:11px;">{esc(messaging)}</span></div>')
+    if proj_mgmt and proj_mgmt.lower() != 'n/a':
+        tags = re.findall(r'"([^"]+)"', proj_mgmt)
+        if tags:
+            rows.append(f'<div class="bk-svc-row"><span class="bk-svc-label">⚡ Tags</span><span class="bk-svc-value">{esc(", ".join(tags))}</span></div>')
+    if confirm and confirm.lower() != 'n/a':
+        cal_parts = [p.strip() for p in re.split(r'[,;]', confirm) if 'calendar' in p.lower()]
+        if cal_parts:
+            rows.append(f'<div class="bk-svc-row"><span class="bk-svc-label">⚡ Calendar</span><span class="bk-svc-value">{esc("; ".join(cal_parts))}</span></div>')
+        wf_match = re.search(r'(?:WILL\s+)?(?:start|starts|START)\s+(?:NEW\s+)?(.+?)\s*WORKFLOW', confirm, re.IGNORECASE)
+        if wf_match:
+            wf_name = wf_match.group(1).strip()
+            wf_label = f'Starts {wf_name} workflow' if wf_name.upper() != 'NEW' and wf_name else 'Starts new workflow'
+            rows.append(f'<div class="bk-svc-row"><span class="bk-svc-label">⚡ After booking</span><span class="bk-svc-value">{esc(wf_label)}</span></div>')
+    if reminder and reminder.lower() not in ('n/a', ''):
+        if 'workflow' in reminder.lower():
+            rows.append(f'<div class="bk-svc-row"><span class="bk-svc-label">Reminders</span><span class="bk-svc-value">handled in workflow</span></div>')
+        else:
+            rows.append(f'<div class="bk-svc-row"><span class="bk-svc-label">Reminders</span><span class="bk-svc-value">{esc(reminder)}</span></div>')
+
+    # Intake questions
+    q_pills = _extract_questions_summary(questions)
+    q_html = ''
+    if q_pills:
+        pills_html = ' '.join([f'<span class="bk-q-pill">{esc(q)}</span>' for q in q_pills])
+        q_html = f'''<div style="margin-top:10px; padding-top:10px; border-top:1px solid var(--border);">
+            <div style="font-size:10px; letter-spacing:0.08em; text-transform:uppercase; color:var(--text-light); margin-bottom:8px;">Intake questions</div>
+            <div class="bk-q-list">{pills_html}</div>
+          </div>'''
+
+    rows_html = '\n          '.join(rows)
+
+    main_card = f'''<div class="bk-svc-card" style="flex:1;">
+          <div class="bk-svc-name">{esc(name)}</div>
+          {price_line}
+          {rows_html}
+          {q_html}
+        </div>'''
+
+    return f'''        <div class="bk-svc-group">
+          {dur_card}
+          {main_card}
+        </div>'''
+
+
 def build_booking_schedule(sched_name, sched_url, details, services):
-    """Build one complete booking schedule card."""
-    detail_rows = '\n'.join([build_detail_row(k, v) for k, v in details])
-    service_items = '\n'.join([build_booking_service(n, d) for n, d in services])
-    url_btn = f'''      <div style="margin-bottom:16px;">
-        <a href="{esc(sched_url)}" target="_blank" class="btn btn-outline" style="font-size:12px;">Open Scheduling Page →</a>
+    """Build one complete booking schedule card (redesigned)."""
+    details_dict = {k.lower(): v for k, v in details}
+
+    avail = details_dict.get('general availability', '')
+    avail_tag = f'<span class="bk-avail-tag">{esc(avail)}</span>' if avail else ''
+
+    url_btn = f'''<div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+        <a href="{esc(sched_url)}" target="_blank" class="btn btn-outline" style="font-size:12px;">Open scheduling page →</a>
+        <button class="btn btn-outline" style="font-size:12px; cursor:pointer;" onclick="navigator.clipboard.writeText('{esc(sched_url)}');this.textContent='Copied!';setTimeout(()=>this.textContent='📋 Copy link',1500)">📋 Copy link</button>
       </div>''' if sched_url else ''
 
+    rule_map = [
+        ("can't book with less than", 'Min notice'),
+        ("can't book out more than", 'Max advance'),
+        ('limit(s) per day/week', 'Daily limit'),
+        ('prevent cancelling within', 'Cancel cutoff'),
+        ('calendars cross-checked', 'Cross-checked calendars'),
+    ]
+    rules_html = ''
+    for detail_key, label in rule_map:
+        val = details_dict.get(detail_key, '')
+        if not val:
+            continue
+        display_val = val
+        if label == 'Cross-checked calendars':
+            parts = [p.strip().split(' - ')[-1] for p in val.split(',')]
+            display_val = ', '.join(parts)
+        rules_html += f'''        <div class="bk-rule">
+          <div class="bk-rule-label">{esc(label)}</div>
+          <div class="bk-rule-value">{esc(display_val)}</div>
+        </div>\n'''
+
+    service_items = '\n'.join([build_booking_service(n, d) for n, d in services])
+
     return f'''    <div class="card">
-      <div class="card-title">📅 {esc(sched_name)}</div>
-{url_btn}
-      <div style="background:var(--copper-pale); border-radius:8px; padding:16px 18px; margin-bottom:20px;">
-        <div style="font-size:11px; letter-spacing:0.1em; text-transform:uppercase; color:var(--copper); margin-bottom:10px;">Schedule Details</div>
-        <div style="display:flex; flex-direction:column; gap:8px;">
-{detail_rows}
+      <div class="bk-sched-header">
+        <div>
+          <div class="card-title" style="margin-bottom:4px;">📅 {esc(sched_name)}</div>
+          {avail_tag}
         </div>
+        {url_btn}
       </div>
-      <div class="workflow-list">
+      <div class="bk-rules">
+{rules_html}      </div>
+      <div class="bk-svc-grid">
 {service_items}
       </div>
     </div>'''
 
-def build_session_card(num, topic, date_str, url, notes_raw, passcode=''):
+def build_session_card(num, topic, date_str, url, notes_raw, passcode='', summary_url='', action_items=None):
     """Build one zoom session card."""
     date_display = format_date_display(date_str)
-    rec_btn = f'<a href="{esc(url)}" target="_blank" class="btn btn-copper" style="font-size:12px;">▶ Watch Recording</a>' if url else ''
+    btns = ''
+    if url:
+        btns += f'<a href="{esc(url)}" target="_blank" class="btn btn-copper" style="font-size:12px;">▶ Watch Recording</a> '
+    if summary_url:
+        btns += f'<a href="{esc(summary_url)}" target="_blank" class="btn btn-outline" style="font-size:12px;">📋 Meeting Summary</a>'
+
+    passcode_html = ''
+    if passcode and url:
+        passcode_html = f'<div style="font-size:11px; color:var(--text-light); margin-bottom:12px;">Recording passcode: <code style="background:var(--green-pale); padding:2px 6px; border-radius:4px; font-size:12px;">{esc(passcode)}</code></div>'
 
     if notes_raw:
         note_lines = parse_steps(notes_raw)
-        if passcode:
-            note_lines.append(f'Passcode: {passcode}')
         notes_html = '\n'.join([
             f'          <li style="font-size:13px; color:var(--text-mid); display:flex; gap:10px;"><span style="color:var(--copper); flex-shrink:0;">✔️</span> {esc(n)}</li>'
             for n in note_lines
         ])
         notes_section = f'''      <div style="background:var(--green-pale); border-radius:8px; padding:16px 18px;">
-        <div style="font-size:11px; letter-spacing:0.1em; text-transform:uppercase; color:var(--text-light); margin-bottom:10px;">Session Notes</div>
+        <div style="font-size:11px; letter-spacing:0.1em; text-transform:uppercase; color:var(--text-light); margin-bottom:10px;">Session Highlights</div>
         <ul style="list-style:none; display:flex; flex-direction:column; gap:8px;">
 {notes_html}
         </ul>
       </div>'''
     else:
-        notes_section = '''      <div style="background:var(--green-pale); border-radius:8px; padding:16px 18px;">
+        placeholder = 'Recording link and notes will be added after the session.' if not url else ''
+        notes_section = ''
+        if placeholder:
+            notes_section = f'''      <div style="background:var(--green-pale); border-radius:8px; padding:16px 18px;">
         <div style="font-size:11px; letter-spacing:0.1em; text-transform:uppercase; color:var(--text-light); margin-bottom:10px;">Session Notes</div>
-        <p style="font-size:13px; color:var(--text-light); font-style:italic;">Recording link and notes will be added after the session.</p>
+        <p style="font-size:13px; color:var(--text-light); font-style:italic;">{placeholder}</p>
       </div>'''
+
+    action_section = ''
+    if action_items:
+        items_html = ''
+        for idx, item in enumerate(action_items):
+            cb_id = f's{num}-action-{idx}'
+            items_html += f'''          <label class="action-item" for="{cb_id}">
+            <input type="checkbox" id="{cb_id}" onchange="saveCheckbox(this)">
+            <span>{esc(item)}</span>
+          </label>\n'''
+        action_section = f'''      <div style="background:rgba(184,125,82,0.08); border:1px solid rgba(184,125,82,0.2); border-radius:8px; padding:16px 18px; margin-top:12px;">
+        <div style="font-size:11px; letter-spacing:0.1em; text-transform:uppercase; color:var(--copper); margin-bottom:10px;">Your Action Items</div>
+{items_html}      </div>'''
 
     return f'''    <div class="card">
       <div class="card-title">🎥 Session {num} · {esc(topic or "Untitled")}</div>
-      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; flex-wrap:wrap; gap:10px;">
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; flex-wrap:wrap; gap:10px;">
         <span style="font-size:12px; color:var(--text-light); letter-spacing:0.05em;">{esc(date_display or "Date TBD")}</span>
-        {rec_btn}
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">{btns}</div>
       </div>
+      {passcode_html}
 {notes_section}
+{action_section}
     </div>'''
 
-def build_pipeline_card(name, phases, image_url):
-    """Build one pipeline card with optional image."""
-    img = f'<img src="{esc(image_url)}" alt="{esc(name)} Pipeline" style="width:100%; border-radius:8px; border:1px solid var(--border);">' if image_url else '<div style="text-align:center; padding:30px; background:var(--green-pale); border-radius:8px; color:var(--text-light); font-size:13px;">Pipeline screenshot will be added here</div>'
-    return f'''    <div class="card">
-      <div class="card-title">🗂️ {esc(name)} Pipeline</div>
-      <p style="font-size:13px; color:var(--text-light); margin-bottom:16px;">{esc(phases)} phases</p>
-      {img}
+def build_pipeline_card(name, phase_count, image_url, phases_data=None):
+    """Build one pipeline card with phase flow and screenshot."""
+    if phases_data:
+        phase_cards = []
+        for i, ph in enumerate(phases_data):
+            triggers = []
+            for e in ph['entries']:
+                triggers.append(f'➡️ {esc(e)}')
+            for x in ph['exits']:
+                triggers.append(f'⬅️ {esc(x)}')
+            trigger_html = '<br>'.join(triggers) if triggers else '<em>—</em>'
+
+            wf_html = ''
+            for wt in ph.get('wf_tags', []):
+                wf_html += f'\n              <span class="pl-wf-tag">{esc(wt)}</span>'
+
+            is_last = (i == len(phases_data) - 1)
+
+            phase_cards.append(f'''          <div class="pl-phase">
+            <div class="pl-phase-name">{esc(ph['name'])}</div>
+            <div class="pl-phase-trigger">{trigger_html}</div>{wf_html}
+          </div>''')
+
+            if not is_last:
+                phase_cards.append('          <div class="pl-arrow">→</div>')
+
+        flow_html = f'''      <div class="pl-flow">
+{chr(10).join(phase_cards)}
+      </div>'''
+    else:
+        flow_html = ''
+
+    img_html = ''
+    if image_url:
+        img_html = f'''
+      <img src="{esc(image_url)}" alt="{esc(name)} Pipeline" style="width:100%; border-radius:8px; border:1px solid var(--border); margin-top:12px;">'''
+
+    phase_names = ''
+    if phases_data:
+        phase_names = ' → '.join([ph['name'] for ph in phases_data])
+        phase_names = f'<div class="pl-summary">{esc(phase_names)}</div>'
+
+    return f'''    <div class="card pl-card">
+      <div class="card-title pl-toggle" onclick="this.classList.toggle('open');this.nextElementSibling.classList.toggle('open');">🗂️ {esc(name)} Pipeline <span style="font-size:12px; color:var(--text-light); font-weight:400;">· {esc(str(phase_count))} phases</span> <span class="pl-expand-arrow">▶</span></div>
+      {phase_names}
+      <div class="pl-detail">
+{flow_html}{img_html}
+      </div>
     </div>'''
+
+
+# ─── JOURNEY MAP BUILDERS ────────────────────────────────
+
+def build_journey_row(node):
+    """Build one 3-column row for the journey map (timing | step | pipeline)."""
+    cls_map = {'manual': '', 'automated': ' auto', 'email': ' email', 'client_action': ' client'}
+    cls = cls_map.get(node['type'], ' auto')
+
+    if node['type'] == 'manual' and node['member_emoji']:
+        icon = node['member_emoji']
+    elif node['type'] == 'email':
+        icon = '⚡📧' if node.get('is_auto_email') else '📧'
+    elif node['type'] == 'client_action':
+        icon = '⏸️'
+    else:
+        icon = '⚡'
+
+    if node['member_name']:
+        mbg = hex_to_rgba(node['member_color']) if node['member_color'] else 'rgba(0,0,0,0.06)'
+        tag_html = f'<span class="jt-who" style="background:{mbg};color:{node["member_color"]}">{esc(node["member_name"])}</span>'
+    elif node.get('is_auto_email'):
+        tag_html = '<span class="jt-email-tag">auto to client</span>'
+    elif node['type'] == 'email':
+        tag_html = '<span class="jt-email-tag">client receives</span>'
+    elif node['type'] == 'client_action':
+        tag_html = '<span class="jt-email-tag">client action</span>'
+    elif node['type'] == 'automated':
+        tag_html = '<span class="jt-auto-tag">auto</span>'
+    else:
+        tag_html = ''
+
+    timing_html = esc(node['timing']) if node['timing'] else ''
+    pipeline_html = f'→ {esc(node["pipeline_change"])}' if node['pipeline_change'] else ''
+
+    return f'''              <div class="jt-row">
+                <div class="jt-timing">{timing_html}</div>
+                <div class="jt-step{cls}">
+                  <span class="jt-icon">{icon}</span>
+                  <span class="jt-desc">{esc(node["description"])}</span>
+                  {tag_html}
+                </div>
+                <div class="jt-pipeline">{pipeline_html}</div>
+              </div>'''
+
+
+def build_journey_branch(idx, label, wf_nums, all_wf, team_members, tag_phase_map=None):
+    """Build one journey branch tab content."""
+    html = ''
+    for wi, wf_num in enumerate(wf_nums):
+        if wf_num not in all_wf:
+            continue
+        wf = all_wf[wf_num]
+        wf_name = clean_name(wf['name'])
+        steps = parse_steps(wf['steps'])
+
+        html += f'            <div class="jt-wf-label">{esc(wf_name)}</div>\n'
+        html += '            <div class="jt-col-header"><span>Timing</span><span>Step</span><span>Pipeline</span></div>\n'
+
+        transition_target = ''
+        for step_text in steps:
+            node = classify_journey_step(step_text, team_members, tag_phase_map)
+            if node['is_transition']:
+                transition_target = node['transition_target']
+                continue
+            html += build_journey_row(node) + '\n'
+
+        if transition_target and wi < len(wf_nums) - 1:
+            html += f'            <div class="jt-transition">↓ Flows into: {esc(transition_target)}</div>\n'
+
+    active = ' active' if idx == 0 else ''
+    return f'          <div class="journey-branch{active}" id="jb-{idx}">\n{html}          </div>'
+
+
+def build_journey_section(journey_branches, all_wf, team_members, lead_capture_items, lc_form_fields=None, tag_phase_map=None):
+    """Build the complete Client Experience section HTML."""
+    member_dots = ''
+    for mname, minfo in team_members.items():
+        c = minfo.get('color', '#888')
+        e = minfo.get('emoji', '')
+        member_dots += f'<span class="legend-item"><span class="legend-dot" style="background:{c}"></span> {esc(mname)}</span>\n            '
+
+    legend = f'''    <div class="card jt-legend-card" style="padding:16px 20px; margin-bottom:20px;">
+      <div class="journey-legend">
+        <div class="legend-group">
+          <span class="legend-label">Team</span>
+          {member_dots.strip()}
+        </div>
+        <div class="legend-group">
+          <span class="legend-label">Step type</span>
+          <span class="legend-item"><span class="legend-swatch legend-sw-auto"></span> Automated</span>
+          <span class="legend-item"><span class="legend-swatch legend-sw-client"></span> Client touchpoint</span>
+        </div>
+      </div>
+    </div>''' if team_members else ''
+
+    entry_items = '\n'.join(f'        <div class="journey-entry-item">⚡ {esc(item)}</div>' for item in lead_capture_items)
+
+    tabs = '\n'.join(
+        f'          <button class="journey-tab{" active" if i == 0 else ""}" onclick="showJourneyBranch({i})">{esc(label)}</button>'
+        for i, (label, _) in enumerate(journey_branches)
+    )
+
+    branches = '\n'.join(
+        build_journey_branch(i, label, nums, all_wf, team_members, tag_phase_map)
+        for i, (label, nums) in enumerate(journey_branches)
+    )
+
+    return f'''
+  <!-- ══════ CLIENT EXPERIENCE ══════ -->
+  <section class="page-section" id="client-experience">
+    <div class="section-header">
+      <h1>Client Experience</h1>
+      <p>The complete journey from first inquiry to final delivery — who does what, when, and what the client sees along the way.</p>
+    </div>
+
+{legend}
+
+    <div class="card jt-entry-card" style="text-align:center;">
+      <div style="font-size:18px; font-weight:600; color:var(--cb-primary); margin-bottom:14px;">Lead Submits Inquiry</div>
+{'      <div style="margin-bottom:16px;"><div style="font-size:11px; letter-spacing:0.08em; text-transform:uppercase; color:var(--copper); font-weight:500; margin-bottom:8px;">Info gathered from client</div><div class="bk-q-list" style="justify-content:center;">' + ''.join(f'<span class="bk-q-pill">{esc(f)}</span>' for f in lc_form_fields) + '</div></div>' if lc_form_fields else ''}
+      <div style="display:flex; flex-direction:column; gap:6px; text-align:left; max-width:420px; margin:0 auto;">
+{entry_items}
+      </div>
+    </div>
+    <div style="width:2px; height:20px; background:var(--cb-accent1); margin:0 auto;"></div>
+
+    <div class="journey-tabs-container">
+      <div class="journey-tabs">
+{tabs}
+      </div>
+      <div class="journey-branches-wrap">
+{branches}
+      </div>
+    </div>
+  </section>
+'''
+
+
+def build_journey_context_text(journey_branches, all_wf, team_members, lead_capture_items):
+    """Build plain text journey summary for CLIENT_CONTEXT."""
+    ctx = '\nCLIENT JOURNEY (Client Experience Map):\n'
+    ctx += '\nWhen a lead submits the inquiry form:\n'
+    for item in lead_capture_items:
+        ctx += f'  - {item}\n'
+
+    if team_members:
+        ctx += '\nTeam Members:\n'
+        for mname, minfo in team_members.items():
+            ctx += f'  {minfo.get("emoji", "")} {mname}\n'
+
+    for label, wf_nums in journey_branches:
+        ctx += f'\n{label} PATH:\n'
+        for wf_num in wf_nums:
+            if wf_num not in all_wf:
+                continue
+            wf = all_wf[wf_num]
+            wf_name = clean_name(wf['name'])
+            steps = parse_steps(wf['steps'])
+            ctx += f'\n  [{wf_name}]\n'
+            for si, step in enumerate(steps, 1):
+                node = classify_journey_step(step, team_members)
+                prefix = f'{node["member_emoji"]} {node["member_name"]}' if node['member_name'] else '⚡ AUTO'
+                ctx += f'    {si}. [{prefix}] {node["description"]}'
+                if node['timing']:
+                    ctx += f' ({node["timing"]})'
+                if node['pipeline_change']:
+                    ctx += f' → Pipeline: {node["pipeline_change"]}'
+                ctx += '\n'
+
+    return ctx
 
 
 # ─── CLIENT CONTEXT BUILDER ──────────────────────────────
@@ -290,7 +919,7 @@ DAILY WORKFLOW:
 
 PIPELINES:'''
 
-    for i in range(1, 5):
+    for i in range(1, 13):
         pname = d.get(f'Pipeline {i} Name', '')
         pphases = d.get(f'Pipeline {i} Phases', '')
         if pname:
@@ -368,7 +997,7 @@ def generate_portal(data_path, output_path):
     overview = d.get('Overview Summary', '')
     num_wf = int(d.get('Num Workflows', 0) or 0)
     num_pl = int(d.get('Num Pipelines', 0) or 0)
-    num_auto = int(d.get('Num Automations', 0) or 0)
+    num_auto = 0  # computed after auto_groups is built
 
     today = datetime.now().strftime('%B %d, %Y').replace(' 0', ' ')
     today_iso = datetime.now().strftime('%Y-%m-%dT00:00:00Z')
@@ -406,29 +1035,70 @@ def generate_portal(data_path, output_path):
             items_html += build_workflow_item(w['name'], w['stages'], w['desc'], w['steps']) + '\n'
         workflows_html = build_workflow_card('All Workflows', items_html)
 
+    # ── Build booking automations from schedule data ──
+    booking_auto_items = []
+    for i in range(1, 13):
+        sname = d.get(f'Booking Schedule {i} Name', '')
+        if not sname:
+            continue
+        svcs = parse_booking_services(d.get(f'Booking Schedule {i} Services', ''))
+        for svc_name, svc_details in svcs:
+            proj_mgmt = _svc_detail_val(svc_details, 'Project management')
+            confirm = _svc_detail_val(svc_details, 'Confirmation')
+            if proj_mgmt and proj_mgmt.lower() != 'n/a':
+                tags = re.findall(r'"([^"]+)"', proj_mgmt)
+                if tags:
+                    booking_auto_items.append(f'{svc_name}: auto-tags contact/project with {", ".join(tags)}')
+            if confirm and confirm.lower() != 'n/a':
+                cal_parts = [p.strip() for p in re.split(r'[,;]', confirm) if 'calendar' in p.lower()]
+                if cal_parts:
+                    booking_auto_items.append(f'{svc_name}: {"; ".join(cal_parts)}')
+                wf_match = re.search(r'(?:WILL\s+)?(?:start|starts|START)\s+(?:NEW\s+)?(.+?)\s*WORKFLOW', confirm, re.IGNORECASE)
+                if wf_match:
+                    wf_name = wf_match.group(1).strip()
+                    if wf_name.upper() != 'NEW' and wf_name:
+                        booking_auto_items.append(f'{svc_name}: starts {wf_name} workflow')
+                    else:
+                        booking_auto_items.append(f'{svc_name}: starts new workflow')
+
     # ── Build automations ──
     auto_html = ''
     auto_groups = []
-    for label, field, desc in [
-        ('Lead Capture', 'Automations - Lead Capture', 'These automations fire when a new lead submits the lead capture form.'),
-        ('Pipeline Phase Movements', 'Automations - Pipelines', 'Automatic pipeline phase changes triggered by workflow actions and time-based rules.'),
-        ('Workflow Automations', 'Automations - Workflows', 'Automated emails, tags, and workflow transitions within workflows.'),
-        ('Document Automations', 'Automations - Documents', 'Document-related automations.'),
+
+    if booking_auto_items:
+        auto_html += build_auto_group('Booking Automations', len(booking_auto_items),
+            'Automations triggered when a client books through a scheduling page.', booking_auto_items) + '\n'
+        auto_groups.append(('Booking Automations', booking_auto_items))
+
+    for label, field, desc, split in [
+        ('Lead Capture', 'Automations - Lead Capture', 'These automations fire when a new lead submits the lead capture form.', False),
+        ('Pipeline Phase Movements', 'Automations - Pipelines', 'Automatic pipeline phase changes triggered by workflow actions and time-based rules.', True),
+        ('Workflow Automations', 'Automations - Workflows', 'Automated emails, tags, and workflow transitions within workflows.', True),
+        ('Document Automations', 'Automations - Documents', 'Document-related automations.', False),
     ]:
         raw = d.get(field, '')
         if not raw or raw == 'TBD': continue
         items = parse_steps(raw)
-        auto_html += build_auto_group(label, len(items), desc, items) + '\n'
+        auto_html += build_auto_group(label, len(items), desc, items, split_by_path=split) + '\n'
         auto_groups.append((label, items))
 
+    num_auto = sum(len(items) for _, items in auto_groups)
+
     # ── Build pipelines ──
-    pipelines_html = ''
-    for i in range(1, 5):
+    pipelines_raw = []
+    for i in range(1, 13):
         pname = d.get(f'Pipeline {i} Name', '')
         if not pname: continue
         pphases = d.get(f'Pipeline {i} Phases', '')
         pimg = d.get(f'Pipeline {i} Image URL', '')
-        pipelines_html += build_pipeline_card(pname, pphases, pimg) + '\n'
+        pipelines_raw.append((pname, pphases, pimg))
+
+    pipeline_auto_text = d.get('Automations - Pipelines', '')
+    pipeline_data = parse_pipeline_automations(pipeline_auto_text, pipelines_raw, all_wf)
+
+    pipelines_html = ''
+    for pname, pcount, pimg, phases_data in pipeline_data:
+        pipelines_html += build_pipeline_card(pname, pcount, pimg, phases_data) + '\n'
 
     # ── Build bookings ──
     booking_schedules = []
@@ -452,7 +1122,11 @@ def generate_portal(data_path, output_path):
         sdate = d.get(f'date:Session {i} Date:start', '')
         surl = d.get(f'Session {i} Recording URL', '')
         snotes = d.get(f'Session {i} Notes', '')
-        sessions_html += build_session_card(i, topic, sdate, surl, snotes) + '\n'
+        spcode = d.get(f'Session {i} Recording Passcode', '')
+        ssum_url = d.get(f'Session {i} Summary URL', '')
+        s_actions_raw = d.get(f'Session {i} Action Items', '')
+        s_actions = [a.strip() for a in s_actions_raw.split('|') if a.strip()] if s_actions_raw else None
+        sessions_html += build_session_card(i, topic, sdate, surl, snotes, passcode=spcode, summary_url=ssum_url, action_items=s_actions) + '\n'
 
     # ── Build tips ──
     tips_html = ''
@@ -480,12 +1154,133 @@ def generate_portal(data_path, output_path):
   <section class="page-section" id="bookings">
     <div class="section-header">
       <h1>Bookings</h1>
-      <p>Your availability schedules and the services/sessions configured within each one.</p>
+      <p>Your scheduling pages and the services configured within each one.</p>
     </div>
 
 {bookings_html}
   </section>
 ''' if has_bookings else ''
+
+    # ── Build journey ──
+    team_members = parse_team_members(d)
+    jb_raw = d.get('Journey Branches', '')
+    if not jb_raw:
+        jb_raw = d.get('Workflow Groups', '')
+    journey_branches = parse_workflow_groups(jb_raw) if jb_raw else []
+    lead_capture_items = parse_steps(d.get('Automations - Lead Capture', ''))
+    lc_fields_raw = d.get('Lead Capture Form Fields', '')
+    lc_fields = [f.strip() for f in lc_fields_raw.split(';') if f.strip()] if lc_fields_raw else []
+
+    if journey_branches:
+        pipeline_auto_text = d.get('Automations - Pipelines', '')
+        workflow_auto_text = d.get('Automations - Workflows', '')
+        tag_phase_map = parse_tag_to_phase_map(pipeline_auto_text, workflow_auto_text)
+        journey_section = build_journey_section(journey_branches, all_wf, team_members, lead_capture_items, lc_form_fields=lc_fields, tag_phase_map=tag_phase_map)
+        journey_nav = '''    <a class="nav-item" onclick="showSection('client-experience')">
+      <span class="icon">🗺️</span> Client Experience
+    </a>'''
+        workflows_nav = ''
+    else:
+        journey_section = ''
+        journey_nav = ''
+        workflows_nav = '''    <a class="nav-item" onclick="showSection('workflows')">
+      <span class="icon">⟳</span> Workflows
+    </a>'''
+
+    # ── Team members HTML for overview ──
+    team_html = ''
+    if team_members:
+        members_items = ''
+        for mname, minfo in team_members.items():
+            color = minfo.get('color', '#888')
+            emoji = minfo.get('emoji', '')
+            if emoji:
+                members_items += f'<div class="tm-member"><span class="tm-name">{emoji} {esc(mname)}</span></div>\n'
+            else:
+                members_items += f'<div class="tm-member"><span class="tm-dot" style="background:{color};"></span><span class="tm-name">{esc(mname)}</span></div>\n'
+        team_html = f'''
+        <div style="margin-top:16px;">
+          <div style="font-size:10px; letter-spacing:0.1em; text-transform:uppercase; color:var(--text-light); margin-bottom:8px;">Your Team</div>
+          <div class="tm-row">{members_items}</div>
+        </div>'''
+
+    # ── Special notes HTML ──
+    special_notes = d.get('Special Notes', '')
+    special_notes_card = ''
+    if special_notes:
+        note_sentences = [s.strip() for s in re.split(r'[.;]', special_notes) if s.strip()]
+        note_sentences = [s[0].upper() + s[1:] if s else s for s in note_sentences]
+        notes_items = '\n'.join([
+            f'          <li class="sn-item"><span class="sn-icon">▸</span> {esc(s)}</li>'
+            for s in note_sentences
+        ])
+        special_notes_card = f'''
+    <div class="card sn-card">
+      <div class="card-title">📌 How to Use Your Setup</div>
+      <ul class="sn-list">
+{notes_items}
+      </ul>
+    </div>'''
+
+    cb_primary = d.get('Client Brand Primary', '')
+    cb_accent1 = d.get('Client Brand Accent 1', '')
+    cb_accent2 = d.get('Client Brand Accent 2', '')
+    cb_vars = ''
+    if cb_primary:
+        cb_vars += f'--cb-primary:{cb_primary}; --cb-primary-pale:{hex_to_rgba(cb_primary, "0.08")}; --cb-primary-light:{hex_to_rgba(cb_primary, "0.5")};'
+    if cb_accent1:
+        cb_vars += f' --cb-accent1:{cb_accent1}; --cb-accent1-pale:{hex_to_rgba(cb_accent1, "0.08")};'
+    if cb_accent2:
+        cb_vars += f' --cb-accent2:{cb_accent2};'
+    if not cb_primary:
+        cb_vars = '--cb-primary:var(--green); --cb-primary-pale:var(--green-pale); --cb-primary-light:var(--green-light); --cb-accent1:var(--copper); --cb-accent1-pale:var(--copper-pale); --cb-accent2:var(--copper-light);'
+    else:
+        if not cb_accent1:
+            cb_vars += ' --cb-accent1:var(--copper); --cb-accent1-pale:var(--copper-pale);'
+        if not cb_accent2:
+            cb_vars += ' --cb-accent2:var(--copper-light);'
+
+    journey_css = f'''  #client-experience {{ {cb_vars} }}
+  .journey-legend {{ display:flex; flex-wrap:wrap; gap:16px; align-items:center; }}
+  .legend-group {{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; }}
+  .legend-label {{ font-size:10px; letter-spacing:0.12em; text-transform:uppercase; color:var(--text-light); margin-right:4px; }}
+  .legend-dot {{ width:10px; height:10px; border-radius:50%; display:inline-block; }}
+  .legend-item {{ display:inline-flex; align-items:center; gap:4px; font-size:12px; color:var(--text-mid); }}
+  .legend-swatch {{ display:inline-block; width:16px; height:4px; border-radius:2px; }}
+  .legend-sw-auto {{ background:var(--cb-primary-pale); border:1px dashed var(--cb-primary-light); }}
+  .legend-sw-client {{ background:var(--cb-accent1-pale); border:1px solid var(--cb-accent1); }}
+  .journey-entry-item {{ font-size:13px; color:var(--text-mid); display:flex; align-items:center; gap:8px; padding:4px 0; }}
+  .jt-entry-card {{ border:2px solid var(--cb-primary); background:var(--cb-primary-pale); }}
+  .journey-tabs-container {{ margin-top:0; }}
+  .journey-tabs {{ display:flex; background:white; border:1px solid var(--border); border-bottom:none; border-radius:12px 12px 0 0; overflow:hidden; }}
+  .journey-tab {{ flex:1; padding:13px 16px; font-family:'Montserrat',sans-serif; font-size:13px; font-weight:500; background:white; border:none; cursor:pointer; color:var(--text-light); transition:all 0.2s; border-bottom:2px solid transparent; }}
+  .journey-tab:hover {{ background:var(--cb-primary-pale); color:var(--text); }}
+  .journey-tab.active {{ color:var(--cb-primary); border-bottom-color:var(--cb-accent1); background:var(--cb-primary-pale); }}
+  .journey-branches-wrap {{ }}
+  .journey-branch {{ display:none; background:white; border:1px solid var(--border); border-top:none; border-radius:0 0 12px 12px; padding:24px 20px; }}
+  .journey-branch.active {{ display:block; }}
+  .jt-wf-label {{ font-size:14px; font-weight:600; color:var(--cb-primary); margin:20px 0 10px; padding:8px 14px; background:#d5e3db; border-radius:8px; }}
+  .jt-wf-label:first-child {{ margin-top:0; }}
+  .jt-col-header {{ display:grid; grid-template-columns:100px 1fr 120px; gap:8px; padding:4px 0; margin-bottom:4px; }}
+  .jt-col-header span {{ font-size:10px; letter-spacing:0.1em; text-transform:uppercase; color:var(--text-mid); font-weight:500; text-align:center; }}
+  .jt-col-header span:first-child {{ text-align:center; }}
+  .jt-col-header span:last-child {{ text-align:center; }}
+  .jt-row {{ display:grid; grid-template-columns:100px 1fr 120px; gap:8px; align-items:center; margin-bottom:6px; min-height:36px; }}
+  .jt-timing {{ font-size:11px; color:var(--text-light); line-height:1.3; padding-right:4px; }}
+  .jt-pipeline {{ font-size:11px; color:var(--cb-accent1); font-weight:500; text-align:right; line-height:1.3; }}
+  .jt-step {{ display:flex; align-items:center; gap:8px; padding:8px 12px; border:1px solid var(--border); border-radius:8px; background:white; min-height:36px; }}
+  .jt-step.auto {{ border-style:dashed; background:var(--cb-primary-pale); }}
+  .jt-step.email {{ background:var(--cb-accent1-pale); border-color:var(--cb-accent1); }}
+  .jt-step.client {{ background:var(--cb-accent1-pale); border-color:var(--cb-accent1); }}
+  .jt-icon {{ font-size:13px; flex-shrink:0; }}
+  .jt-desc {{ flex:1; font-size:12px; color:var(--text); line-height:1.4; }}
+  .jt-who {{ font-size:10px; padding:2px 8px; border-radius:10px; white-space:nowrap; font-weight:500; flex-shrink:0; }}
+  .jt-auto-tag {{ font-size:10px; color:var(--cb-primary); background:var(--cb-primary-pale); padding:2px 8px; border-radius:10px; white-space:nowrap; flex-shrink:0; }}
+  .jt-email-tag {{ font-size:10px; color:var(--cb-accent1); background:var(--cb-accent1-pale); padding:2px 8px; border-radius:10px; white-space:nowrap; flex-shrink:0; }}
+  .jt-transition {{ margin:14px 0; padding:6px 14px; background:var(--cb-primary-pale); border:1px dashed var(--cb-primary-light); border-radius:16px; font-size:12px; color:var(--cb-primary); font-weight:500; width:fit-content; margin-left:108px; }}
+  @media (max-width:768px) {{ .journey-tabs {{ flex-wrap:wrap; }} .journey-tab {{ min-width:48%; }} .jt-row {{ grid-template-columns:1fr; gap:4px; }} .jt-timing,.jt-pipeline {{ padding-left:12px; }} .jt-col-header {{ display:none; }} }}'''
+
+    journey_js = 'function showJourneyBranch(idx){document.querySelectorAll(".journey-branch").forEach(function(b,i){if(i===idx)b.classList.add("active");else b.classList.remove("active");});document.querySelectorAll(".journey-tab").forEach(function(t,i){if(i===idx)t.classList.add("active");else t.classList.remove("active");});}'
 
     # ── Recommended updates ──
     setup_d = datetime.strptime(setup_date[:10], '%Y-%m-%d') if setup_date else datetime.now()
@@ -494,8 +1289,36 @@ def generate_portal(data_path, output_path):
 
     # ── CLIENT_CONTEXT ──
     client_context = build_client_context(d, all_wf, auto_groups, booking_schedules)
+    if journey_branches:
+        client_context += build_journey_context_text(journey_branches, all_wf, team_members, lead_capture_items)
     # Escape for JS string literal (backtick template)
     client_context_js = client_context.replace('\\', '\\\\').replace('`', '\\`').replace('${', '\\${')
+
+    # ── Build setup items for change request checklist ──
+    setup_items = []
+    for n in sorted(all_wf.keys()):
+        w = all_wf[n]
+        setup_items.append(('Workflow', clean_name(w['name'])))
+    for i in range(1, 13):
+        pname = d.get(f'Pipeline {i} Name', '')
+        if pname:
+            setup_items.append(('Pipeline', f'{pname} Pipeline'))
+    for i in range(1, 4):
+        sname = d.get(f'Booking Schedule {i} Name', '')
+        if sname:
+            setup_items.append(('Booking', f'{sname} (booking schedule)'))
+            svcs = parse_booking_services(d.get(f'Booking Schedule {i} Services', ''))
+            for svc_name, _ in svcs:
+                setup_items.append(('Service', f'{svc_name} (service)'))
+    for label, field, _ in [
+        ('Lead Capture', 'Automations - Lead Capture', ''),
+        ('Pipeline Automations', 'Automations - Pipelines', ''),
+        ('Workflow Automations', 'Automations - Workflows', ''),
+    ]:
+        if d.get(field, '') and d.get(field, '') != 'TBD':
+            setup_items.append(('Automation', f'{label} automations'))
+
+    setup_items_js = json.dumps([{'cat': cat, 'name': name} for cat, name in setup_items])
 
     # ── ASSEMBLE FULL HTML ──
     # Read the CSS from the template (it's always the same)
@@ -555,8 +1378,8 @@ def generate_portal(data_path, output_path):
   .card-title {{ font-size:20px; font-weight:500; color:var(--green); margin-bottom:16px; display:flex; align-items:center; gap:10px; }}
   .workflow-list {{ display:flex; flex-direction:column; gap:12px; }}
   .workflow-item {{ border:1px solid var(--border); border-radius:10px; overflow:hidden; }}
-  .workflow-header {{ display:flex; align-items:center; justify-content:space-between; padding:14px 18px; cursor:pointer; background:var(--green-pale); transition:background 0.2s; }}
-  .workflow-header:hover {{ background:#deeae4; }}
+  .workflow-header {{ display:flex; align-items:center; justify-content:space-between; padding:14px 18px; cursor:pointer; background:#d5e3db; transition:background 0.2s; }}
+  .workflow-header:hover {{ background:#c8dacf; }}
   .workflow-header-left {{ display:flex; align-items:center; gap:12px; }}
   .workflow-dot {{ width:8px; height:8px; border-radius:50%; background:var(--copper); flex-shrink:0; }}
   .workflow-name {{ font-size:14px; font-weight:500; color:var(--text); }}
@@ -654,10 +1477,93 @@ def generate_portal(data_path, output_path):
   .mobile-overlay {{ display:none; position:fixed; inset:0; background:rgba(0,0,0,0.4); z-index:98; }}
   .mobile-overlay.visible {{ display:block; }}
   .nav-badge {{ display:inline-block; width:7px; height:7px; border-radius:50%; background:var(--copper); margin-left:6px; flex-shrink:0; box-shadow:0 0 0 2px rgba(184,125,82,0.3); animation:pulse-badge 2s infinite; }}
+  .action-badge {{ display:inline-flex; align-items:center; justify-content:center; min-width:18px; height:18px; border-radius:9px; background:var(--copper); color:white; font-size:10px; font-weight:600; margin-left:6px; padding:0 5px; flex-shrink:0; }}
   @keyframes pulse-badge {{ 0%,100% {{ box-shadow:0 0 0 2px rgba(184,125,82,0.3); }} 50% {{ box-shadow:0 0 0 5px rgba(184,125,82,0); }} }}
-  @media print {{ .sidebar,.hamburger,.mobile-overlay,.pw-overlay,#welcomeModal,.topbar-right {{ display:none !important; }} .main {{ margin-left:0 !important; }} .page-section {{ display:block !important; page-break-after:always; }} .workflow-body {{ display:block !important; }} body {{ background:white; }} .card {{ box-shadow:none; border:1px solid #ddd; }} }}
+  @media print {{ .sidebar,.hamburger,.mobile-overlay,.pw-overlay,#welcomeModal,.topbar-right {{ display:none !important; }} .main {{ margin-left:0 !important; }} .page-section {{ display:block !important; page-break-after:always; }} .workflow-body,.pl-detail {{ display:block !important; }} .pl-summary {{ display:none !important; }} body {{ background:white; }} .card {{ box-shadow:none; border:1px solid #ddd; }} }}
   @media (max-width:768px) {{ .sidebar {{ transform:translateX(-100%); transition:transform 0.3s ease; z-index:99; width:280px; }} .sidebar.mobile-open {{ transform:translateX(0); }} .hamburger {{ display:flex; }} .main {{ margin-left:0; }} .topbar {{ padding:14px 16px 14px 64px; }} .page-section {{ padding:24px 16px; }} .stats-row {{ grid-template-columns:1fr 1fr; gap:10px; }} .content-grid {{ grid-template-columns:1fr; }} .resources-grid {{ grid-template-columns:1fr 1fr; }} .two-col {{ grid-template-columns:1fr; }} .accent-banner {{ flex-direction:column; gap:16px; }} .accent-banner h2 {{ font-size:20px; }} .chat-wrapper {{ height:420px; }} }}
   @media (max-width:480px) {{ .stats-row {{ grid-template-columns:1fr 1fr; }} .resources-grid {{ grid-template-columns:1fr; }} .topbar-right .btn-outline {{ display:none; }} }}
+  .pl-toggle {{ cursor:pointer; user-select:none; }}
+  .pl-toggle .pl-expand-arrow {{ display:inline-block; transition:transform 0.2s; font-size:11px; margin-left:6px; color:var(--text-light); }}
+  .pl-toggle.open .pl-expand-arrow {{ transform:rotate(90deg); }}
+  .pl-summary {{ font-size:12px; color:var(--text-light); margin-top:-8px; margin-bottom:4px; }}
+  .pl-toggle.open + .pl-summary {{ display:none; }}
+  .pl-detail {{ display:none; }}
+  .pl-toggle.open ~ .pl-detail {{ display:block; }}
+  .pl-flow {{ display:flex; gap:0; align-items:stretch; margin-bottom:12px; overflow-x:auto; padding-bottom:4px; }}
+  .pl-phase {{ flex:1; min-width:110px; background:white; border:1px solid var(--border); padding:14px 12px; }}
+  .pl-phase:first-child {{ border-radius:10px 0 0 10px; }}
+  .pl-phase:last-of-type {{ border-radius:0 10px 10px 0; }}
+  .pl-phase-name {{ font-size:12px; font-weight:600; color:var(--green); margin-bottom:8px; line-height:1.3; }}
+  .pl-phase-trigger {{ font-size:10px; color:var(--text-light); line-height:1.4; }}
+  .pl-phase-trigger strong {{ color:var(--text-mid); font-weight:500; }}
+  .pl-arrow {{ display:flex; align-items:center; font-size:16px; color:var(--copper); padding:0 2px; flex-shrink:0; }}
+  .pl-wf-tag {{ display:inline-block; font-size:9px; background:var(--green-pale); color:var(--green); padding:1px 6px; border-radius:8px; margin-top:4px; white-space:nowrap; margin-right:2px; }}
+  @media (max-width:768px) {{ .pl-flow {{ flex-direction:column; gap:8px; }} .pl-phase {{ border-radius:10px !important; }} .pl-arrow {{ justify-content:center; transform:rotate(90deg); padding:4px 0; }} }}
+
+  .bk-sched-header {{ display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; flex-wrap:wrap; gap:10px; }}
+  .bk-avail-tag {{ font-size:11px; color:var(--text-light); background:var(--cream); border:1px solid var(--border); padding:3px 10px; border-radius:12px; }}
+  .bk-rules {{ display:grid; grid-template-columns:repeat(auto-fill, minmax(140px, 1fr)); gap:10px; margin-bottom:16px; }}
+  .bk-rule {{ background:var(--green-pale); border-radius:8px; padding:10px 12px; }}
+  .bk-rule-label {{ font-size:9px; letter-spacing:0.1em; text-transform:uppercase; color:var(--text-light); margin-bottom:3px; }}
+  .bk-rule-value {{ font-size:12px; color:var(--text); font-weight:500; word-break:break-word; overflow-wrap:anywhere; }}
+  .bk-svc-grid {{ display:flex; flex-direction:column; gap:16px; }}
+  .bk-svc-group {{ display:flex; gap:12px; align-items:stretch; }}
+  .bk-dur-card {{ border:1px solid var(--border); border-radius:10px; padding:16px; display:flex; flex-direction:column; justify-content:center; align-items:center; min-width:100px; text-align:center; }}
+  .bk-svc-card {{ border:1px solid var(--border); border-radius:10px; padding:18px; }}
+  .bk-svc-name {{ font-size:14px; font-weight:600; color:var(--text); margin-bottom:10px; }}
+  .bk-svc-price {{ font-size:16px; font-weight:600; color:var(--copper); margin-bottom:4px; }}
+  .bk-svc-row {{ display:flex; gap:8px; margin-bottom:6px; font-size:12px; }}
+  .bk-svc-label {{ color:var(--text-light); min-width:85px; flex-shrink:0; }}
+  .bk-svc-value {{ color:var(--text-mid); }}
+  .bk-detail-toggle {{ font-size:11px; color:var(--copper); cursor:pointer; margin-top:8px; display:inline-block; }}
+  .bk-detail-toggle:hover {{ text-decoration:underline; }}
+  .bk-q-list {{ display:flex; flex-wrap:wrap; gap:4px; }}
+  .bk-q-pill {{ font-size:10px; background:var(--copper-pale); color:var(--copper); padding:2px 8px; border-radius:8px; }}
+  .action-item {{ display:flex; align-items:flex-start; gap:10px; padding:8px 0; font-size:13px; color:var(--text-mid); cursor:pointer; line-height:1.5; }}
+  .action-item input[type="checkbox"] {{ margin-top:3px; accent-color:var(--copper); cursor:pointer; flex-shrink:0; }}
+  .action-item input:checked + span {{ text-decoration:line-through; color:var(--text-light); }}
+  @media (max-width:768px) {{ .bk-svc-group {{ flex-direction:column; }} .bk-dur-card {{ min-width:unset; }} .bk-rules {{ grid-template-columns:1fr 1fr; }} }}
+
+  .ov-quicklinks {{ display:flex; flex-wrap:wrap; gap:10px; margin-top:20px; }}
+  .ov-link-card {{ display:flex; align-items:center; gap:8px; padding:12px 18px; background:white; border:1px solid var(--border); border-radius:10px; cursor:pointer; transition:all 0.15s; text-decoration:none; color:var(--text); }}
+  .ov-link-card:hover {{ border-color:var(--copper); background:var(--copper-pale); }}
+  .ov-link-icon {{ font-size:18px; flex-shrink:0; }}
+  .ov-link-label {{ font-size:13px; font-weight:500; white-space:nowrap; }}
+
+  .cn-label {{ font-size:11px; letter-spacing:0.1em; text-transform:uppercase; color:var(--text-light); display:block; margin-bottom:6px; font-weight:500; }}
+  .cn-input {{ width:100%; border:1px solid var(--border); border-radius:7px; padding:10px 13px; font-family:'Montserrat',sans-serif; font-size:13px; outline:none; color:var(--text); background:var(--cream); }}
+  .cn-input:focus {{ border-color:var(--copper); }}
+  .cn-checklist-wrap {{ border:1px solid var(--border); border-radius:8px; padding:10px; background:var(--cream); }}
+  .cn-checklist {{ max-height:200px; overflow-y:auto; display:flex; flex-direction:column; gap:4px; }}
+  .cn-item {{ display:flex; align-items:center; gap:8px; padding:6px 8px; border-radius:6px; cursor:pointer; font-size:12.5px; color:var(--text-mid); transition:background 0.1s; }}
+  .cn-item:hover {{ background:var(--green-pale); }}
+  .cn-item input {{ accent-color:var(--copper); cursor:pointer; }}
+  .cn-item-cat {{ font-size:9px; letter-spacing:0.08em; text-transform:uppercase; color:var(--text-light); background:var(--green-pale); padding:1px 6px; border-radius:6px; flex-shrink:0; }}
+  .cn-item.hidden {{ display:none; }}
+
+  .tm-row {{ display:flex; flex-wrap:wrap; gap:10px; }}
+  .tm-member {{ display:flex; align-items:center; gap:6px; padding:6px 12px; background:var(--green-pale); border-radius:8px; }}
+  .tm-dot {{ width:10px; height:10px; border-radius:50%; flex-shrink:0; }}
+  .tm-name {{ font-size:12.5px; color:var(--text); font-weight:500; }}
+
+  .sn-card {{ background:var(--green-pale); border:1px solid var(--border); }}
+  .sn-list {{ list-style:none; display:flex; flex-direction:column; gap:8px; }}
+  .sn-item {{ font-size:13px; color:var(--text-mid); display:flex; gap:8px; align-items:flex-start; line-height:1.6; }}
+  .sn-icon {{ color:var(--green); flex-shrink:0; font-size:12px; margin-top:3px; }}
+
+  .at-list {{ display:flex; flex-direction:column; gap:6px; }}
+  .at-item {{ display:flex; gap:8px; align-items:flex-start; font-size:12.5px; color:var(--text-mid); line-height:1.5; padding:6px 10px; background:var(--cream); border-radius:6px; }}
+  .at-bullet {{ color:var(--copper); flex-shrink:0; font-size:11px; margin-top:1px; }}
+  .at-subgroup {{ margin-bottom:16px; }}
+  .at-subgroup:last-child {{ margin-bottom:0; }}
+  .at-subgroup-label {{ font-size:12px; font-weight:600; color:var(--text); margin-bottom:8px; padding-bottom:6px; border-bottom:1px solid var(--border); }}
+  .at-toggle {{ cursor:pointer; user-select:none; }}
+  .at-toggle .at-arrow {{ display:inline-block; transition:transform 0.2s; font-size:11px; margin-left:6px; color:var(--text-light); }}
+  .at-toggle.open .at-arrow {{ transform:rotate(90deg); }}
+  .at-body {{ display:none; }}
+  .at-toggle.open + .at-body {{ display:block; }}
+
+  {journey_css}
 </style>
 </head>
 <body>
@@ -672,7 +1578,7 @@ def generate_portal(data_path, output_path):
     <p style="font-size:13.5px; color:rgba(255,255,255,0.65); line-height:1.7; margin-bottom:28px;">Everything Nicole built for you; in one place.</p>
     <div style="display:flex; flex-direction:column; gap:10px; width:100%; margin-bottom:32px; text-align:left;">
       <div style="display:flex; align-items:flex-start; gap:12px; background:rgba(255,255,255,0.06); border-radius:10px; padding:12px 14px;"><span style="font-size:16px; flex-shrink:0;">◈</span><div><div style="font-size:13px; font-weight:600; color:white; margin-bottom:2px;">Overview</div><div style="font-size:12px; color:rgba(255,255,255,0.45);">Your account stats, quick tips, and at-a-glance summary</div></div></div>
-      <div style="display:flex; align-items:flex-start; gap:12px; background:rgba(255,255,255,0.06); border-radius:10px; padding:12px 14px;"><span style="font-size:16px; flex-shrink:0;">⟳</span><div><div style="font-size:13px; font-weight:600; color:white; margin-bottom:2px;">Workflows &amp; Automation</div><div style="font-size:12px; color:rgba(255,255,255,0.45);">Every workflow Nicole built; with step-by-step breakdowns</div></div></div>
+      <div style="display:flex; align-items:flex-start; gap:12px; background:rgba(255,255,255,0.06); border-radius:10px; padding:12px 14px;"><span style="font-size:16px; flex-shrink:0;">{'🗺️' if journey_branches else '⟳'}</span><div><div style="font-size:13px; font-weight:600; color:white; margin-bottom:2px;">{'Client Experience' if journey_branches else 'Workflows &amp; Automation'}</div><div style="font-size:12px; color:rgba(255,255,255,0.45);">{'Your complete client journey from inquiry to delivery' if journey_branches else 'Every workflow Nicole built; with step-by-step breakdowns'}</div></div></div>
       <div style="display:flex; align-items:flex-start; gap:12px; background:rgba(255,255,255,0.06); border-radius:10px; padding:12px 14px;"><span style="font-size:16px; flex-shrink:0;">🎥</span><div><div style="font-size:13px; font-weight:600; color:white; margin-bottom:2px;">Zoom Recordings</div><div style="font-size:12px; color:rgba(255,255,255,0.45);">All your session recordings and notes in one place</div></div></div>
       <div style="display:flex; align-items:flex-start; gap:12px; background:rgba(255,255,255,0.06); border-radius:10px; padding:12px 14px;"><span style="font-size:16px; flex-shrink:0;">🤖</span><div><div style="font-size:13px; font-weight:600; color:white; margin-bottom:2px;">Ask Robot Nicole</div><div style="font-size:12px; color:rgba(255,255,255,0.45);">Your AI assistant trained on your exact 17hats setup; 24/7</div></div></div>
     </div>
@@ -707,22 +1613,22 @@ def generate_portal(data_path, output_path):
   <div class="sidebar-section">
     <div class="sidebar-section-label">Your Setup</div>
     <a class="nav-item active" onclick="showSection('overview')"><span class="icon">◈</span> Overview</a>
-    <a class="nav-item" onclick="showSection('workflows')"><span class="icon">⟳</span> Workflows</a>
+{journey_nav}
+{workflows_nav}
     <a class="nav-item" onclick="showSection('pipelines')"><span class="icon">◫</span> Pipelines</a>
     <a class="nav-item" onclick="showSection('automations')"><span class="icon">⚙️</span> Automations</a>
 {bookings_nav}
   </div>
   <div class="sidebar-section">
     <div class="sidebar-section-label">Resources</div>
-    <a class="nav-item" onclick="showSection('zoom-recordings')"><span class="icon">🎥</span> Zoom Sessions</a>
+    <a class="nav-item" onclick="showSection('zoom-recordings')"><span class="icon">🎥</span> Zoom Sessions<span class="action-badge" id="actionBadge" style="display:none;"></span></a>
     <a class="nav-item" id="nav-whats-new" onclick="showSection('whats-new')"><span class="icon">✦</span> What's New from Nicole<span class="nav-badge" id="newsBadge" style="display:none;"></span></a>
     <a class="nav-item" onclick="showSection('resources')"><span class="icon">⊞</span> Resource Library</a>
   </div>
   <div class="sidebar-section">
     <div class="sidebar-section-label">Support</div>
     <a class="nav-item" onclick="showSection('ask-robot-nicole')"><span class="icon">🤖</span> Ask Robot Nicole</a>
-    <a class="nav-item" onclick="showSection('requests')"><span class="icon">✏️</span> Request a Change</a>
-    <a class="nav-item" onclick="showSection('get-help')"><span class="icon">◉</span> Get Help from Nicole</a>
+    <a class="nav-item" onclick="showSection('contact-nicole')"><span class="icon">✏️</span> Contact Nicole</a>
   </div>
   <div class="sidebar-footer">
     <p>Set up by Nicole · {esc(setup_month_year)}<br>
@@ -739,7 +1645,7 @@ def generate_portal(data_path, output_path):
     </div>
     <div class="topbar-right">
       <a href="#" class="btn btn-outline" onclick="printSection(); return false;">🖨️ Save as PDF</a>
-      <a href="mailto:nicole@letnicolehelp.com" class="btn btn-outline">📧 Email Nicole</a>
+      <a href="#" class="btn btn-outline" onclick="showSection('contact-nicole'); return false;">✏️ Contact Nicole</a>
       <a href="#" class="btn btn-copper" onclick="showSection('ask-robot-nicole')">🤖 Ask Robot Nicole</a>
     </div>
   </div>
@@ -750,16 +1656,22 @@ def generate_portal(data_path, output_path):
       <p>Everything Nicole set up for you: your workflows, resources &amp; AI assistant...all in one place.</p>
     </div></div>
     <div class="stats-row">
-      <div class="stat-card"><div class="stat-label">Workflows Built</div><div class="stat-value">{num_wf}</div></div>
-      <div class="stat-card"><div class="stat-label">Pipelines Built</div><div class="stat-value">{num_pl}</div></div>
-      <div class="stat-card"><div class="stat-label">Automations</div><div class="stat-value">{num_auto}</div></div>
-      <div class="stat-card"><div class="stat-label">Recommended tune-up</div><div class="stat-value">{esc(checkin_label)}</div></div>
+      <div class="stat-card" style="cursor:pointer;" onclick="showSection('{('client-experience' if journey_branches else 'workflows')}')"><div class="stat-label">Workflows Built</div><div class="stat-value">{num_wf}</div></div>
+      <div class="stat-card" style="cursor:pointer;" onclick="showSection('pipelines')"><div class="stat-label">Pipelines Built</div><div class="stat-value">{num_pl}</div></div>
+      <div class="stat-card" style="cursor:pointer;" onclick="showSection('automations')"><div class="stat-label">Automations</div><div class="stat-value">{num_auto}</div></div>
+      {'<div class="stat-card" style="cursor:pointer;" onclick="showSection(\'bookings\')"><div class="stat-label">Booking Schedules</div><div class="stat-value">' + str(len(booking_schedules)) + '</div></div>' if has_bookings else ''}
     </div>
     <div class="two-col">
       <div class="card">
         <div class="card-title">📋 Your Account at a Glance</div>
-        <p style="font-size:13.5px; color:var(--text-mid); line-height:1.7;">{esc(overview)}</p><br>
-        <a class="btn btn-outline" onclick="showSection('workflows')" style="font-size:12px;">View all workflows →</a>
+        <p style="font-size:13.5px; color:var(--text-mid); line-height:1.7;">{esc(overview)}</p>{team_html}
+        <div style="display:flex; align-items:center; gap:10px; margin-top:16px; padding:10px 14px; background:var(--copper-pale); border-radius:8px;">
+          <span style="font-size:11px; letter-spacing:0.08em; text-transform:uppercase; color:var(--copper); font-weight:500; white-space:nowrap;">Recommended tune-up</span>
+          <span style="font-size:13px; color:var(--text); font-weight:500;" id="reviewStatus">{esc(checkin_label)}</span>
+        </div>
+        <div style="margin-top:14px;">
+        <a class="btn btn-outline" onclick="showSection('{('client-experience' if journey_branches else 'workflows')}')" style="font-size:12px;">{'Explore client experience →' if journey_branches else 'View all workflows →'}</a>
+        </div>
       </div>
       <div class="card">
         <div class="card-title">⚡ Quick Tips for Your Setup</div>
@@ -768,7 +1680,10 @@ def generate_portal(data_path, output_path):
         </ul>
       </div>
     </div>
+{special_notes_card}
   </section>
+
+{journey_section}
 
   <section class="page-section" id="workflows">
     <div class="section-header">
@@ -781,7 +1696,7 @@ def generate_portal(data_path, output_path):
   <section class="page-section" id="pipelines">
     <div class="section-header">
       <h1>Pipelines</h1>
-      <p>Visual maps of your {esc(name)} pipelines; exactly how Nicole set them up in 17hats.</p>
+      <p>What moves clients between phases and which workflows trigger those movements.</p>
     </div>
 {pipelines_html}
   </section>
@@ -789,14 +1704,9 @@ def generate_portal(data_path, output_path):
   <section class="page-section" id="automations">
     <div class="section-header">
       <h1>Automations</h1>
-      <p>Everything running automatically in the background of your 17hats account. Click any group to see the details.</p>
+      <p>Everything running automatically in the background of your 17hats account.</p>
     </div>
-    <div class="card">
-      <div class="card-title">⚙️ Automations Running in the Background</div>
-      <div class="workflow-list">
 {auto_html}
-      </div>
-    </div>
   </section>
 
 {bookings_section}
@@ -887,34 +1797,30 @@ def generate_portal(data_path, output_path):
     </div>
   </section>
 
-  <section class="page-section" id="get-help">
-    <div class="section-header"><h1>Get Help from Nicole</h1><p>When you need more than your portal can offer; Nicole's here.</p></div>
+  <section class="page-section" id="contact-nicole">
+    <div class="section-header"><h1>Contact Nicole</h1><p>Questions, change requests, or just need to reach out. Nicole typically responds within 1-2 business days.</p></div>
     <div class="two-col">
       <div class="card"><div class="card-title">📅 Book a Session</div><p style="font-size:13.5px; color:var(--text-mid); line-height:1.7; margin-bottom:20px;">Your setup includes two 1-hour walkthrough Tech Check calls, but additional call packs are always available!</p><a href="https://letnicolehelp.17hats.com/p#/lcf/xnngshvxghfzwsnxzpvzbndcxxsfwndb" target="_blank" class="btn btn-copper">Book a Tech Check Call →</a></div>
-      <div class="card"><div class="card-title">📧 Send Nicole a Message</div><p style="font-size:13.5px; color:var(--text-mid); line-height:1.7; margin-bottom:20px;">Have a question that Robot Nicole can't answer? Reach out directly. Nicole typically responds within 1-2 business days.</p>
-        <div style="display:flex; flex-direction:column; gap:10px;">
-          <input type="text" id="msgSubject" placeholder="Subject" style="border:1px solid var(--border); border-radius:7px; padding:10px 13px; font-family:'Montserrat',sans-serif; font-size:13px; outline:none; color:var(--text); background:var(--cream);">
-          <textarea rows="4" id="msgBody" placeholder="Your question or request..." style="border:1px solid var(--border); border-radius:7px; padding:10px 13px; font-family:'Montserrat',sans-serif; font-size:13px; outline:none; color:var(--text); background:var(--cream); resize:none;"></textarea>
-          <button class="btn btn-primary" style="align-self:flex-start;" onclick="openEmail()">Send Message →</button>
-        </div>
-      </div>
+      <div class="card" style="border-left:3px solid var(--copper);"><div class="card-title">💡 Good to know</div><p style="font-size:13.5px; color:var(--text-mid); line-height:1.7;">Not sure if your request is a quick fix or something bigger? Ask Robot Nicole first. Minor updates to existing workflows are typically included in your annual maintenance. New workflows, pipelines, or event types are quoted separately.</p></div>
     </div>
-    <div class="card" style="background:var(--green-pale);"><div class="card-title">💌 Stay in Nicole's World</div><div class="resources-grid" style="margin:0;">
-      <a href="https://youtube.com/@letnicolehelp" target="_blank" class="resource-card"><div class="resource-icon">▶</div><div class="resource-title">YouTube</div></a>
-      <a href="https://instagram.com/letnicolehelp" target="_blank" class="resource-card"><div class="resource-icon">📸</div><div class="resource-title">Instagram</div></a>
-    </div></div>
-  </section>
-
-  <section class="page-section" id="requests">
-    <div class="section-header"><h1>Request a Change</h1><p>Want to update something in your 17hats setup? Submit it here and Nicole will review it within 1-2 business days.</p></div>
-    <div class="card" style="border-left:3px solid var(--copper);"><div class="card-title">💡 Before you submit</div><p style="font-size:13.5px; color:var(--text-mid); line-height:1.7;">Not sure if your request is a quick fix or something bigger? Ask Robot Nicole first; she can help you figure out what's involved before you submit. Minor updates to existing workflows are typically included in your annual maintenance. New workflows, pipelines, or event types are quoted separately.</p></div>
-    <div class="card"><div class="card-title">✏️ Submit a Change Request</div>
+    <div class="card">
+      <div class="card-title">✏️ Send Nicole a Message</div>
       <div style="display:flex; flex-direction:column; gap:14px;">
-        <div><label style="font-size:11px; letter-spacing:0.1em; text-transform:uppercase; color:var(--text-light); display:block; margin-bottom:6px;">Request Summary *</label><input type="text" id="req-summary" placeholder="e.g. Add a new event type" style="width:100%; border:1px solid var(--border); border-radius:7px; padding:10px 13px; font-family:'Montserrat',sans-serif; font-size:13px; outline:none; color:var(--text); background:var(--cream);"></div>
-        <div><label style="font-size:11px; letter-spacing:0.1em; text-transform:uppercase; color:var(--text-light); display:block; margin-bottom:6px;">Full Details *</label><textarea id="req-detail" rows="4" placeholder="Describe exactly what you'd like changed or added..." style="width:100%; border:1px solid var(--border); border-radius:7px; padding:10px 13px; font-family:'Montserrat',sans-serif; font-size:13px; outline:none; color:var(--text); background:var(--cream); resize:vertical;"></textarea></div>
-        <div><label style="font-size:11px; letter-spacing:0.1em; text-transform:uppercase; color:var(--text-light); display:block; margin-bottom:6px;">Why / Context</label><textarea id="req-why" rows="2" placeholder="Why do you need this change?" style="width:100%; border:1px solid var(--border); border-radius:7px; padding:10px 13px; font-family:'Montserrat',sans-serif; font-size:13px; outline:none; color:var(--text); background:var(--cream); resize:vertical;"></textarea></div>
-        <div><label style="font-size:11px; letter-spacing:0.1em; text-transform:uppercase; color:var(--text-light); display:block; margin-bottom:6px;">Urgency</label><select id="req-urgency" style="width:100%; border:1px solid var(--border); border-radius:7px; padding:10px 13px; font-family:'Montserrat',sans-serif; font-size:13px; outline:none; color:var(--text); background:var(--cream);"><option value="Normal">Normal; no rush</option><option value="High">High; needed soon</option><option value="Low">Low; whenever you get to it</option></select></div>
-        <div><button class="btn btn-copper" onclick="submitRequest()">Submit Request →</button><div id="req-status" style="font-size:13px; margin-top:10px; display:none;"></div></div>
+        <div><label class="cn-label">What's this about? *</label><input type="text" id="cn-subject" placeholder="e.g. Update my headshot booking workflow" class="cn-input"></div>
+        <div><label class="cn-label">Details *</label><textarea id="cn-details" rows="4" placeholder="Describe what you need changed, added, or your question..." class="cn-input" style="resize:vertical;"></textarea></div>
+        <div><label class="cn-label">Urgency</label><select id="cn-urgency" class="cn-input"><option value="Normal">Normal — no rush</option><option value="High">High — needed soon</option><option value="Low">Low — whenever you get to it</option></select></div>
+        <div>
+          <label class="cn-label">Which parts of your setup? <span style="font-weight:400; text-transform:none; letter-spacing:0; font-size:11px; color:var(--text-light);">(optional — select any that apply)</span></label>
+          <div class="cn-checklist-wrap">
+            <input type="text" id="cn-search" placeholder="Search workflows, pipelines, bookings..." class="cn-input" style="margin-bottom:8px;" oninput="filterSetupItems(this.value)">
+            <div class="cn-checklist" id="cn-checklist"></div>
+          </div>
+        </div>
+        <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+          <button class="btn btn-copper" onclick="contactNicole('email')">📧 Open in email →</button>
+          <button class="btn btn-outline" onclick="contactNicole('copy')">📋 Copy to clipboard</button>
+          <span id="cn-status" style="font-size:12px; color:var(--green); display:none;"></span>
+        </div>
       </div>
     </div>
   </section>
@@ -948,10 +1854,17 @@ function initPortal(){{const e=document.getElementById('lastUpdatedLine');if(e)e
 
 function showSection(id){{document.querySelectorAll('.page-section').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));const m=document.querySelector('.nav-item[onclick*="'+id+'"]');if(m)m.classList.add('active');window.scrollTo(0,0);if(id==='whats-new'){{const b=document.getElementById('newsBadge');if(b)b.style.display='none';}}closeMobileMenu();}}
 function toggleWorkflow(h){{const b=h.nextElementSibling;const t=h.querySelector('.workflow-toggle');b.classList.toggle('open');t.classList.toggle('open');}}
+function saveCheckbox(cb){{const key='portal_'+cb.id;if(cb.checked)localStorage.setItem(key,'1');else localStorage.removeItem(key);updateActionBadge();}}
+function updateActionBadge(){{const all=document.querySelectorAll('.action-item input[type="checkbox"]');const unchecked=Array.from(all).filter(function(cb){{return !cb.checked;}}).length;const badge=document.getElementById('actionBadge');if(badge){{if(unchecked>0){{badge.textContent=unchecked;badge.style.display='inline-flex';}}else{{badge.style.display='none';}}}}}}
+(function(){{document.querySelectorAll('.action-item input[type="checkbox"]').forEach(function(cb){{if(localStorage.getItem('portal_'+cb.id)==='1')cb.checked=true;}});updateActionBadge();}})();
+{journey_js}
 function toggleMobileMenu(){{document.querySelector('.sidebar').classList.toggle('mobile-open');document.getElementById('hamburger').classList.toggle('open');document.getElementById('mobileOverlay').classList.toggle('visible');}}
 function closeMobileMenu(){{document.querySelector('.sidebar').classList.remove('mobile-open');document.getElementById('hamburger').classList.remove('open');document.getElementById('mobileOverlay').classList.remove('visible');}}
 function printSection(){{window.print();}}
-function openEmail(){{const s=document.getElementById('msgSubject').value.trim()||'Question about my 17hats setup';const b=document.getElementById('msgBody').value.trim()||'';window.location.href='mailto:nicole@letnicolehelp.com?subject='+encodeURIComponent(s)+'&body='+encodeURIComponent(b);}}
+const SETUP_ITEMS={setup_items_js};
+(function(){{const c=document.getElementById('cn-checklist');if(!c)return;SETUP_ITEMS.forEach(function(it,i){{const d=document.createElement('label');d.className='cn-item';d.setAttribute('data-name',it.name.toLowerCase());d.innerHTML='<input type="checkbox" value="'+i+'"><span class="cn-item-cat">'+it.cat+'</span><span>'+it.name+'</span>';c.appendChild(d);}});}})();
+function filterSetupItems(q){{const lc=q.toLowerCase();document.querySelectorAll('.cn-item').forEach(function(el){{if(!lc||el.getAttribute('data-name').indexOf(lc)!==-1)el.classList.remove('hidden');else el.classList.add('hidden');}});}}
+function contactNicole(mode){{const subj=document.getElementById('cn-subject').value.trim();const details=document.getElementById('cn-details').value.trim();const urgency=document.getElementById('cn-urgency').value;const st=document.getElementById('cn-status');if(!subj||!details){{st.style.display='inline';st.style.color='#c0392b';st.textContent='Please fill in the subject and details.';return;}}const checked=[];document.querySelectorAll('#cn-checklist input:checked').forEach(function(cb){{checked.push(SETUP_ITEMS[parseInt(cb.value)].name);}});let body='MESSAGE FROM: '+PORTAL_CLIENT_NAME+'\\n\\nSubject: '+subj+'\\n\\nDetails:\\n'+details+'\\n\\nUrgency: '+urgency;if(checked.length)body+='\\n\\nSetup items referenced:\\n- '+checked.join('\\n- ');body+='\\n\\n---\\nSent from '+PORTAL_CLIENT_NAME+' client portal';if(mode==='email'){{window.location.href='mailto:nicole@letnicolehelp.com?subject='+encodeURIComponent(subj+' ('+PORTAL_CLIENT_NAME+')')+'&body='+encodeURIComponent(body);st.style.display='inline';st.style.color='var(--green)';st.textContent='Email client opened!';}}else{{navigator.clipboard.writeText(body).then(function(){{st.style.display='inline';st.style.color='var(--green)';st.textContent='Copied to clipboard!';setTimeout(function(){{st.style.display='none';}},3000);}});}}}}
 document.querySelectorAll('.nav-item').forEach(i=>i.addEventListener('click',function(){{document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));this.classList.add('active');}}));
 
 const CLIENT_CONTEXT=`{client_context_js}`;
@@ -972,7 +1885,6 @@ async function loadAnnouncements(){{const l=document.getElementById('announcemen
 loadAnnouncements();
 
 const PORTAL_CLIENT_NAME='{esc(name)}';
-function submitRequest(){{const s=document.getElementById('req-summary').value.trim();const d=document.getElementById('req-detail').value.trim();const w=document.getElementById('req-why').value.trim();const u=document.getElementById('req-urgency').value;const st=document.getElementById('req-status');if(!s||!d){{st.style.display='block';st.style.color='#c0392b';st.textContent='Please fill in both the summary and details fields.';return;}}const subj='Portal Change Request: '+s+' ('+PORTAL_CLIENT_NAME+')';const body='CHANGE REQUEST FROM: '+PORTAL_CLIENT_NAME+'\\n\\nSummary: '+s+'\\n\\nDetails:\\n'+d+(w?'\\n\\nWhy / Context:\\n'+w:'')+'\\n\\nUrgency: '+u+'\\n\\n---\\nSent from '+PORTAL_CLIENT_NAME+' client portal';window.location.href='mailto:nicole@letnicolehelp.com?subject='+encodeURIComponent(subj)+'&body='+encodeURIComponent(body);st.style.display='block';st.style.color='var(--green)';st.textContent='Your email client should open with the request details. Send it and Nicole will follow up!';}}
 </script>
 </body>
 </html>'''
